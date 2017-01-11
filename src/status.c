@@ -199,14 +199,6 @@ void _status_set(Status *status, StatusLevel level,
     status->line = line;
 }
 
-bool status_ok(Status *status) {
-    if (status) {
-        _status_set(status, STATUS_OK, NULL, 0, NULL, NULL, 0);
-    }
-
-    return true;
-}
-
 bool _status_debug(Status *status, const char *domain,
                                    int code,
                                    const char *message,

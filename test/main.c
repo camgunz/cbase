@@ -31,28 +31,6 @@ static bool key_equal(const void *key1, const void *key2) {
     return key1 == key2;
 }
 
-#if 0
-static void print_character_table(Table *table) {
-    puts("");
-    for (size_t i = 0; i < table->buckets.len; i++) {
-        TArrayNode *node = (TArrayNode *)array_index_fast(&table->buckets, i);
-
-        if (table_node_empty(node)) {
-            printf("%02zu (00, 00): <Empty>\n", i);
-        }
-        else {
-            printf("%02zu (%02zu, %02zu): %s\n",
-                i,
-                i - node->distance,
-                node->distance,
-                ((Character *)node->obj)->name
-            );
-        }
-    }
-    puts("");
-}
-#endif
-
 static void test_array(void **state) {
     Array *array;
     Status status;
@@ -1219,16 +1197,71 @@ static void test_utf8(void **state) {
     assert_int_equal(strncmp(start, "笠きて草鞋", end - start), 0);
 }
 
+static void test_list(void **state) {
+    List *list = NULL;
+    Person john;
+    Person lyndon;
+    Person james;
+    Person william;
+    Person barack;
+    Person *person;
+
+    Status status;
+
+    (void)state;
+
+    status_init(&status);
+
+    john.name = "John";
+    john.age = 43;
+
+    lyndon.name = "Lyndon";
+    lyndon.age = 55;
+
+    james.name = "James";
+    james.age = 53;
+
+    william.name = "William";
+    william.age = 47;
+
+    barack.name = "Barack";
+    barack.age = 46;
+
+    assert_true(list_new_alloc(&list, 10, &status));
+
+    assert_true(list_push(list, &john, &status));
+    assert_true(list_push(list, &lyndon, &status));
+    assert_true(list_push(list, &james, &status));
+    assert_true(list_push(list, &william, &status));
+    assert_true(list_push(list, &barack, &status));
+
+    list_free(list);
+    free(list);
+}
+
+static void test_alloc(void **state) {
+    const char *s = "Hillary Clinton";
+    char *s2 = __cbstrdup(s);
+
+    (void)state;
+
+    assert_string_equal(s, s2);
+
+    free(s2);
+}
+
 int main(void) {
     int failed_test_count = 0;
 
     const struct CMUnitTest tests[] = {
+        cmocka_unit_test(test_alloc),
         cmocka_unit_test(test_array),
+        cmocka_unit_test(test_list),
         cmocka_unit_test(test_parray),
-        cmocka_unit_test(test_string),
         cmocka_unit_test(test_sslice),
+        cmocka_unit_test(test_string),
         cmocka_unit_test(test_table),
-        cmocka_unit_test(test_utf8)
+        cmocka_unit_test(test_utf8),
     };
 
     failed_test_count = cmocka_run_group_tests(tests, NULL, NULL);

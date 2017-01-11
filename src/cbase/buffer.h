@@ -7,32 +7,27 @@ typedef struct {
     size_t alloc;
 } Buffer;
 
-void  buffer_init(Buffer *buffer);
-bool  buffer_init_alloc(Buffer *buffer, size_t alloc, Status *status);
-bool  buffer_new(Buffer **new_buffer, Status *status);
-bool  buffer_new_alloc(Buffer **new_buffer, size_t alloc, Status *status);
-bool  buffer_ensure_capacity(Buffer *buffer, size_t len, Status *status);
-bool  buffer_shrink(Buffer *buffer, Status *status);
-bool  buffer_copy(Buffer *dst, Buffer *src, Status *status);
-bool  buffer_zero_section(Buffer *buffer, size_t index,
-                                          size_t len,
-                                          Status *status);
-bool  buffer_shift_right(Buffer *buffer, size_t len, Status *status);
-bool  buffer_shift_right_no_zero(Buffer *buffer, size_t len, Status *status);
-bool  buffer_slice(Buffer *buffer, size_t index,
-                                   size_t len,
-                                   Slice *slice,
-                                   Status *status);
-bool  buffer_insert(Buffer *buffer, size_t pos,
-                                    Slice *slice,
-                                    Status *status);
-bool  buffer_delete(Buffer *buffer, size_t index,
-                                    size_t len,
-                                    Status *status);
-bool  buffer_delete_no_zero(Buffer *buffer, size_t index, size_t len,
-                                                          Status *status);
-void  buffer_clear(Buffer *buffer);
-void  buffer_free(Buffer *buffer);
+void buffer_init(Buffer *buffer);
+bool buffer_init_alloc(Buffer *buffer, size_t alloc, Status *status);
+bool buffer_new(Buffer **new_buffer, Status *status);
+bool buffer_new_alloc(Buffer **new_buffer, size_t alloc, Status *status);
+bool buffer_ensure_capacity(Buffer *buffer, size_t len, Status *status);
+bool buffer_shrink(Buffer *buffer, Status *status);
+bool buffer_copy(Buffer *dst, Buffer *src, Status *status);
+bool buffer_zero_section(Buffer *buffer, size_t index, size_t len,
+                                                       Status *status);
+bool buffer_shift_right(Buffer *buffer, size_t len, Status *status);
+bool buffer_shift_right_no_zero(Buffer *buffer, size_t len, Status *status);
+bool buffer_slice(Buffer *buffer, size_t index, size_t len, Slice *slice,
+                                                            Status *status);
+bool buffer_insert(Buffer *buffer, size_t pos, Slice *slice,
+                                               Status *status);
+bool buffer_delete(Buffer *buffer, size_t index, size_t len,
+                                                 Status *status);
+bool buffer_delete_no_zero(Buffer *buffer, size_t index, size_t len,
+                                                         Status *status);
+void buffer_clear(Buffer *buffer);
+void buffer_free(Buffer *buffer);
 
 static inline void buffer_copy_fast(Buffer *dst, Buffer *src) {
     memmove(dst->data, src->data, src->len);

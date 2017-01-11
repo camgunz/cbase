@@ -108,6 +108,8 @@ bool status_set_handler(const char *domain, int code,
                                             StatusHandlerFunc *handler,
                                             Status *status);
 
+#define status_ok(st) true
+
 #endif
 
 /* vi: set et ts=4 sw=4: */

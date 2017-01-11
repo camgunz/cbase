@@ -370,8 +370,6 @@ bool sslice_seek_to_subslice(SSlice *s, SSlice *subslice, Status *status) {
     return status_ok(status);
 }
 
-#include <stdio.h>
-
 bool sslice_seek_past_subslice(SSlice *s, SSlice *subslice, Status *status) {
     size_t start_len = 0;
     char *start = subslice->data + subslice->byte_len;
