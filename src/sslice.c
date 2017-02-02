@@ -7,13 +7,6 @@
     "SSlice is empty"                 \
 )
 
-#define not_equal(status) status_failure( \
-    status,                               \
-    "sslice",                             \
-    SSLICE_NOT_EQUAL,                     \
-    "Value is not equal"                  \
-)
-
 #define not_subslice(status) status_failure( \
     status,                                  \
     "sslice",                                \
@@ -39,11 +32,11 @@ bool sslice_get_first_rune(SSlice *s, rune *r, Status *status) {
     return utf8_get_first_rune(s->data, r, status);
 }
 
-bool sslice_advance_rune(SSlice *s, Status *status) {
-    return sslice_advance_runes(s, 1, status);
+bool sslice_skip_rune(SSlice *s, Status *status) {
+    return sslice_skip_runes(s, 1, status);
 }
 
-bool sslice_advance_runes(SSlice *s, size_t len, Status *status) {
+bool sslice_skip_runes(SSlice *s, size_t len, Status *status) {
     char *cursor = NULL;
 
     if (sslice_empty(s)) {
@@ -62,7 +55,7 @@ bool sslice_advance_runes(SSlice *s, size_t len, Status *status) {
     return status_ok(status);
 }
 
-bool sslice_advance_rune_if_equals(SSlice *s, rune r, Status *status) {
+bool sslice_skip_rune_if_equals(SSlice *s, rune r, Status *status) {
     rune r2;
     size_t bytes_read;
 
@@ -286,14 +279,14 @@ bool sslice_seek_to(SSlice *s, rune r, Status *status) {
             return false;
         }
 
-        cursor.len--;
-        cursor.byte_len -= bytes_read;
-        cursor.data += bytes_read;
-
         if (r2 == r) {
             sslice_copy(s, &cursor);
             return status_ok(status);
         }
+
+        cursor.len--;
+        cursor.byte_len -= bytes_read;
+        cursor.data += bytes_read;
     }
 
     return not_found(status);
@@ -311,7 +304,7 @@ bool sslice_seek_to_cstr(SSlice *s, const char *cs, Status *status) {
             return status_ok(status);
         }
 
-        if (!sslice_advance_rune(&cursor, status)) {
+        if (!sslice_skip_rune(&cursor, status)) {
             return false;
         }
     }
@@ -496,6 +489,49 @@ bool sslice_truncate_at(SSlice *s, rune r, Status *status) {
     }
 
     return not_found(status);
+}
+
+bool sslice_truncate_at_whitespace(SSlice *s, Status *status) {
+    SSlice cursor;
+
+    sslice_copy(&cursor, s);
+
+    while (cursor.byte_len) {
+        rune r;
+        size_t offset;
+
+        if (!utf8_get_end_rune_offset(cursor.data, cursor.byte_len,
+                                                   &r,
+                                                   &offset,
+                                                   status)) {
+            return false;
+        }
+
+        if (rune_is_whitespace(r)) {
+            sslice_copy(s, &cursor);
+            return status_ok(status);
+        }
+
+        cursor.len--;
+        cursor.byte_len -= offset;
+    }
+
+    return not_found(status);
+}
+
+bool sslice_truncate_at_subslice(SSlice *s, SSlice *subslice, Status *status) {
+    if (subslice->data < s->data) {
+        return not_subslice(status);
+    }
+
+    if (((size_t)(subslice->data - s->data)) >= s->len) {
+        return not_subslice(status);
+    }
+
+    s->len -= subslice->len;
+    s->byte_len -= subslice->byte_len;
+
+    return status_ok(status);
 }
 
 char* sslice_to_cstr(SSlice *s) {

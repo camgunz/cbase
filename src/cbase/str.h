@@ -21,6 +21,7 @@ bool string_new_len(String **s, const char *data, size_t byte_len,
 bool string_new_full(String **s, const char *data, size_t len,
                                                    size_t byte_len,
                                                    Status *status);
+bool string_init_from_sslice(String *s, SSlice *ss, Status *status);
 bool string_ensure_capacity(String *s, size_t byte_len, Status *status);
 bool string_assign(String *s, const char *data, Status *status);
 bool string_assign_len(String *s, const char *data, size_t byte_len,

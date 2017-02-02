@@ -44,6 +44,8 @@ bool utf8_slice_fast(const char *data, size_t index, size_t len,
                                                      char **start,
                                                      char **end,
                                                      ssize_t *error);
+bool rune_to_string(rune r, char **out, Status *status);
+
 
 static inline bool utf8cmp(const char *s1, const char *s2) {
     return strcmp(s1, s2) == 0;

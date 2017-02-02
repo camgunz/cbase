@@ -29,6 +29,19 @@ bool string_init_full(String *s, const char *data, size_t len,
     return string_assign_full(s, data, len, byte_len, status);
 }
 
+bool string_init_from_sslice(String *s, SSlice *ss, Status *status) {
+    if (!string_ensure_capacity(s, ss->byte_len, status)) {
+        return false;
+    }
+
+    s->len = ss->len;
+    s->byte_len = ss->byte_len;
+    memmove(s->data, ss->data, ss->byte_len);
+    s->data[s->byte_len] = '\0';
+
+    return status_ok(status);
+}
+
 bool string_new(String **s, const char *data, Status *status) {
     String *new_string = cbmalloc(sizeof(String));
 

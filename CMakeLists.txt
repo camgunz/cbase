@@ -104,7 +104,6 @@ SET(LIBCBASE_SOURCE_FILES
   ${CMAKE_SOURCE_DIR}/src/alloc.c
   ${CMAKE_SOURCE_DIR}/src/array.c
   ${CMAKE_SOURCE_DIR}/src/buffer.c
-  ${CMAKE_SOURCE_DIR}/src/decimal.c
   ${CMAKE_SOURCE_DIR}/src/list.c
   ${CMAKE_SOURCE_DIR}/src/log.c
   ${CMAKE_SOURCE_DIR}/src/parray.c
@@ -165,20 +164,44 @@ IF((NOT DEFINED SHARE_DIR) OR (SHARE_DIR STREQUAL ""))
   SET(SHARE_DIR "${PREFIX}/share")
 ENDIF()
 
-FILE(GLOB INCLUDE_FILES
-  ${CMAKE_SOURCE_DIR}/src/cbase/*.h
+SET(INCLUDE_FILES
+  ${CMAKE_SOURCE_DIR}/src/cbase/alloc.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/array.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/buffer.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/decimal.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/errors.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/hash.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/list.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/log.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/parray.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/rune.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/slice.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/sslice.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/status.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/str.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/table.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/utf8.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/xxhash.h
 )
 
 SET(INCLUDE_FILES ${INCLUDE_FILES} ${CMAKE_SOURCE_DIR}/src/cbase.h)
 
 INSTALL(
-  TARGETS cbase cbase_test
+  TARGETS cbase
   RUNTIME DESTINATION ${BIN_DIR}
   LIBRARY DESTINATION ${LIB_DIR}
   ARCHIVE DESTINATION ${LIB_DIR}
 )
 
-INSTALL(FILES ${INCLUDE_FILES} DESTINATION ${INCLUDE_DIR})
+INSTALL(
+  FILES ${INCLUDE_FILES}
+  DESTINATION ${INCLUDE_DIR}/cbase
+)
+
+INSTALL(
+  FILES ${CMAKE_SOURCE_DIR}/src/cbase.h
+  DESTINATION ${INCLUDE_DIR}
+)
 
 # vi: ai:ts=2:sw=2:et
 

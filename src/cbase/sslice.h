@@ -3,7 +3,6 @@
 
 enum {
     SSLICE_EMPTY = 1,
-    SSLICE_NOT_EQUAL,
     SSLICE_NOT_SUBSLICE,
 };
 
@@ -15,9 +14,9 @@ typedef struct {
 
 bool  sslice_starts_with_cstr(SSlice *s, const char *cs);
 bool  sslice_get_first_rune(SSlice *s, rune *r, Status *status);
-bool  sslice_advance_rune(SSlice *s, Status *status);
-bool  sslice_advance_runes(SSlice *s, size_t rune_count, Status *status);
-bool  sslice_advance_rune_if_equals(SSlice *s, rune r, Status *status);
+bool  sslice_skip_rune(SSlice *s, Status *status);
+bool  sslice_skip_runes(SSlice *s, size_t rune_count, Status *status);
+bool  sslice_skip_rune_if_equals(SSlice *s, rune r, Status *status);
 bool  sslice_pop_rune(SSlice *s, rune *r, Status *status);
 bool  sslice_first_rune_equals(SSlice *s, rune r, Status *status);
 bool  sslice_pop_rune_if_alpha(SSlice *s, rune *r, Status *status);
@@ -36,6 +35,8 @@ bool  sslice_seek_past_whitespace(SSlice *s, Status *status);
 bool  sslice_truncate_runes(SSlice *s, size_t rune_count, Status *status);
 bool  sslice_truncate_whitespace(SSlice *s, Status *status);
 bool  sslice_truncate_at(SSlice *s, rune r, Status *status);
+bool  sslice_truncate_at_whitespace(SSlice *s, Status *status);
+bool  sslice_truncate_at_subslice(SSlice *s, SSlice *subslice, Status *status);
 char* sslice_to_cstr(SSlice *s);
 
 static inline bool sslice_empty(SSlice *s) {

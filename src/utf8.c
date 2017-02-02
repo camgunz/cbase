@@ -348,4 +348,34 @@ bool utf8_get_end_rune_offset(const char *data, size_t byte_len,
     return invalid_utf8(status);
 }
 
+bool rune_to_string(rune r, char **out, Status *status) {
+    uint8_t buf[4] = {0};
+    ssize_t bytes_written;
+    char *s;
+
+    if (!utf8proc_codepoint_valid(r)) {
+        return invalid_utf8(status);
+    }
+
+    bytes_written = utf8proc_encode_char(r, &buf[0]);
+
+    if (bytes_written < 1) {
+        return utf8_handle_error_code(bytes_written, status);
+    }
+
+    s = cbmalloc(bytes_written + 1);
+
+    if (!s) {
+        return alloc_failure(status);
+    }
+
+    memmove(s, &buf[0], bytes_written);
+
+    buf[bytes_written] = '\0';
+
+    *out = s;
+
+    return status_ok(status);
+}
+
 /* vi: set et ts=4 sw=4: */

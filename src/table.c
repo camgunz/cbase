@@ -282,6 +282,14 @@ void* table_iterate(Table *table, size_t *index, void *obj) {
     return NULL;
 }
 
+void table_clear(Table *table) {
+    array_clear(&table->buckets);
+    table->bucket_bit = START_BIT;
+    table->bucket_max = 1 << table->bucket_bit;
+    table->bucket_mask = table->bucket_max - 1;
+    table->len = 0;
+}
+
 void table_free(Table *table) {
     array_free(&table->buckets);
 

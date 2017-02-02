@@ -757,25 +757,25 @@ static void test_sslice(void **state) {
     assert_true(sslice_get_first_rune(&ss, &r, &status));
     assert_int_equal(r, '1');
 
-    assert_true(sslice_advance_rune(&ss, &status));
+    assert_true(sslice_skip_rune(&ss, &status));
     assert_true(sslice_get_first_rune(&ss, &r, &status));
     assert_int_equal(r, 'a');
     assert_int_equal(ss.len, 56);
     assert_int_equal(ss.byte_len, 56);
 
-    assert_true(sslice_advance_runes(&ss, 2, &status));
+    assert_true(sslice_skip_runes(&ss, 2, &status));
     assert_true(sslice_get_first_rune(&ss, &r, &status));
     assert_int_equal(r, 'c');
     assert_int_equal(ss.len, 54);
     assert_int_equal(ss.byte_len, 54);
 
-    assert_false(sslice_advance_rune_if_equals(&ss, 'd', &status));
-    assert_int_equal(status.code, SSLICE_NOT_EQUAL);
+    assert_false(sslice_skip_rune_if_equals(&ss, 'd', &status));
+    assert_int_equal(status.code, ERROR_NOT_EQUAL);
     assert_string_equal(status.domain, "sslice");
 
     status_init(&status);
 
-    assert_true(sslice_advance_rune_if_equals(&ss, 'c', &status));
+    assert_true(sslice_skip_rune_if_equals(&ss, 'c', &status));
     assert_true(sslice_get_first_rune(&ss, &r, &status));
     assert_int_equal(r, ' ');
     assert_int_equal(ss.len, 53);
@@ -840,7 +840,7 @@ static void test_sslice(void **state) {
     assert_int_equal(ss.byte_len, 11);
     assert_true(sslice_equals_cstr(&ss, "801234567 2"));
 
-    assert_true(sslice_advance_rune(&ss2, &status));
+    assert_true(sslice_skip_rune(&ss2, &status));
 
     assert_true(sslice_seek_past_subslice(&ss, &ss2, &status));
     assert_int_equal(ss.len, 8);
@@ -862,7 +862,7 @@ static void test_sslice(void **state) {
     assert_int_equal(status.code, ERROR_NOT_FOUND);
     assert_string_equal(status.domain, "base");
 
-    assert_true(sslice_advance_rune(&ss, &status));
+    assert_true(sslice_skip_rune(&ss, &status));
     while (ss.len) {
         size_t len = ss.len;
 
@@ -876,7 +876,7 @@ static void test_sslice(void **state) {
     assert_int_equal(status.code, ERROR_NOT_FOUND);
     assert_string_equal(status.domain, "base");
 
-    assert_true(sslice_advance_rune(&ss, &status));
+    assert_true(sslice_skip_rune(&ss, &status));
     while (ss.len) {
         size_t len = ss.len;
 
@@ -890,7 +890,7 @@ static void test_sslice(void **state) {
     assert_int_equal(status.code, ERROR_NOT_FOUND);
     assert_string_equal(status.domain, "base");
 
-    assert_true(sslice_advance_rune(&ss, &status));
+    assert_true(sslice_skip_rune(&ss, &status));
     while (ss.len) {
         size_t len = ss.len;
 
@@ -904,7 +904,7 @@ static void test_sslice(void **state) {
     assert_int_equal(status.code, ERROR_NOT_FOUND);
     assert_string_equal(status.domain, "base");
 
-    assert_true(sslice_advance_rune(&ss, &status));
+    assert_true(sslice_skip_rune(&ss, &status));
     while (ss.len) {
         size_t len = ss.len;
 
@@ -918,7 +918,7 @@ static void test_sslice(void **state) {
     assert_int_equal(status.code, ERROR_NOT_FOUND);
     assert_string_equal(status.domain, "base");
 
-    assert_true(sslice_advance_rune(&ss, &status));
+    assert_true(sslice_skip_rune(&ss, &status));
     while (ss.len) {
         size_t len = ss.len;
 
@@ -932,7 +932,7 @@ static void test_sslice(void **state) {
     assert_int_equal(status.code, ERROR_NOT_FOUND);
     assert_string_equal(status.domain, "base");
 
-    assert_true(sslice_advance_rune(&ss, &status));
+    assert_true(sslice_skip_rune(&ss, &status));
     while (ss.len) {
         size_t len = ss.len;
 
@@ -946,7 +946,7 @@ static void test_sslice(void **state) {
     assert_int_equal(status.code, ERROR_NOT_FOUND);
     assert_string_equal(status.domain, "base");
 
-    assert_true(sslice_advance_rune(&ss, &status));
+    assert_true(sslice_skip_rune(&ss, &status));
     while (ss.len) {
         size_t len = ss.len;
 
@@ -1204,7 +1204,9 @@ static void test_list(void **state) {
     Person james;
     Person william;
     Person barack;
-    Person *person;
+    /*
+     * Person *person;
+     */
 
     Status status;
 

@@ -40,6 +40,8 @@
 char* __cbstrdup(const char *cs);
 char* __cbstrndup(const char *cs, size_t len);
 
+char* bufdup(const char *buf, size_t size);
+
 #endif
 
 /* vi: set et ts=4 sw=4: */
