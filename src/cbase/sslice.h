@@ -53,7 +53,7 @@ static inline void sslice_clear(SSlice *s) {
 }
 
 static inline bool sslice_equals_cstr(SSlice *s, const char *cs) {
-    return utf8ncmp(s->data, cs, s->byte_len);
+    return utf8ncmp(s->data, cs, s->byte_len) && cs[s->byte_len] == '\0';
 }
 
 static inline bool sslice_equals(SSlice *s1, SSlice *s2) {

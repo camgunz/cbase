@@ -771,7 +771,7 @@ static void test_sslice(void **state) {
 
     assert_false(sslice_skip_rune_if_equals(&ss, 'd', &status));
     assert_int_equal(status.code, ERROR_NOT_EQUAL);
-    assert_string_equal(status.domain, "sslice");
+    assert_string_equal(status.domain, "base");
 
     status_init(&status);
 
@@ -794,8 +794,8 @@ static void test_sslice(void **state) {
     status_init(&status);
 
     assert_true(sslice_seek_to(&ss, 'a', &status));
-    assert_int_equal(ss.len, 40);
-    assert_int_equal(ss.byte_len, 40);
+    assert_int_equal(ss.len, 41);
+    assert_int_equal(ss.byte_len, 41);
 
     assert_false(sslice_seek_to_cstr(&ss, "cD", &status));
     assert_int_equal(status.code, ERROR_NOT_FOUND);
