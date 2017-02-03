@@ -1,7 +1,6 @@
 # cbase
 
-I found myself reimplementing things over and over again, so I'm consolidating
-them into this repo.  Currently:
+cbase implements some simple data structures in C.
 
 - Data structures:
   - Byte buffer and slice
@@ -10,6 +9,7 @@ them into this repo.  Currently:
   - Pointer array
   - Single/Double linked list
   - Hash table
+- Decimal arithmetic (mpdecimal)
 - Unicode handling (utf8proc)
 - Status
   - Augments C error handling by adding domains and error messages to error
@@ -17,14 +17,13 @@ them into this repo.  Currently:
 - Logging (not full-featured, for statuses and debugging)
 
 Planned:
-
 - File handling
-- Decimal arithmetic (mpdecimal)
 
 ## License
 
-cbase is dual-licensed under the MIT License and the Apache Software License,
-version 2.0.
+cbase is dual-licensed under either the MIT License or the Apache Software
+License, Version 2.0.  Both are included here, in the [LICENSE](LICENSE) and
+[LICENSE-APL20](LICENSE-APL20) files respectively.
 
 ## Testing and Verification
 
@@ -37,12 +36,13 @@ I use all the Clang sanitizers and ensure there are no compilation warnings.
 
 ## Dependencies
 
-cbase requires mpdecimal and utf8proc.
+cbase requires [mpdecimal](http://www.bytereef.org/mpdecimal/) and
+[utf8proc](http://julialang.org/utf8proc/).
 
-## Threadsafety
+## Thread Safety
 
-None of these data structures are threadsafe.  I have vague plans to do this,
-but in a separate project.
+Currently nothing in cbase is threadsafe.  Support for this is intended, but
+not planned.
 
 ## Hash Table
 
@@ -58,13 +58,11 @@ Hash tables can also be seeded.  This is important (read: **critical**) in two
 cases:
 
 1. You plan on passing data between hash tables
-1. You store untrusted keys in a hash table
+2. You store untrusted keys in a hash table
 
-Again, this is **critical**!  Don't just increment `seed` either, hit
-`/dev/urandom` or `CryptGenRandom` for it.  It's not the default to avoid
-syscall overhead in the common case.
-
-Failure to do this will result in unimaginable slowness.
+In these cases, failure to seed will result in **unimaginable** slowness.
+Don't just increment `seed` either, hit `/dev/urandom` or `CryptGenRandom` for
+it.  It's not the default to avoid syscall overhead in the common case.
 
 ## Statuses
 
@@ -73,33 +71,56 @@ similar to exceptions but adds a (negligible) amount of calling overhead and
 provides no unwrapping.
 
 Originally cbase used `int` error codes like most other C libraries.  However,
-this led to inconsistent APIs in places.
+`int` error codes are subject to the
+[semipredicate problem](https://en.wikipedia.org/wiki/Semipredicate_problem)
+and this led to inconsistent APIs in places.
 
-For example: a `find` function should return `size_t` because indices can only
-be positive, but a problem arises in the event a value is **not** found,
-because no valid index can be returned.  The classic resolution of this issue
-is to return `int` and then use negative values to indicate failure, however,
-that's unsatisfactory because it limits your data structures to 31 bits of
-length instead of 64 (you could argue that arrays shouldn't be this large, but
-an array of `2 << 34` bits in length is easy to imagine).  You could even use
-`ssize_t` and get up to `2 << 63`, but that's still only half of the potential
-length.  For a more in-depth discussion, search for the semi-predicate problem.
-
-`int` error codes also lack information about the module in which the error
-occurred.  Data structures often depend on each other, i.e. hash tables and
-arrays.  If a hash table's underlying array returns an error when reallocating,
-the hash table has to map that error code to its own "allocation failed" error
+Further, `int` error codes lack information about where the error occured.
+Data structures often depend on each other, i.e. hash tables and arrays/lists.
+If a hash table's underlying array/list returns an error when reallocating, the
+hash table has to map that error code to its own "allocation failed" error
 code, but then callers aren't entirely sure where that allocation failure came
-from.  Was it in hash table or array?  Does the hash table itself allocate?
+from.  Was it in hash table or array/list?  Does the hash table itself
+allocate?  `Status` has a `domain` field, so in this case the `status->domain`
+would be `array` (cbase's hash tables use arrays).
 
-This leads to the next point: `int` status codes are insufficient for tracing
-errors to their source.  `Status` can track the file and line number of an
-error; `int` is simply not capable of this.
+`int` error codes are also insufficient for tracing errors to their source.
+`Status` has `file` and `line` fields for just this purpose.
 
-Finally, `Status` can be handled via the provided macros.  The `Status` API
+Finally, `Status` can be handled via provided macros.  The `Status` API
 provides the ability to set handlers for any returned status.  This is most
-helpful for allocation failures, which are typically due to fragmented or
-exhausted memory, but there are other uses.
+helpful for allocation failures -- typically due to fragmented or exhausted
+memory -- but there are other uses.  However, exercise care when using this
+feature.  Status handlers have some of the issues exceptions have, particularly
+non-locality.  Ex:
 
-I initially wanted `Status` functionality for applications, but when writing
-these data structures I saw that it could be useful for them as well.
+```c
+if (!call_a_function_that_returns_handled_status(&thing, status)) {
+    /* Status handler ran here, but there's no way of knowing from this code */
+    return definitely_nothing_ran(status);
+}
+```
+
+### Status Performance
+
+The performance burden of `Status` is very, very small.  Most cases are success
+cases, in which case you incur:
+  - Passing an extra pointer to a function
+  - Returning a `bool`
+  - Checking the value of the returned `bool`
+
+Compared to `int` status codes:
+  - Returning an `int`
+  - Checking the value of the returned `int`
+
+In the error case, `Status` is still relatively quick:
+  - Passing an extra pointer to a function
+  - Setting `status->level` (`enum`... `int` really)
+  - Setting `status->domain` (`const char *`)
+  - Setting `status->code` (`int`)
+  - Setting `status->message` (`const char *`)
+  - Setting `status->file` (`const char *`)
+  - Setting `status->line` (`int`)
+  - Returning a `bool`
+  - Checking the value of the returned `bool`
+
