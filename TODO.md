@@ -2,10 +2,8 @@
 
 ## Misc.
 
-- Update license to Apache 2.0/MIT
 - Development
   - File handling (?)
-  - Wrap MPDecimal
 - "shrink" should become "compact"
 - Add overflow checks
 - Add `memmove` define in `alloc`
@@ -22,7 +20,6 @@
 ## APIs
 
 - String could use some printfs
-- `*_advance_*` functions should become `*_skip_*` functions
 - Check for consistency, i.e. when accepting a length, should an error occur if
   len is longer than the data structure, or should it... clear, for example in
   the case of truncation.
@@ -33,7 +30,6 @@
 
 - Buffer
   - Slice
-- List
 - Log
 - Status
 - Alloc
