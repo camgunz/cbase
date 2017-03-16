@@ -80,7 +80,7 @@ static void test_array(void **state) {
     assert_int_equal(array->len, 5);
     assert_int_equal(array->alloc, 5);
 
-    assert_int_equal(array2->len, 0);
+    assert_int_equal(array2->len, 2);
     assert_int_equal(array2->alloc, 2);
 
     assert_true(array_index(array, 0, (void **)&person, &status));

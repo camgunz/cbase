@@ -209,7 +209,6 @@ bool array_insert_array(Array *dst, Array *src, size_t index, Status *status) {
     }
 
     array_insert_array_fast(dst, src, index);
-    array_clear(src);
 
     return status_ok(status);
 }
