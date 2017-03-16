@@ -3,8 +3,8 @@
 set -e
 
 BUILD_DIR='cbuild'
-# BUILD_TYPE='Debug'
-BUILD_TYPE='Release'
+BUILD_TYPE='Debug'
+# BUILD_TYPE='Release'
 
 if [ -d ${BUILD_DIR} ]
 then

@@ -528,8 +528,10 @@ bool sslice_truncate_at_subslice(SSlice *s, SSlice *subslice, Status *status) {
         return not_subslice(status);
     }
 
-    s->len -= subslice->len;
-    s->byte_len -= subslice->byte_len;
+    s->byte_len = subslice->data - s->data;
+    if (!utf8nlen(s->data, s->byte_len, &s->len, status)) {
+        return false;
+    }
 
     return status_ok(status);
 }

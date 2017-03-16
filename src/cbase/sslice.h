@@ -40,11 +40,7 @@ bool  sslice_truncate_at_subslice(SSlice *s, SSlice *subslice, Status *status);
 char* sslice_to_cstr(SSlice *s);
 
 static inline bool sslice_empty(SSlice *s) {
-    return (
-        s->len == 0 &&
-        s->byte_len == 0 &&
-        s->data == NULL
-    );
+    return (s->len == 0 && s->byte_len == 0);
 }
 
 static inline void sslice_clear(SSlice *s) {
@@ -72,6 +68,12 @@ static inline void sslice_copy(SSlice *dst, SSlice *src) {
 
 static inline bool sslice_truncate_rune(SSlice *s, Status *status) {
     return sslice_truncate_runes(s, 1, status);
+}
+
+static inline void sslice_seek_to_end(SSlice *s) {
+    s->data += s->byte_len;
+    s->len = 0;
+    s->byte_len = 0;
 }
 
 #endif

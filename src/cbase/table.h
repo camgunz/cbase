@@ -37,7 +37,8 @@ bool  table_init(Table *table, TableGetHashFromKey *key_to_hash,
 bool  table_insert(Table *table, void *obj, Status *status);
 bool  table_remove(Table *table, void *key, void **obj, Status *status);
 bool  table_lookup(Table *table, void *key, void **obj, Status *status);
-void* table_iterate(Table *table, size_t *index, void *obj);
+bool  table_copy(Table *dst, Table *src, Status *status);
+bool  table_iterate(Table *table, size_t *index, void **obj);
 void  table_clear(Table *table);
 void  table_free(Table *table);
 

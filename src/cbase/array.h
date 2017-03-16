@@ -33,6 +33,7 @@ bool array_insert(Array *array, size_t index, void **new_element,
                                               Status *status);
 bool array_insert_no_zero(Array *array, size_t index, void **new_element,
                                                       Status *status);
+bool array_insert_array(Array *dst, Array *src, size_t index, Status *status);
 bool array_delete(Array *array, size_t index, Status *status);
 bool array_delete_unordered(Array *array, size_t index, Status *status);
 bool array_truncate(Array *array, size_t length, Status *status);
@@ -180,6 +181,23 @@ static inline void array_pop_right_unordered_fast(Array *array, void *element) {
 static inline void array_concat_fast(Array *dst, Array *src) {
     memmove(
         array_index_fast(dst, dst->len),
+        src->elements,
+        src->element_size * src->len
+    );
+
+    dst->len += src->len;
+}
+
+static inline void array_insert_array_fast(Array *dst, Array *src,
+                                                       size_t index) {
+    memmove(
+        array_index_fast(dst, index + src->len),
+        array_index_fast(dst, index),
+        dst->element_size * (dst->len - index)
+    );
+
+    memmove(
+        array_index_fast(dst, index),
         src->elements,
         src->element_size * src->len
     );

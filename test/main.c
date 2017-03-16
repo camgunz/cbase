@@ -28,11 +28,19 @@ static void* character_to_key(const void *obj) {
 }
 
 static bool key_equal(const void *key1, const void *key2) {
-    return key1 == key2;
+    return strcmp((const char *)key1, (const char *)key2) == 0;
+}
+
+static void test_status_handler(StatusHandler *status_handler,
+                                Status *status) {
+    int *ptr = (int *)status_handler->data;
+
+    *ptr = status->code;
 }
 
 static void test_array(void **state) {
     Array *array;
+    Array *array2;
     Status status;
     Person *person;
 
@@ -41,8 +49,105 @@ static void test_array(void **state) {
     status_init(&status);
 
     assert_true(array_new_alloc(&array, sizeof(Person), 3, &status));
+    assert_true(array_ensure_capacity_zero(array, 5, &status));
+    assert_true(array_new(&array2, sizeof(Person), &status));
+
+    assert_true(array_append(array, (void **)&person, &status));
+    person->name = "John";
+    person->age = 43;
+
+    assert_true(array_append(array, (void **)&person, &status));
+    person->name = "Lyndon";
+    person->age = 55;
+
+    assert_true(array_append(array2, (void **)&person, &status));
+    person->name = "James";
+    person->age = 53;
+
+    assert_true(array_append(array2, (void **)&person, &status));
+    person->name = "William";
+    person->age = 47;
+
+    assert_true(array_append(array, (void **)&person, &status));
+    person->name = "Barack";
+    person->age = 46;
+
+    assert_int_equal(array->len, 3);
+    assert_int_equal(array->alloc, 5);
+
+    assert_true(array_insert_array(array, array2, 2, &status));
+
+    assert_int_equal(array->len, 5);
+    assert_int_equal(array->alloc, 5);
+
+    assert_int_equal(array2->len, 0);
+    assert_int_equal(array2->alloc, 2);
+
+    assert_true(array_index(array, 0, (void **)&person, &status));
+    assert_string_equal(person->name, "John");
+    assert_int_equal(person->age, 43);
+
+    assert_true(array_index(array, 1, (void **)&person, &status));
+    assert_string_equal(person->name, "Lyndon");
+    assert_int_equal(person->age, 55);
+
+    assert_true(array_index(array, 2, (void **)&person, &status));
+    assert_string_equal(person->name, "James");
+    assert_int_equal(person->age, 53);
+
+    assert_true(array_index(array, 3, (void **)&person, &status));
+    assert_string_equal(person->name, "William");
+    assert_int_equal(person->age, 47);
+
+    assert_true(array_index(array, 4, (void **)&person, &status));
+    assert_string_equal(person->name, "Barack");
+    assert_int_equal(person->age, 46);
+
+    assert_true(array_set_size(array, 20, &status));
+    assert_int_equal(array->len, 5);
+    assert_int_equal(array->alloc, 20);
+
+    assert_true(array_index(array, 0, (void **)&person, &status));
+    assert_string_equal(person->name, "John");
+    assert_int_equal(person->age, 43);
+
+    assert_true(array_index(array, 1, (void **)&person, &status));
+    assert_string_equal(person->name, "Lyndon");
+    assert_int_equal(person->age, 55);
+
+    assert_true(array_index(array, 2, (void **)&person, &status));
+    assert_string_equal(person->name, "James");
+    assert_int_equal(person->age, 53);
+
+    assert_true(array_index(array, 3, (void **)&person, &status));
+    assert_string_equal(person->name, "William");
+    assert_int_equal(person->age, 47);
+
+    assert_true(array_index(array, 4, (void **)&person, &status));
+    assert_string_equal(person->name, "Barack");
+    assert_int_equal(person->age, 46);
+
+    assert_true(array_set_size(array, 3, &status));
+    assert_int_equal(array->len, 3);
+    assert_int_equal(array->alloc, 3);
+
+    assert_true(array_index(array, 0, (void **)&person, &status));
+    assert_string_equal(person->name, "John");
+    assert_int_equal(person->age, 43);
+
+    assert_true(array_index(array, 1, (void **)&person, &status));
+    assert_string_equal(person->name, "Lyndon");
+    assert_int_equal(person->age, 55);
+
+    assert_true(array_index(array, 2, (void **)&person, &status));
+    assert_string_equal(person->name, "James");
+    assert_int_equal(person->age, 53);
+
     array_free(array);
     cbfree(array);
+
+    array_free(array2);
+    cbfree(array2);
 
     assert_true(array_new_alloc_zero(&array, sizeof(Person), 3, &status));
     assert_non_null(array);
@@ -368,6 +473,14 @@ static void test_parray(void **state) {
     assert_int_equal(parray2->len, 3);
     assert_int_equal(parray2->alloc, 3);
 
+    assert_true(parray_set_size(parray2, 4, &status));
+    assert_int_equal(parray2->len, 3);
+    assert_int_equal(parray2->alloc, 4);
+
+    assert_true(parray_set_size(parray2, 3, &status));
+    assert_int_equal(parray2->len, 3);
+    assert_int_equal(parray2->alloc, 3);
+
     assert_true(parray_delete_leave_null(parray2, 2, &status));
     assert_null(parray_index_fast(parray2, 2));
     assert_int_equal(parray2->len, 3);
@@ -454,7 +567,7 @@ static void test_parray(void **state) {
     Person *person2;
     
     assert_true(parray_pop_right(parray, (void **)&person2, &status));
-    assert_ptr_equal(person2->name, "Barack");
+    assert_string_equal(person2->name, "Barack");
     assert_int_equal(person2->age, 46);
 
     assert_true(parray_pop_left(parray, (void **)&person2, &status));
@@ -686,6 +799,19 @@ static void test_string(void **state) {
     assert_true(string_equals_cstr(s, "We are great because we are good"));
 
     string_clear(s);
+
+    assert_true(string_printf(s, &status, "We are %s because we are %s\n",
+        "great",
+        "good"
+    ));
+
+    assert_true(string_equals_cstr(s, "We are great because we are good\n"));
+
+    assert_true(string_slice(s, 0, s->len, &ss, &status));
+
+    string_clear(s2);
+    assert_true(string_init_from_sslice(s2, &ss, &status));
+    assert_true(string_contents_equal(s, s2));
 
     string_free(s);
     cbfree(s);
@@ -954,6 +1080,19 @@ static void test_sslice(void **state) {
         assert_int_equal(ss.len, len - 1);
     }
 
+    assert_true(string_assign(s, "token1, token2, token3", &status));
+    assert_true(string_slice(s, 0, s->len, &ss, &status));
+    assert_true(string_slice(s, 8, s->len - 8, &ss2, &status));
+    assert_true(sslice_equals_cstr(&ss2, "token2, token3"));
+    assert_true(sslice_truncate_at_whitespace(&ss, &status));
+    assert_true(sslice_equals_cstr(&ss, "token1, token2, "));
+    assert_true(sslice_truncate_at_subslice(&ss, &ss2, &status));
+    assert_true(sslice_equals_cstr(&ss, "token1, "));
+
+    assert_true(sslice_seek_past_subslice(&ss, &ss2, &status));
+    assert_int_equal(ss.len, 0);
+    assert_int_equal(ss.byte_len, 0);
+
     string_free(alpha);
     cbfree(alpha);
     string_free(hex);
@@ -974,6 +1113,7 @@ static void test_sslice(void **state) {
 
 static void test_table(void **state) {
     Table table;
+    Table table2;
     Status status;
 
     (void)state;
@@ -983,6 +1123,24 @@ static void test_table(void **state) {
     assert_true(table_init(
         &table, key_to_hash, person_to_key, key_equal, 0, &status
     ));
+
+    assert_int_equal(table.buckets.len, 16);
+    assert_int_equal(table.buckets.alloc, 16);
+    assert_int_equal(table.bucket_bit, 4);
+    assert_int_equal(table.bucket_max, 16);
+    assert_int_equal(table.bucket_mask, 15);
+    assert_int_equal(table.len, 0);
+
+    assert_true(table_init(
+        &table2, key_to_hash, person_to_key, key_equal, 0, &status
+    ));
+
+    assert_int_equal(table2.buckets.len, 16);
+    assert_int_equal(table2.buckets.alloc, 16);
+    assert_int_equal(table2.bucket_bit, 4);
+    assert_int_equal(table2.bucket_max, 16);
+    assert_int_equal(table2.bucket_mask, 15);
+    assert_int_equal(table2.len, 0);
 
     Person john;
     Person lyndon;
@@ -1016,6 +1174,15 @@ static void test_table(void **state) {
     assert_true(table_insert(&table, &barack, &status));
     assert_int_equal(table.len, 6);
 
+    if (!table_lookup(&table, "John", (void **)&person, &status)) {
+        printf("Error [%s - %d, %s:%d] %s\n",
+            status.domain,
+            status.code,
+            status.file,
+            status.line,
+            status.message
+        );
+    }
     assert_true(table_lookup(&table, "John", (void **)&person, &status));
     assert_string_equal(person->name, "John");
     assert_int_equal(person->age, 43);
@@ -1106,6 +1273,13 @@ static void test_table(void **state) {
     assert_int_equal(table.bucket_max, 32);
     assert_int_equal(table.bucket_mask, 0x1F);
 
+    assert_true(table_copy(&table2, &table, &status));
+
+    assert_int_equal(table2.len, 15);
+    assert_int_equal(table2.bucket_bit, 5);
+    assert_int_equal(table2.bucket_max, 32);
+    assert_int_equal(table2.bucket_mask, 0x1F);
+
     assert_true(table_insert(&table, (void **)&terra, &status));
     assert_true(table_insert(&table, (void **)&umaro, &status));
     assert_true(table_insert(&table, (void **)&umaro, &status));
@@ -1114,9 +1288,10 @@ static void test_table(void **state) {
 
     size_t i;
     size_t count = 0;
+
     cha = NULL;
 
-    while ((cha = table_iterate(&table, &i, cha))) {
+    while (table_iterate(&table, &i, (void **)&cha)) {
         count++;
     }
 
@@ -1156,7 +1331,9 @@ static void test_table(void **state) {
 
     status_clear(&status);
 
-    assert_true(table_remove(&table, (void *)banon.name, (void **)&cha, &status));
+    assert_true(table_remove(
+        &table, (void *)banon.name, (void **)&cha, &status
+    ));
 
     assert_non_null(cha);
     assert_string_equal(cha->name, "Banon");
@@ -1185,6 +1362,8 @@ static void test_utf8(void **state) {
     char *cursor = NULL;
     char *start = NULL;
     char *end = NULL;
+    rune ki = 0x00006728;
+    char *ki_string = NULL;
     Status status;
 
     (void)state;
@@ -1195,50 +1374,254 @@ static void test_utf8(void **state) {
     assert_true(utf8_slice(s, 5, 5, &start, &end, &status));
     assert_int_equal(end - start, 15);
     assert_int_equal(strncmp(start, "笠きて草鞋", end - start), 0);
+    assert_true(rune_to_string(ki, &ki_string, &status));
+    assert_string_equal(ki_string, "木");
 }
 
 static void test_list(void **state) {
     List *list = NULL;
-    Person john;
-    Person lyndon;
-    Person james;
-    Person william;
-    Person barack;
-    /*
-     * Person *person;
-     */
-
+    ListNode *node = NULL;
+    size_t i;
+    Person *person = NULL;
     Status status;
 
     (void)state;
 
     status_init(&status);
 
-    john.name = "John";
-    john.age = 43;
+    assert_true(list_new(&list, sizeof(Person), &status));
+    list_free(list);
 
-    lyndon.name = "Lyndon";
-    lyndon.age = 55;
+    assert_true(list_new_alloc(&list, sizeof(Person), 10, &status));
 
-    james.name = "James";
-    james.age = 53;
+    assert_true(list_push(list, (void **)&person, &status));
+    person->name = "John";
+    person->age = 43;
 
-    william.name = "William";
-    william.age = 47;
+    assert_true(list_push(list, (void **)&person, &status));
+    person->name = "Lyndon";
+    person->age = 55;
 
-    barack.name = "Barack";
-    barack.age = 46;
+    assert_true(list_push(list, (void **)&person, &status));
+    person->name = "James";
+    person->age = 53;
 
-    assert_true(list_new_alloc(&list, 10, &status));
+    assert_true(list_push(list, (void **)&person, &status));
+    person->name = "William";
+    person->age = 47;
 
-    assert_true(list_push(list, &john, &status));
-    assert_true(list_push(list, &lyndon, &status));
-    assert_true(list_push(list, &james, &status));
-    assert_true(list_push(list, &william, &status));
-    assert_true(list_push(list, &barack, &status));
+    assert_true(list_push(list, (void **)&person, &status));
+    person->name = "Barack";
+    person->age = 46;
+
+    i = 0;
+    while (list_iterate(list, &node, (void **)&person)) {
+        switch (i) {
+            case 0:
+                assert_string_equal(person->name, "Barack");
+                assert_int_equal(person->age, 46);
+                break;
+            case 1:
+                assert_string_equal(person->name, "William");
+                assert_int_equal(person->age, 47);
+                break;
+            case 2:
+                assert_string_equal(person->name, "James");
+                assert_int_equal(person->age, 53);
+                break;
+            case 3:
+                assert_string_equal(person->name, "Lyndon");
+                assert_int_equal(person->age, 55);
+                break;
+            case 4:
+                assert_string_equal(person->name, "John");
+                assert_int_equal(person->age, 43);
+                break;
+        }
+        i++;
+    }
+
+    person = NULL;
+
+    assert_true(list_pop(list, (void **)&person, &status));
+    assert_string_equal(person->name, "Barack");
+    assert_int_equal(person->age, 46);
+
+    assert_true(list_pop(list, (void **)&person, &status));
+    assert_string_equal(person->name, "William");
+    assert_int_equal(person->age, 47);
+
+    assert_true(list_pop(list, (void **)&person, &status));
+    assert_string_equal(person->name, "James");
+    assert_int_equal(person->age, 53);
+
+    assert_true(list_pop(list, (void **)&person, &status));
+    assert_string_equal(person->name, "Lyndon");
+    assert_int_equal(person->age, 55);
+
+    assert_true(list_pop(list, (void **)&person, &status));
+    assert_string_equal(person->name, "John");
+    assert_int_equal(person->age, 43);
 
     list_free(list);
     free(list);
+}
+
+static void test_dlist(void **state) {
+    DList *dlist = NULL;
+    DListNode *node = NULL;
+    size_t i;
+    Person *person = NULL;
+    Status status;
+
+    (void)state;
+
+    status_init(&status);
+
+    assert_true(dlist_new(&dlist, sizeof(Person), &status));
+    dlist_free(dlist);
+    assert_true(dlist_new_alloc(&dlist, sizeof(Person), 10, &status));
+
+    assert_true(dlist_push_head(dlist, (void **)&person, &status));
+    person->name = "John";
+    person->age = 43;
+
+    assert_true(dlist_push_head(dlist, (void **)&person, &status));
+    person->name = "Lyndon";
+    person->age = 55;
+
+    assert_true(dlist_push_head(dlist, (void **)&person, &status));
+    person->name = "James";
+    person->age = 53;
+
+    assert_true(dlist_push_head(dlist, (void **)&person, &status));
+    person->name = "William";
+    person->age = 47;
+
+    assert_true(dlist_push_head(dlist, (void **)&person, &status));
+    person->name = "Barack";
+    person->age = 46;
+
+    i = 0;
+    while (dlist_iterate(dlist, &node, (void **)&person)) {
+        switch (i) {
+            case 0:
+                assert_string_equal(person->name, "Barack");
+                assert_int_equal(person->age, 46);
+                break;
+            case 1:
+                assert_string_equal(person->name, "William");
+                assert_int_equal(person->age, 47);
+                break;
+            case 2:
+                assert_string_equal(person->name, "James");
+                assert_int_equal(person->age, 53);
+                break;
+            case 3:
+                assert_string_equal(person->name, "Lyndon");
+                assert_int_equal(person->age, 55);
+                break;
+            case 4:
+                assert_string_equal(person->name, "John");
+                assert_int_equal(person->age, 43);
+                break;
+        }
+        i++;
+    }
+
+    person = NULL;
+
+    assert_true(dlist_pop_head(dlist, (void **)&person, &status));
+    assert_string_equal(person->name, "Barack");
+    assert_int_equal(person->age, 46);
+
+    assert_true(dlist_pop_head(dlist, (void **)&person, &status));
+    assert_string_equal(person->name, "William");
+    assert_int_equal(person->age, 47);
+
+    assert_true(dlist_pop_head(dlist, (void **)&person, &status));
+    assert_string_equal(person->name, "James");
+    assert_int_equal(person->age, 53);
+
+    assert_true(dlist_pop_head(dlist, (void **)&person, &status));
+    assert_string_equal(person->name, "Lyndon");
+    assert_int_equal(person->age, 55);
+
+    assert_true(dlist_pop_head(dlist, (void **)&person, &status));
+    assert_string_equal(person->name, "John");
+    assert_int_equal(person->age, 43);
+
+    assert_true(dlist_push_tail(dlist, (void **)&person, &status));
+    person->name = "John";
+    person->age = 43;
+
+    assert_true(dlist_push_tail(dlist, (void **)&person, &status));
+    person->name = "Lyndon";
+    person->age = 55;
+
+    assert_true(dlist_push_tail(dlist, (void **)&person, &status));
+    person->name = "James";
+    person->age = 53;
+
+    assert_true(dlist_push_tail(dlist, (void **)&person, &status));
+    person->name = "William";
+    person->age = 47;
+
+    assert_true(dlist_push_tail(dlist, (void **)&person, &status));
+    person->name = "Barack";
+    person->age = 46;
+
+    i = 0;
+    while (dlist_iterate(dlist, &node, (void **)&person)) {
+        switch (i) {
+            case 0:
+                assert_string_equal(person->name, "John");
+                assert_int_equal(person->age, 43);
+                break;
+            case 1:
+                assert_string_equal(person->name, "Lyndon");
+                assert_int_equal(person->age, 55);
+                break;
+            case 2:
+                assert_string_equal(person->name, "James");
+                assert_int_equal(person->age, 53);
+                break;
+            case 3:
+                assert_string_equal(person->name, "William");
+                assert_int_equal(person->age, 47);
+                break;
+            case 4:
+                assert_string_equal(person->name, "Barack");
+                assert_int_equal(person->age, 46);
+                break;
+        }
+        i++;
+    }
+
+    person = NULL;
+
+    assert_true(dlist_pop_tail(dlist, (void **)&person, &status));
+    assert_string_equal(person->name, "Barack");
+    assert_int_equal(person->age, 46);
+
+    assert_true(dlist_pop_tail(dlist, (void **)&person, &status));
+    assert_string_equal(person->name, "William");
+    assert_int_equal(person->age, 47);
+
+    assert_true(dlist_pop_tail(dlist, (void **)&person, &status));
+    assert_string_equal(person->name, "James");
+    assert_int_equal(person->age, 53);
+
+    assert_true(dlist_pop_tail(dlist, (void **)&person, &status));
+    assert_string_equal(person->name, "Lyndon");
+    assert_int_equal(person->age, 55);
+
+    assert_true(dlist_pop_tail(dlist, (void **)&person, &status));
+    assert_string_equal(person->name, "John");
+    assert_int_equal(person->age, 43);
+
+    dlist_free(dlist);
+    free(dlist);
 }
 
 static void test_alloc(void **state) {
@@ -1252,6 +1635,125 @@ static void test_alloc(void **state) {
     free(s2);
 }
 
+static void test_status(void **state) {
+    int test_code = 0;
+    Status status;
+    Status *status2;
+
+    (void)state;
+
+    status_init(&status);
+    assert_true(status_is_ok(&status));
+
+    assert_true(_status_new(
+        STATUS_DEBUG, "test", 1, "", __FILE__, __LINE__, &status2, &status
+    ));
+    assert_true(status_is_ok(&status));
+
+    status_init(status2);
+    assert_true(status_is_ok(status2));
+
+    _status_debug(
+        &status, "test", 1, "This is a debug status\n", __FILE__, __LINE__
+    );
+    _status_info(
+        &status, "test", 1, "This is a info status\n", __FILE__, __LINE__
+    );
+    _status_warning(
+        &status, "test", 1, "This is a warning status\n", __FILE__, __LINE__
+    );
+    _status_failure(
+        &status, "test", 1, "This is a failure status\n", __FILE__, __LINE__
+    );
+    _status_error(
+        &status, "test", 1, "This is a error status\n", __FILE__, __LINE__
+    );
+    _status_critical(
+        &status, "test", 1, "This is a critical status\n", __FILE__, __LINE__
+    );
+    _status_fatal(
+        &status, "test", 1, "This is a fatal status\n", __FILE__, __LINE__
+    );
+    _status_set(
+        &status,
+        STATUS_DEBUG,
+        "test",
+        1,
+        "This is a debug status\n",
+        __FILE__,
+        __LINE__
+    );
+
+    _status_debug(
+        NULL, "test", 1, "This is a debug status\n", __FILE__, __LINE__
+    );
+    _status_info(
+        NULL, "test", 1, "This is a info status\n", __FILE__, __LINE__
+    );
+    _status_warning(
+        NULL, "test", 1, "This is a warning status\n", __FILE__, __LINE__
+    );
+    _status_failure(
+        NULL, "test", 1, "This is a failure status\n", __FILE__, __LINE__
+    );
+    _status_error(
+        NULL, "test", 1, "This is a error status\n", __FILE__, __LINE__
+    );
+    _status_critical(
+        NULL, "test", 1, "This is a critical status\n", __FILE__, __LINE__
+    );
+    _status_fatal(
+        NULL, "test", 1, "This is a fatal status\n", __FILE__, __LINE__
+    );
+    assert_true(status_set_handler(
+        "test",
+        28,
+        (void *)&test_code,
+        test_status_handler,
+        &status
+    ));
+
+    assert_true(status_set_handler(
+        NULL,
+        28,
+        (void *)&test_code,
+        test_status_handler,
+        &status
+    ));
+
+    status.domain = "test";
+    status.code = 28;
+    status_handle(&status);
+    assert_int_equal(test_code, 28);
+
+    status_clear_handler("test", 28);
+    test_code = 0;
+    status_handle(&status);
+    assert_int_equal(test_code, 0);
+
+    assert_true(status_match(&status, "test", 28));
+
+    status_copy(status2, &status);
+    assert_int_equal(status.level, status2->level);
+    assert_string_equal(status.domain, status2->domain);
+    assert_string_equal(status.message, status2->message);
+    assert_int_equal(status.code, status2->code);
+    assert_string_equal(status.file, status2->file);
+    assert_int_equal(status.line, status2->line);
+
+    status.domain = NULL;
+    assert_true(status_match(&status, NULL, 28));
+    status_handle(&status);
+    assert_int_equal(test_code, 28);
+
+    status_clear_handler(NULL, 28);
+    test_code = 0;
+    status_handle(&status);
+    assert_int_equal(test_code, 0);
+
+    cbfree(status2);
+}
+
 int main(void) {
     int failed_test_count = 0;
 
@@ -1259,11 +1761,13 @@ int main(void) {
         cmocka_unit_test(test_alloc),
         cmocka_unit_test(test_array),
         cmocka_unit_test(test_list),
+        cmocka_unit_test(test_dlist),
         cmocka_unit_test(test_parray),
         cmocka_unit_test(test_sslice),
         cmocka_unit_test(test_string),
         cmocka_unit_test(test_table),
         cmocka_unit_test(test_utf8),
+        cmocka_unit_test(test_status),
     };
 
     failed_test_count = cmocka_run_group_tests(tests, NULL, NULL);

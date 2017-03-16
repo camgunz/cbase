@@ -1,5 +1,7 @@
 #include "cbase.h"
 
+/* [TODO] Add checks for element_size when running array/array functions */
+
 #define array_element_size_mismatch(status) status_failure( \
     status,                                                 \
     "array",                                                \
@@ -83,25 +85,29 @@ bool array_ensure_capacity_zero(Array *array, size_t length, Status *status) {
             if (!new_elements) {
                 return alloc_failure(status);
             }
+
+            array->elements = new_elements;
+            array->alloc = length;
         }
         else {
             new_elements = cbrealloc(
-                new_elements, array->element_size * length
+                array->elements, array->element_size * length
             );
 
             if (!new_elements) {
                 return alloc_failure(status);
             }
 
+            array->elements = new_elements;
+
             memset(
                 array_index_fast(array, array->alloc),
                 0,
-                array->element_size * length
+                array->element_size * (length - array->alloc)
             );
-        }
 
-        array->elements = new_elements;
-        array->alloc = length;
+            array->alloc = length;
+        }
     }
 
     return status_ok(status);
@@ -193,6 +199,17 @@ bool array_insert_no_zero(Array *array, size_t index, void **new_element,
     }
 
     *new_element = array_insert_fast(array, index);
+
+    return status_ok(status);
+}
+
+bool array_insert_array(Array *dst, Array *src, size_t index, Status *status) {
+    if (!array_ensure_capacity(dst, dst->len + src->len, status)) {
+        return false;
+    }
+
+    array_insert_array_fast(dst, src, index);
+    array_clear(src);
 
     return status_ok(status);
 }

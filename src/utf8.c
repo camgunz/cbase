@@ -108,8 +108,9 @@ bool utf8nlen(const char *data, size_t n, size_t *len, Status *status) {
 
 bool utf8nlen_fast(const char *data, size_t n, size_t *len, ssize_t *error) {
     size_t local_len = 0;
+    size_t local_byte_len = 0;
 
-    while ((local_len < n) && *data) {
+    while ((local_byte_len < n) && *data) {
         rune r;
         ssize_t bytes_read = utf8proc_iterate(
             (const unsigned char *)data, n, &r
@@ -121,6 +122,7 @@ bool utf8nlen_fast(const char *data, size_t n, size_t *len, ssize_t *error) {
         }
 
         local_len++;
+        local_byte_len += bytes_read;
         data += bytes_read;
     }
 
@@ -369,9 +371,9 @@ bool rune_to_string(rune r, char **out, Status *status) {
         return alloc_failure(status);
     }
 
-    memmove(s, &buf[0], bytes_written);
-
     buf[bytes_written] = '\0';
+
+    memmove(s, &buf[0], bytes_written + 1);
 
     *out = s;
 

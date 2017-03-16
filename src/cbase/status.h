@@ -21,13 +21,19 @@ typedef struct {
     int          line;
 } Status;
 
-typedef void(StatusHandlerFunc)(Status *status);
+struct StatusHandlerStruct;
 
-typedef struct {
+typedef void(StatusHandlerFunc)(struct StatusHandlerStruct *status_handler,
+                                Status *status);
+
+struct StatusHandlerStruct {
     const char *domain;
     int code;
+    void *data;
     StatusHandlerFunc *handler;
-} StatusHandler;
+};
+
+typedef struct StatusHandlerStruct StatusHandler;
 
 #define status_new(level, domain, code, msg, new_st, st) \
     _status_new(level, domain, code, msg, __FILE__, __LINE__, new_st, st)
@@ -103,10 +109,11 @@ bool _status_fatal(Status *status, const char *domain,
                                    int line);
 void status_handle(Status *status);
 bool status_match(Status *status, const char *domain, int code);
-int  status_hash(Status *status);
 bool status_set_handler(const char *domain, int code,
+                                            void *data,
                                             StatusHandlerFunc *handler,
                                             Status *status);
+void status_clear_handler(const char *domain, int code);
 
 #define status_ok(st) true
 

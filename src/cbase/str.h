@@ -8,7 +8,7 @@ typedef struct StringStruct {
     char *data;
 } String;
 
-/* [TODO] Some printfs would be nice */
+/* [TODO] More printfs would be nice */
 
 bool string_init(String *s, const char *data, Status *status);
 bool string_init_len(String *s, const char *data, size_t len, Status *status);
@@ -46,6 +46,7 @@ bool string_insert_cstr_fast(String *s, size_t pos, const char *data,
                                                     size_t byte_len,
                                                     ssize_t *error);
 bool string_append(String *s, SSlice *sslice, Status *status);
+bool string_printf(String *s, Status *status, const char *fmt, ...);
 bool string_delete(String *s, size_t index, size_t len, Status *status);
 bool string_delete_fast(String *s, size_t index, size_t len, ssize_t *error);
 void string_free(String *s);
@@ -268,6 +269,10 @@ static inline bool string_truncate(String *s, size_t len, Status *status) {
 
 static inline bool string_truncate_fast(String *s, size_t len, ssize_t *error) {
     return string_delete_fast(s, (s->len - len) + 1, len, error);
+}
+
+static inline bool string_contents_equal(String *s1, String *s2) {
+    return strcmp(s1->data, s2->data) == 0;
 }
 
 static inline bool string_equals_cstr(String *s, const char *cs) {

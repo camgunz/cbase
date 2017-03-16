@@ -11,6 +11,16 @@
     "Table is full"                        \
 )
 
+static inline void reset_buckets(Table *table) {
+    array_clear(&table->buckets);
+    table->buckets.len = table->bucket_max;
+
+    for (size_t i = 0; i < table->buckets.alloc; i++) {
+        TArrayNode *node = (TArrayNode *)array_index_fast(&table->buckets, i);
+        node->distance = SIZE_MAX;
+    }
+}
+
 static bool table_resize(Table *table, size_t new_bucket_bit, Status *status) {
     if (new_bucket_bit < START_BIT) {
         new_bucket_bit = START_BIT;
@@ -228,6 +238,21 @@ bool table_remove(Table *table, void *key, void **obj, Status *status) {
     return not_found(status);
 }
 
+bool table_copy(Table *dst, Table *src, Status *status) {
+    size_t index = 0;
+    void *obj = NULL;
+
+    table_clear(dst);
+
+    while (table_iterate(src, &index, &obj)) {
+        if (!table_insert(dst, obj, status)) {
+            return false;
+        }
+    }
+
+    return status_ok(status);
+}
+
 bool table_lookup(Table *table, void *key, void **obj, Status *status) {
     Array *buckets = &table->buckets;
     size_t hash = table->key_to_hash(key, table->seed);
@@ -259,10 +284,10 @@ bool table_lookup(Table *table, void *key, void **obj, Status *status) {
     return not_found(status);
 }
 
-void* table_iterate(Table *table, size_t *index, void *obj) {
+bool table_iterate(Table *table, size_t *index, void **obj) {
     size_t i = 0;
 
-    if (obj) {
+    if (*obj) {
         i = (*index) + 1;
     }
 
@@ -271,7 +296,8 @@ void* table_iterate(Table *table, size_t *index, void *obj) {
 
         if (!table_node_empty(node)) {
             *index = i;
-            return node->obj;
+            *obj = node->obj;
+            return true;
         }
 
         i++;
@@ -279,15 +305,16 @@ void* table_iterate(Table *table, size_t *index, void *obj) {
 
     *index = 0;
 
-    return NULL;
+    return false;
 }
 
 void table_clear(Table *table) {
-    array_clear(&table->buckets);
     table->bucket_bit = START_BIT;
     table->bucket_max = 1 << table->bucket_bit;
     table->bucket_mask = table->bucket_max - 1;
     table->len = 0;
+
+    reset_buckets(table);
 }
 
 void table_free(Table *table) {

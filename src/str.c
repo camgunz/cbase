@@ -1,5 +1,34 @@
 #include "cbase.h"
 
+bool string_printf(String *s, Status *status, const char *fmt, ...) {
+    va_list args;
+    va_list args2;
+    size_t size;
+
+    va_start(args, fmt);
+
+    va_copy(args2, args);
+
+    size = vsnprintf(NULL, 0, fmt, args2);
+
+    if (!string_ensure_capacity(s, size, status)) {
+        va_end(args);
+        return false;
+    }
+
+    vsnprintf(s->data, size + 1, fmt, args);
+
+    va_end(args);
+
+    if (!utf8len(s->data, &s->len, status)) {
+        return false;
+    }
+
+    s->byte_len = size;
+
+    return status_ok(status);
+}
+
 bool string_init(String *s, const char *data, Status *status) {
     s->len = 0;
     s->byte_len = 0;
