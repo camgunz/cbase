@@ -1,46 +1,102 @@
 #ifndef ALLOC_H__
 #define ALLOC_H__
 
-#ifndef cbmalloc
-#define cbmalloc malloc
+static inline void* __cbmemmove(void *dest, const void *src, size_t size) {
+    return memmove(dest, src, size);
+}
+
+#ifndef cbmemmove
+#define cbmemmove __cbmemmove
 #endif
+
+static inline void* __cbmalloc(size_t count, size_t size) {
+    if ((count > 1) && (size > 1) && ((SIZE_MAX / count) < size)) {
+        errno = ENOMEM;
+        return NULL;
+    }
+
+    return malloc(count * size);
+}
+
+#ifndef cbmalloc
+#define cbmalloc __cbmalloc
+#endif
+
+static inline void* __cbcalloc(size_t count, size_t size) {
+    if ((count > 1) && (size > 1) && ((SIZE_MAX / count) < size)) {
+        errno = ENOMEM;
+        return NULL;
+    }
+
+    return calloc(count, size);
+}
 
 #ifndef cbcalloc
-#define cbcalloc calloc
+#define cbcalloc __cbcalloc
 #endif
+
+static inline void* __cbrealloc(void *ptr, size_t count, size_t size) {
+    if ((count > 1) && (size > 1) && ((SIZE_MAX / count) < size)) {
+        errno = ENOMEM;
+        return NULL;
+    }
+
+    return realloc(ptr, count * size);
+}
 
 #ifndef cbrealloc
-#define cbrealloc realloc
+#define cbrealloc __cbrealloc
 #endif
+
+static inline void __cbfree(void *ptr) {
+    free(ptr);
+}
 
 #ifndef cbfree
-#define cbfree free
+#define cbfree __cbfree
 #endif
 
-#ifndef cbstrdup
-#define cbstrdup _cbstrdup
-#endif
+static inline char* __cbstrndup(const char *cs, size_t len) {
+    char *str = cbmalloc(len + 1, sizeof(char));
 
-#ifdef strdup
-#define _cbstrdup strdup
-#else
-#define _cbstrdup __cbstrdup
-#endif
+    if (!str) {
+        return NULL;
+    }
+
+    cbmemmove(str, cs, len);
+
+    *(str + len) = '\0';
+
+    return str;
+}
 
 #ifndef cbstrndup
-#define cbstrndup _cbstrndup
+#define cbstrndup __cbstrndup
 #endif
 
-#ifdef strndup
-#define _cbstrndup strndup
-#else
-#define _cbstrndup __cbstrndup
+static inline void* cbmemcpy(void *dest, const void *src, size_t size) {
+    return cbmemmove(dest, src, size);
+}
+
+static inline void* __cbmemdup(const void *ptr, size_t count) {
+  void *buf = cbmalloc(count, 1);
+
+  if (!buf) {
+      return NULL;
+  }
+
+  cbmemmove(buf, ptr, count);
+
+  return buf;
+}
+
+#ifndef cbmemdup
+#define cbmemdup __cbmemdup
 #endif
 
-char* __cbstrdup(const char *cs);
-char* __cbstrndup(const char *cs, size_t len);
-
-char* bufdup(const char *buf, size_t size);
+static inline char* cbstrdup(const char *cs) {
+    return cbstrndup(cs, strlen(cs));
+}
 
 #endif
 

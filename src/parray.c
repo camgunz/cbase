@@ -12,7 +12,7 @@ bool parray_init_alloc(PArray *parray, size_t alloc, Status *status) {
 }
 
 bool parray_new(PArray **parray, Status *status) {
-    PArray *new_parray = cbmalloc(sizeof(PArray));
+    PArray *new_parray = cbmalloc(1, sizeof(PArray));
 
     if (!new_parray) {
         return alloc_failure(status);
@@ -34,7 +34,8 @@ bool parray_ensure_capacity(PArray *parray, size_t length, Status *status) {
     if (parray->alloc < length) {
         void **new_elements = cbrealloc(
             parray->elements,
-            sizeof(void *) * length
+            length,
+            sizeof(void *)
         );
 
         if (!new_elements) {
@@ -57,10 +58,7 @@ bool parray_set_size(PArray *parray, size_t length, Status *status) {
         return status_ok(status);
     }
 
-    void **new_elements = cbrealloc(
-        parray->elements,
-        sizeof(void *) * length
-    );
+    void **new_elements = cbrealloc(parray->elements, length, sizeof(void *));
 
     if (!new_elements) {
         return alloc_failure(status);
@@ -76,7 +74,8 @@ bool parray_shrink(PArray *parray, Status *status) {
     if (parray->alloc > parray->len) {
         void *new_elements = cbrealloc(
             parray->elements,
-            sizeof(void *) * parray->len
+            parray->len,
+            sizeof(void *)
         );
 
         if (!new_elements) {

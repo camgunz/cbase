@@ -29,7 +29,7 @@ bool array_init_alloc_zero(Array *array, size_t element_size, size_t alloc,
 }
 
 bool array_new(Array **array, size_t element_size, Status *status) {
-    Array *new_array = cbmalloc(sizeof(Array));
+    Array *new_array = cbmalloc(1, sizeof(Array));
 
     if (!new_array) {
         return alloc_failure(status);
@@ -60,7 +60,8 @@ bool array_ensure_capacity(Array *array, size_t length, Status *status) {
     if (array->alloc < length) {
         void *new_elements = cbrealloc(
             array->elements,
-            array->element_size * length
+            array->element_size,
+            length
         );
 
         if (!new_elements) {
@@ -91,7 +92,7 @@ bool array_ensure_capacity_zero(Array *array, size_t length, Status *status) {
         }
         else {
             new_elements = cbrealloc(
-                array->elements, array->element_size * length
+                array->elements, array->element_size, length
             );
 
             if (!new_elements) {
@@ -124,7 +125,8 @@ bool array_set_size(Array *array, size_t length, Status *status) {
 
     void *new_elements = cbrealloc(
         array->elements,
-        array->element_size * length
+        array->element_size,
+        length
     );
 
 
@@ -146,7 +148,8 @@ bool array_shrink(Array *array, Status *status) {
     if (array->alloc > array->len) {
         void *new_elements = cbrealloc(
             array->elements,
-            array->element_size * array->len
+            array->element_size,
+            array->len
         );
 
         if (!new_elements) {

@@ -339,11 +339,11 @@ static void test_parray(void **state) {
     PArray *parray2;
     Status status;
     Person *person = NULL;
-    Person *john = cbmalloc(sizeof(Person));
-    Person *lyndon = cbmalloc(sizeof(Person));
-    Person *james = cbmalloc(sizeof(Person));
-    Person *william = cbmalloc(sizeof(Person));
-    Person *barack = cbmalloc(sizeof(Person));
+    Person *john = cbmalloc(1, sizeof(Person));
+    Person *lyndon = cbmalloc(1, sizeof(Person));
+    Person *james = cbmalloc(1, sizeof(Person));
+    Person *william = cbmalloc(1, sizeof(Person));
+    Person *barack = cbmalloc(1, sizeof(Person));
 
     (void)state;
 
@@ -976,7 +976,7 @@ static void test_sslice(void **state) {
     char *dup = sslice_to_cstr(&ss);
     assert_non_null(dup);
     assert_int_equal(strcmp("234567 2", dup), 0);
-    free(dup);
+    cbfree(dup);
 
     assert_true(sslice_truncate_runes(&ss, 100, &status));
     assert_int_equal(ss.len, 0);
@@ -1464,7 +1464,7 @@ static void test_list(void **state) {
     assert_int_equal(person->age, 43);
 
     list_free(list);
-    free(list);
+    cbfree(list);
 }
 
 static void test_dlist(void **state) {
@@ -1621,18 +1621,18 @@ static void test_dlist(void **state) {
     assert_int_equal(person->age, 43);
 
     dlist_free(dlist);
-    free(dlist);
+    cbfree(dlist);
 }
 
 static void test_alloc(void **state) {
     const char *s = "Hillary Clinton";
-    char *s2 = __cbstrdup(s);
+    char *s2 = cbstrdup(s);
 
     (void)state;
 
     assert_string_equal(s, s2);
 
-    free(s2);
+    cbfree(s2);
 }
 
 static void test_status(void **state) {

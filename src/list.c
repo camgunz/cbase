@@ -94,7 +94,7 @@ bool list_init_alloc(List *list, size_t element_size, size_t length,
 }
 
 bool list_new(List **new_list, size_t element_size, Status *status) {
-    List *list = cbmalloc(sizeof(List));
+    List *list = cbmalloc(1, sizeof(List));
 
     if (!list) {
         return alloc_failure(status);
@@ -109,7 +109,7 @@ bool list_new(List **new_list, size_t element_size, Status *status) {
 
 bool list_new_alloc(List **new_list, size_t element_size, size_t length,
                                                           Status *status) {
-    List *list = cbmalloc(sizeof(List));
+    List *list = cbmalloc(1, sizeof(List));
 
     if (!list) {
         return alloc_failure(status);
@@ -217,7 +217,7 @@ bool dlist_init_alloc(DList *dlist, size_t element_size, size_t length,
 }
 
 bool dlist_new(DList **new_dlist, size_t element_size, Status *status) {
-    DList *dlist = cbmalloc(sizeof(DList));
+    DList *dlist = cbmalloc(1, sizeof(DList));
 
     if (!dlist) {
         return alloc_failure(status);
@@ -232,7 +232,7 @@ bool dlist_new(DList **new_dlist, size_t element_size, Status *status) {
 
 bool dlist_new_alloc(DList **new_dlist, size_t element_size, size_t length,
                                                              Status *status) {
-    DList *dlist = cbmalloc(sizeof(DList));
+    DList *dlist = cbmalloc(1, sizeof(DList));
 
     if (!dlist) {
         return alloc_failure(status);

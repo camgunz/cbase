@@ -35,7 +35,7 @@ void slice_shallow_copy(Slice *dst, Slice *src) {
 }
 
 bool slice_deep_copy(Slice *dst, Slice *src, Status *status) {
-    char *data = cbmalloc(src->len);
+    char *data = cbmalloc(src->len, sizeof(char));
 
     if (!data) {
         return alloc_failure(status);

@@ -365,7 +365,7 @@ bool rune_to_string(rune r, char **out, Status *status) {
         return utf8_handle_error_code(bytes_written, status);
     }
 
-    s = cbmalloc(bytes_written + 1);
+    s = cbmalloc(bytes_written + 1, sizeof(byte));
 
     if (!s) {
         return alloc_failure(status);
@@ -373,7 +373,7 @@ bool rune_to_string(rune r, char **out, Status *status) {
 
     buf[bytes_written] = '\0';
 
-    memmove(s, &buf[0], bytes_written + 1);
+    memmove(s, &buf[0], (bytes_written + 1) * sizeof(byte));
 
     *out = s;
 

@@ -95,16 +95,14 @@
 /* *************************************
 *  Includes & Memory related functions
 ***************************************/
-/*! Modify the local functions below should you wish to use some other memory routines
-*   for malloc(), free() */
-#include <stdlib.h>
-static void* XXH_malloc(size_t s) { return malloc(s); }
-static void  XXH_free  (void* p)  { free(p); }
+/*! Modify the local functions below should you wish to use some other memory
+ * routines for malloc(), free() */
+// #include <stdlib.h>
 /*! and for memcpy() */
-#include <string.h>
-static void* XXH_memcpy(void* dest, const void* src, size_t size) { return memcpy(dest,src,size); }
+// #include <string.h>
 
 #define XXH_STATIC_LINKING_ONLY
+#include "cbase.h"
 #include "cbase/xxhash.h"
 
 
@@ -350,11 +348,12 @@ XXH_PUBLIC_API unsigned int XXH32 (const void* input, size_t len, unsigned int s
 
 XXH_PUBLIC_API XXH32_state_t* XXH32_createState(void)
 {
-    return (XXH32_state_t*)XXH_malloc(sizeof(XXH32_state_t));
+    return cbmalloc(1, sizeof(XXH32_state_t));
 }
+
 XXH_PUBLIC_API XXH_errorcode XXH32_freeState(XXH32_state_t* statePtr)
 {
-    XXH_free(statePtr);
+    cbfree(statePtr);
     return XXH_OK;
 }
 
@@ -389,13 +388,13 @@ FORCE_INLINE XXH_errorcode XXH32_update_endian (XXH32_state_t* state, const void
     state->large_len |= (len>=16) | (state->total_len_32>=16);
 
     if (state->memsize + len < 16)  {   /* fill in tmp buffer */
-        XXH_memcpy((BYTE*)(state->mem32) + state->memsize, input, len);
+        cbmemcpy((BYTE*)(state->mem32) + state->memsize, input, len);
         state->memsize += (unsigned)len;
         return XXH_OK;
     }
 
     if (state->memsize) {   /* some data left from previous update */
-        XXH_memcpy((BYTE*)(state->mem32) + state->memsize, input, 16-state->memsize);
+        cbmemcpy((BYTE*)(state->mem32) + state->memsize, input, 16-state->memsize);
         {   const U32* p32 = state->mem32;
             state->v1 = XXH32_round(state->v1, XXH_readLE32(p32, endian)); p32++;
             state->v2 = XXH32_round(state->v2, XXH_readLE32(p32, endian)); p32++;
@@ -427,7 +426,7 @@ FORCE_INLINE XXH_errorcode XXH32_update_endian (XXH32_state_t* state, const void
     }
 
     if (p < bEnd) {
-        XXH_memcpy(state->mem32, p, (size_t)(bEnd-p));
+        cbmemcpy(state->mem32, p, (size_t)(bEnd-p));
         state->memsize = (unsigned)(bEnd-p);
     }
 
@@ -720,11 +719,12 @@ XXH_PUBLIC_API unsigned long long XXH64 (const void* input, size_t len, unsigned
 
 XXH_PUBLIC_API XXH64_state_t* XXH64_createState(void)
 {
-    return (XXH64_state_t*)XXH_malloc(sizeof(XXH64_state_t));
+    return cbmalloc(1, sizeof(XXH64_state_t));
 }
+
 XXH_PUBLIC_API XXH_errorcode XXH64_freeState(XXH64_state_t* statePtr)
 {
-    XXH_free(statePtr);
+    cbfree(statePtr);
     return XXH_OK;
 }
 
@@ -757,13 +757,13 @@ FORCE_INLINE XXH_errorcode XXH64_update_endian (XXH64_state_t* state, const void
     state->total_len += len;
 
     if (state->memsize + len < 32) {  /* fill in tmp buffer */
-        XXH_memcpy(((BYTE*)state->mem64) + state->memsize, input, len);
+        cbmemcpy(((BYTE*)state->mem64) + state->memsize, input, len);
         state->memsize += (U32)len;
         return XXH_OK;
     }
 
     if (state->memsize) {   /* tmp buffer is full */
-        XXH_memcpy(((BYTE*)state->mem64) + state->memsize, input, 32-state->memsize);
+        cbmemcpy(((BYTE*)state->mem64) + state->memsize, input, 32-state->memsize);
         state->v1 = XXH64_round(state->v1, XXH_readLE64(state->mem64+0, endian));
         state->v2 = XXH64_round(state->v2, XXH_readLE64(state->mem64+1, endian));
         state->v3 = XXH64_round(state->v3, XXH_readLE64(state->mem64+2, endian));
@@ -793,7 +793,7 @@ FORCE_INLINE XXH_errorcode XXH64_update_endian (XXH64_state_t* state, const void
     }
 
     if (p < bEnd) {
-        XXH_memcpy(state->mem64, p, (size_t)(bEnd-p));
+        cbmemcpy(state->mem64, p, (size_t)(bEnd-p));
         state->memsize = (unsigned)(bEnd-p);
     }
 

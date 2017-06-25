@@ -103,7 +103,7 @@ bool _status_new(StatusLevel level, const char *domain,
                                     int line,
                                     Status **new_status,
                                     Status *status) {
-    *new_status = cbmalloc(sizeof(Status));
+    *new_status = cbmalloc(1, sizeof(Status));
 
     if (!(*new_status)) {
         return alloc_failure(status);

@@ -72,7 +72,7 @@ bool string_init_from_sslice(String *s, SSlice *ss, Status *status) {
 }
 
 bool string_new(String **s, const char *data, Status *status) {
-    String *new_string = cbmalloc(sizeof(String));
+    String *new_string = cbmalloc(1, sizeof(String));
 
     if (!new_string) {
         return alloc_failure(status);
@@ -90,7 +90,7 @@ bool string_new(String **s, const char *data, Status *status) {
 
 bool string_new_len(String **s, const char *data, size_t byte_len,
                                                   Status *status) {
-    String *new_string = cbmalloc(sizeof(String));
+    String *new_string = cbmalloc(1, sizeof(String));
 
     if (!new_string) {
         return alloc_failure(status);
@@ -109,7 +109,7 @@ bool string_new_len(String **s, const char *data, size_t byte_len,
 bool string_new_full(String **s, const char *data, size_t len,
                                                    size_t byte_len,
                                                    Status *status) {
-    String *new_string = cbmalloc(sizeof(String));
+    String *new_string = cbmalloc(1, sizeof(String));
 
     if (!new_string) {
         return alloc_failure(status);
@@ -127,7 +127,7 @@ bool string_new_full(String **s, const char *data, size_t len,
 
 bool string_ensure_capacity(String *s, size_t byte_len, Status *status) {
     if ((byte_len > 0) && (s->alloc < (byte_len + 1))) {
-        char *new_data = cbrealloc(s->data, byte_len + 1);
+        char *new_data = cbrealloc(s->data, byte_len + 1, sizeof(char));
 
         if (!new_data) {
             return alloc_failure(status);
@@ -191,7 +191,7 @@ bool string_assign_slice(String *s, SSlice *sslice, Status *status) {
 
 bool string_shrink(String *s, Status *status) {
     if (s->alloc > (s->byte_len + 1)) {
-        char *new_data = cbrealloc(s->data, s->byte_len + 1);
+        char *new_data = cbrealloc(s->data, s->byte_len + 1, sizeof(char));
 
         if (!new_data) {
             return alloc_failure(status);

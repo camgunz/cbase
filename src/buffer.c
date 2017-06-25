@@ -12,7 +12,7 @@ bool buffer_init_alloc(Buffer *buffer, size_t alloc, Status *status) {
 }
 
 bool buffer_new(Buffer **new_buffer, Status *status) {
-    Buffer *buffer = cbmalloc(sizeof(Buffer));
+    Buffer *buffer = cbmalloc(1, sizeof(Buffer));
 
     if (!buffer) {
         return alloc_failure(status);
@@ -32,7 +32,7 @@ bool buffer_new_alloc(Buffer **new_buffer, size_t alloc, Status *status) {
 
 bool buffer_ensure_capacity(Buffer *buffer, size_t len, Status *status) {
     if (buffer->alloc < len) {
-        void *new_data = cbrealloc(buffer->data, len);
+        void *new_data = cbrealloc(buffer->data, len, sizeof(char));
 
         if (!new_data) {
             return alloc_failure(status);
@@ -47,7 +47,7 @@ bool buffer_ensure_capacity(Buffer *buffer, size_t len, Status *status) {
 
 bool buffer_shrink(Buffer *buffer, Status *status) {
     if (buffer->alloc > buffer->len) {
-        char *new_data = cbrealloc(buffer->data, buffer->len);
+        char *new_data = cbrealloc(buffer->data, buffer->len, sizeof(char));
 
         if (!new_data) {
             return alloc_failure(status);
