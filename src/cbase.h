@@ -12,6 +12,7 @@
 
 #include "cbase/alloc.h"
 #include "cbase/types.h"
+#include "cbase/swap.h"
 #include "cbase/log.h"
 #include "cbase/status.h"
 #include "cbase/errors.h"
