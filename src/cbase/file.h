@@ -1,43 +1,75 @@
 #ifndef FILE_H__
 #define FILE_H__
 
-const char* M_GetFileError(void);
-char*       M_LocalizePath(const char *path);
-char*       M_UnLocalizePath(const char *local_path);
-bool        M_PathExists(const char *path);
-char*       M_GetCurrentFolder(void);
-bool        M_SetCurrentFolder(const char *path);
-char*       M_Dirname(const char *path);
-char*       M_Basename(const char *path);
-bool        M_DirnameIsFolder(const char *path);
-bool        M_PathJoinBuf(buf_t *buf, const char *one, const char *two);
-char*       M_PathJoin(const char *one, const char *two);
-bool        M_IsFolder(const char *path);
-bool        M_IsFile(const char *path);
-bool        M_IsRegularFile(const char *path);
-bool        M_IsSymlink(const char *path);
-bool        M_CheckAccess(const char *path, int flags);
-bool        M_IsFileInFolder(const char *folder, const char *file);
-bool        M_IsRootFolder(const char *path);
-bool        M_IsAbsolutePath(const char *path);
-char*       M_StripAbsolutePath(const char *path);
-char*       M_StripExtension(const char *path);
-bool        M_RenamePath(const char *oldpath, const char *newpath);
+typedef struct {
+    SSlice dirname;
+    SSlice basename;
+    SSlice extension;
+    String full_path;
+} Path;
 
-bool        M_CreateFolder(const char *path, int mode);
-bool        M_CreateFile(const char *path, int mode);
-bool        M_DeletePath(const char *path);
-bool        M_DeleteFolder(const char *path);
-bool        M_DeleteFile(const char *path);
-bool        M_DeleteFileInFolder(const char *folder, const char *file);
+typedef void* File
 
-GPtrArray*  M_ListFiles(const char *path);
-bool        M_ListFilesBuf(const char *path, GPtrArray *files);
-GPtrArray*  M_ListFolders(const char *path);
-bool        M_ListFoldersBuf(const char *path, GPtrArray *folders);
-GPtrArray*  M_ListFilesAndFolders(const char *path);
-bool        M_ListFilesAndFoldersBuf(const char *path,
-                                     GPtrArray *files_and_folders);
+void path_init(Path *path, const char *dirname, const char *basename,
+                                                const char *extension);
+bool path_init_from_local_full_path(Path *path, const char *local_full_path,
+                                                Status *status);
+bool path_new(Path **path, const char *dirname, const char *basename,
+                                                const char *extension,
+                                                Status *status);
+bool path_new_from_local_full_path(Path **path, const char *local_full_path,
+                                                Status *status);
+bool path_get_local_full_path(Path *path, Status *status);
+bool path_exists(Path *path, bool *exists, Status *status);
+bool path_dirname_is_folder(Path *path, bool *is_folder, Status *status);
+bool path_is_folder(Path *path, bool *is_folder, Status *status);
+bool path_is_file(Path *path, bool *is_folder, Status *status);
+bool path_is_regular_file(Path *path, bool *is_regular_file, Status *status);
+bool path_is_symlink(Path *path, bool *is_symlink, Status *status);
+bool path_check_access(Path *path, bool *access, int flags, Status *status);
+bool path_is_absolute(Path *path, bool *is_absolute, Status *status);
+bool path_strip_absolute_path(Path *path, Status *status);
+bool path_strip_extension(Path *path, Status *status);
+bool path_rename(Path *old, Path *new, Status *status);
+bool path_delete(Path *path, Status *status);
+bool path_join(Path *out, Path *path1, Path *path2, Status *status);
+
+bool path_folder_contains_file(Path *path, const char *filename,
+                                           bool *contains_file,
+                                           Status *status);
+bool path_folder_create(Path *path, int mode, Status *status);
+bool path_folder_delete(Path *path, Status *status);
+bool path_folder_delete_file(Path *path, const char *filename, Status *status);
+bool path_folder_list_files(Path *path, PArray *files, Status *status);
+bool path_folder_list_folders(Path *path, PArray *folders, Status *status);
+bool path_folder_list_files_and_folders(Path *path, PArray *files_and_folders,
+                                                    Status *status);
+
+bool path_file_create(Path *path, int mode, Status *status);
+bool path_file_delete(Path *path, Status *status);
+
+bool path_file_open(Path *path, const char *mode);
+bool path_file_fdopen(Path *path, int flags, int mode, int *fd,
+                                                       Status *status);
+
+bool file_read(File *file, void *buf, size_t byte_count, Status *status);
+bool file_write(File *file, const void *buf, size_t byte_count, Status *status);
+bool file_seek(File *file, off_t offset, int whence, Status *status);
+bool file_tell(File *file, size_t *pos, Status *status);
+bool file_size(File *file, size_t *size, Status *status);
+bool file_close(File *file, Status *status);
+bool file_flush(File *file, Status *status);
+bool file_is_eof(File *file);
+int  file_get_error(File *file);
+void file_clear_error(File *file);
+int  file_get_fd(File *file);
+
+bool file_fdread(int fd, void *buf, size_t byte_count, Status *status);
+bool file_fdwrite(int fd, const void *buf, size_t byte_count, Status *status);
+bool file_fdseek(int fd, off_t offset, int whence, Status *status);
+bool file_fdtell(int fd, size_t *pos, Status *status);
+bool file_fdsize(int fd, size_t *size, Status *status);
+bool file_fdclose(int fd, Status *status);
 
 #if 0
 bool        M_IterateFiles(const char *path, file_iterator iterator);
@@ -46,34 +78,21 @@ bool        M_DeleteFolderAndContents(const char *path);
 bool        M_ReadFromFile(void *ptr, size_t size, size_t count, FILE *f);
 bool        M_WriteToFile(const void *ptr, size_t size, size_t count, FILE *f);
 #endif
-
+int         M_Open(const char *path, int flags, int mode);
+bool        M_Close(int fd);
+bool        M_Seek(int fd, off_t offset, int origin);
+bool        M_Read(int fd, void *vbuf, size_t sz);
+uint32_t    M_FDLength(int fd);
+FILE*       M_OpenFile(const char *path, const char *mode);
+FILE*       M_OpenFD(int fd, const char *mode);
 bool        M_ReadFile(const char *path, char **data, size_t *size);
 bool        M_ReadFileBuf(buf_t *buf, const char *path);
-bool        M_WriteFile(const char* name, const char *source, size_t size);
-
-int         M_FDOpen(const char *path, int flags, int mode);
-bool        M_FDClose(int fd);
-bool        M_FDSeek(int fd, off_t offset, int origin);
-bool        M_FDRead(int fd, void *vbuf, size_t sz);
-uint32_t    M_FDLength(int fd);
-FILE*       M_FileOpen(const char *path, const char *mode);
-FILE*       M_FileFromFD(int fd, const char *mode);
-bool        M_FileRead(FILE *f, char *data, size_t member_count,
-                                            size_t member_size);
-bool        M_FileWrite(FILE *f, const char *source, size_t member_count,
-                                                     size_t member_size);
-long        M_FileGetPosition(FILE *f);
-bool        M_FileSeek(FILE *f, long int offset, int origin);
+bool        M_WriteFile(const char* name, const char* source, size_t size);
+long        M_GetFilePosition(FILE *f);
+bool        M_SeekFile(FILE *f, long int offset, int origin);
 uint32_t    M_FileLength(FILE *f);
-bool        M_FileFlush(FILE *f);
-bool        M_FileClose(FILE *f);
-int         M_FileGetFD(FILE *f);
-
-// killough
-void        M_ExtractFileBase(const char *path, char *dest);
-// killough 1/18/98
-char*       M_AddDefaultExtension(const char *path, const char *ext);
-char*       M_SetFileExtension(const char *path, const char *ext);
+bool        M_FlushFile(FILE *f);
+bool        M_CloseFile(FILE *f);
 
 #endif
 
