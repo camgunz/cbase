@@ -162,6 +162,7 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src)
 SET(LIBCBASE_SOURCE_FILES
   ${CMAKE_SOURCE_DIR}/src/array.c
   ${CMAKE_SOURCE_DIR}/src/buffer.c
+  ${CMAKE_SOURCE_DIR}/src/charset.c
   ${CMAKE_SOURCE_DIR}/src/list.c
   ${CMAKE_SOURCE_DIR}/src/log.c
   ${CMAKE_SOURCE_DIR}/src/parray.c
@@ -179,6 +180,7 @@ SET(INCLUDE_FILES
   ${CMAKE_SOURCE_DIR}/src/cbase/alloc.h
   ${CMAKE_SOURCE_DIR}/src/cbase/array.h
   ${CMAKE_SOURCE_DIR}/src/cbase/buffer.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/charset.h
   ${CMAKE_SOURCE_DIR}/src/cbase/decimal.h
   ${CMAKE_SOURCE_DIR}/src/cbase/errors.h
   ${CMAKE_SOURCE_DIR}/src/cbase/hash.h
@@ -190,7 +192,9 @@ SET(INCLUDE_FILES
   ${CMAKE_SOURCE_DIR}/src/cbase/sslice.h
   ${CMAKE_SOURCE_DIR}/src/cbase/status.h
   ${CMAKE_SOURCE_DIR}/src/cbase/str.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/swap.h
   ${CMAKE_SOURCE_DIR}/src/cbase/table.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/types.h
   ${CMAKE_SOURCE_DIR}/src/cbase/utf8.h
   ${CMAKE_SOURCE_DIR}/src/cbase/xxhash.h
   ${CMAKE_SOURCE_DIR}/src/cbase.h

@@ -1,6 +1,6 @@
 # cbase
 
-cbase implements some simple data structures in C.
+cbase is an application library for C applications.  It provides:
 
 - Data structures:
   - Byte buffer and slice
@@ -11,6 +11,8 @@ cbase implements some simple data structures in C.
   - Hash table
 - Decimal arithmetic (mpdecimal)
 - Unicode handling (utf8proc)
+- Charset converstion (libiconv)
+- Byte swapping
 - Status
   - Augments C error handling by adding domains and error messages to error
     codes
@@ -25,24 +27,40 @@ cbase is dual-licensed under either the MIT License or the Apache Software
 License, Version 2.0.  Both are included here, in the [LICENSE](LICENSE) and
 [LICENSE-APL20](LICENSE-APL20) files respectively.
 
-## Testing and Verification
+## Testing
 
 cbase strives towards 100% function test coverage.  Currently the tests cover
 69% of functions and 63% of lines.  I estimate I can achieve 100% function
-coverage and 90% line coverage without resorting to crazy things like injecting
-allocation failures.
+coverage and 90% line coverage without resorting to injecting allocation
+failures.
 
 I use all the Clang sanitizers and ensure there are no compilation warnings.
 
+## Requirements
+
+cbase requires:
+- C99
+- a C standard library
+- dynamic allocation
+- 32 or 64-bit architecture
+
+It may be possible to run on 16-bit or lower architectures if you use different
+hashing functions for `table` than those provided in `hash`.  This is untested.
+
 ## Dependencies
 
-cbase requires [mpdecimal](http://www.bytereef.org/mpdecimal/) and
-[utf8proc](http://julialang.org/utf8proc/).
+cbase depends on:
+- [mpdecimal](http://www.bytereef.org/mpdecimal/)
+- [utf8proc](https://julialang.org/utf8proc/)
+- [libiconv](https://www.gnu.org/software/libiconv/)
 
 ## Thread Safety
 
-Currently nothing in cbase is threadsafe.  Support for this is intended, but
-not planned.
+cbase is thread aware, meaning that no errors will occur so long as structures
+aren't shared across threads.
+
+I'd like to write threadsafe, lock-free implementations and enable them with a
+compile flag, but that is very far off.
 
 ## Hash Table
 
