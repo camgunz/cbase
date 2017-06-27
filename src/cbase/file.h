@@ -1,11 +1,21 @@
 #ifndef FILE_H__
 #define FILE_H__
 
+/*
+ * There are really 3 paths we need to keep track of:
+ * - normal path
+ *   - normalized, UTF-8, used internally
+ * - normal, local path
+ *   - normalized, local, used to interact with the local filesystem
+ * - local path
+ *   - unnormalized, local, used for things like config files or dialogs
+ */
+
 typedef struct {
-    SSlice dirname;
-    SSlice basename;
-    SSlice extension;
-    String full_path;
+    bool starts_with_drive;
+    Buffer local_path;
+    String normal_path;
+    Buffer normal_local_path;
 } Path;
 
 typedef void* File
@@ -23,7 +33,7 @@ bool path_get_local_full_path(Path *path, Status *status);
 bool path_exists(Path *path, bool *exists, Status *status);
 bool path_dirname_is_folder(Path *path, bool *is_folder, Status *status);
 bool path_is_folder(Path *path, bool *is_folder, Status *status);
-bool path_is_file(Path *path, bool *is_folder, Status *status);
+bool path_is_file(Path *path, bool *is_file, Status *status);
 bool path_is_regular_file(Path *path, bool *is_regular_file, Status *status);
 bool path_is_symlink(Path *path, bool *is_symlink, Status *status);
 bool path_check_access(Path *path, bool *access, int flags, Status *status);

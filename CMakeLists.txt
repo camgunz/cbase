@@ -219,6 +219,16 @@ SET_TARGET_PROPERTIES(cbasesharedlib PROPERTIES OUTPUT_NAME cbase)
 
 ADD_EXECUTABLE(cbase_test ${LIBCBASE_SOURCE_FILES}
   ${CMAKE_SOURCE_DIR}/test/main.c
+  ${CMAKE_SOURCE_DIR}/test/alloc.c
+  ${CMAKE_SOURCE_DIR}/test/status.c
+  ${CMAKE_SOURCE_DIR}/test/array.c
+  ${CMAKE_SOURCE_DIR}/test/parray.c
+  ${CMAKE_SOURCE_DIR}/test/list.c
+  ${CMAKE_SOURCE_DIR}/test/dlist.c
+  ${CMAKE_SOURCE_DIR}/test/table.c
+  ${CMAKE_SOURCE_DIR}/test/utf8.c
+  ${CMAKE_SOURCE_DIR}/test/sslice.c
+  ${CMAKE_SOURCE_DIR}/test/str.c
 )
 TARGET_LINK_LIBRARIES(cbase_test ${CBASETEST_LIBRARIES})
 
