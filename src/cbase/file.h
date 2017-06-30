@@ -82,10 +82,6 @@ bool file_fdtell(int fd, size_t *pos, Status *status);
 bool file_fdsize(int fd, size_t *size, Status *status);
 bool file_fdclose(int fd, Status *status);
 
-static inline bool path_is_absolute(Path *path) {
-    return string_starts_with_cstr(&path->normal_path, "/");
-}
-
 #endif
 
 /* vi: set et ts=4 sw=4: */
