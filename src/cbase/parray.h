@@ -39,7 +39,7 @@ static inline void* parray_index_fast(PArray *parray, size_t index) {
 static inline void parray_insert_fast(PArray *parray, size_t index,
                                                       void *element) {
     if (index < parray->len) {
-        memmove(
+        cbmemmove(
             parray->elements + index + 1,
             parray->elements + index,
             sizeof(void *) * (parray->len - index)
@@ -80,7 +80,7 @@ static inline void parray_set_fast(PArray *parray, size_t index,
 }
 
 static inline void parray_delete_fast(PArray *parray, size_t index) {
-    memmove(
+    cbmemmove(
         parray->elements + index,
         parray->elements + index + 1,
         sizeof(void *) * (parray->len - index - 1)
@@ -90,7 +90,7 @@ static inline void parray_delete_fast(PArray *parray, size_t index) {
 }
 
 static inline void parray_delete_unordered_fast(PArray *parray, size_t index) {
-    memmove(
+    cbmemmove(
         parray->elements + index,
         parray->elements + (parray->len - 1),
         sizeof(void *)
@@ -155,7 +155,7 @@ static inline void parray_pop_right_unordered_fast(PArray *parray,
 }
 
 static inline void parray_concat_fast(PArray *dst, PArray *src) {
-    memmove(
+    cbmemmove(
         dst->elements + dst->len,
         src->elements,
         sizeof(void *) * src->len

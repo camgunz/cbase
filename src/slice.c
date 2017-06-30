@@ -41,7 +41,7 @@ bool slice_deep_copy(Slice *dst, Slice *src, Status *status) {
         return alloc_failure(status);
     }
 
-    memmove(data, src->data, src->len);
+    cbmemmove(data, src->data, src->len);
 
     dst->data = data;
     dst->len = src->len;

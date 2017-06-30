@@ -1,6 +1,10 @@
 #ifndef STR_H__
 #define STR_H__
 
+enum {
+    STRING_EMPTY = 1,
+};
+
 typedef struct StringStruct {
     size_t len;
     size_t byte_len;
@@ -8,56 +12,58 @@ typedef struct StringStruct {
     char *data;
 } String;
 
-/* [TODO] More printfs would be nice */
-
-bool string_init(String *s, const char *data, Status *status);
-bool string_init_len(String *s, const char *data, size_t len, Status *status);
-bool string_init_full(String *s, const char *data, size_t len,
-                                                   size_t byte_len,
-                                                   Status *status);
-bool string_new(String **s, const char *data, Status *status);
-bool string_new_len(String **s, const char *data, size_t byte_len,
-                                                  Status *status);
-bool string_new_full(String **s, const char *data, size_t len,
-                                                   size_t byte_len,
-                                                   Status *status);
-bool string_init_from_sslice(String *s, SSlice *ss, Status *status);
-bool string_ensure_capacity(String *s, size_t byte_len, Status *status);
-bool string_assign(String *s, const char *data, Status *status);
-bool string_assign_len(String *s, const char *data, size_t byte_len,
+bool  string_init(String *s, const char *data, Status *status);
+bool  string_init_len(String *s, const char *data, size_t len, Status *status);
+bool  string_init_full(String *s, const char *data, size_t len,
+                                                    size_t byte_len,
                                                     Status *status);
-bool string_assign_full(String *s, const char *data, size_t len,
+bool  string_new(String **s, const char *data, Status *status);
+bool  string_new_len(String **s, const char *data, size_t byte_len,
+                                                   Status *status);
+bool  string_new_full(String **s, const char *data, size_t len,
+                                                    size_t byte_len,
+                                                    Status *status);
+bool  string_init_from_sslice(String *s, SSlice *ss, Status *status);
+bool  string_ensure_capacity(String *s, size_t byte_len, Status *status);
+bool  string_assign(String *s, const char *data, Status *status);
+bool  string_assign_len(String *s, const char *data, size_t byte_len,
+                                                     Status *status);
+bool  string_assign_full(String *s, const char *data, size_t len,
+                                                      size_t byte_len,
+                                                      Status *status);
+bool  string_assign_slice(String *s, SSlice *sslice, Status *status);
+bool  string_shrink(String *s, Status *status);
+bool  string_copy(String *dst, String *src, Status *status);
+bool  string_slice(String *s, size_t index, size_t len, SSlice *sslice,
+                                                        Status *status);
+bool  string_prepend(String *s, SSlice *sslice, Status *status);
+bool  string_insert(String *s, size_t pos, SSlice *sslice, Status *status);
+bool  string_insert_cstr_full(String *s, size_t pos, const char *data,
+                                                     size_t len,
                                                      size_t byte_len,
                                                      Status *status);
-bool string_assign_slice(String *s, SSlice *sslice, Status *status);
-bool string_shrink(String *s, Status *status);
-bool string_copy(String *dst, String *src, Status *status);
-bool string_slice(String *s, size_t index, size_t len, SSlice *sslice,
-                                                       Status *status);
-
-bool string_prepend(String *s, SSlice *sslice, Status *status);
-bool string_insert(String *s, size_t pos, SSlice *sslice, Status *status);
-bool string_insert_cstr_full(String *s, size_t pos, const char *data,
-                                                    size_t len,
-                                                    size_t byte_len,
-                                                    Status *status);
-bool string_insert_cstr_fast(String *s, size_t pos, const char *data,
-                                                    size_t len,
-                                                    size_t byte_len,
-                                                    ssize_t *error);
-bool string_append(String *s, SSlice *sslice, Status *status);
-bool string_printf(String *s, Status *status, const char *fmt, ...);
-bool string_delete(String *s, size_t index, size_t len, Status *status);
-bool string_delete_fast(String *s, size_t index, size_t len, ssize_t *error);
-void string_free(String *s);
+bool  string_insert_cstr_fast(String *s, size_t pos, const char *data,
+                                                     size_t len,
+                                                     size_t byte_len,
+                                                     ssize_t *error);
+bool  string_append(String *s, SSlice *sslice, Status *status);
+bool  string_printf(String *s, Status *status, const char *fmt, ...);
+bool  string_vprintf(String *s, Status *status, const char *fmt, va_list args);
+bool  string_append_printf(String *s, Status *status, const char *fmt, ...);
+bool  string_append_vprintf(String *s, Status *status, const char *fmt,
+                                                       va_list args);
+bool  string_delete(String *s, size_t index, size_t len, Status *status);
+bool  string_delete_fast(String *s, size_t index, size_t len, ssize_t *error);
+void  string_free(String *s);
 
 static inline void string_assign_cstr_full_fast(String *s, const char *data,
                                                            size_t len,
                                                            size_t byte_len) {
     s->len = len;
     s->byte_len = byte_len;
+
     if (byte_len) {
-        memmove(s->data, data, byte_len + 1);
+        cbmemmove(s->data, data, byte_len + 1);
     }
 }
 
@@ -70,7 +76,7 @@ static inline void string_copy_fast(String *dst, String *src) {
     dst->byte_len = src->byte_len;
 
     if (src->byte_len) {
-        memmove(dst->data, src->data, src->byte_len + 1);
+        cbmemmove(dst->data, src->data, src->byte_len + 1);
     }
 }
 
@@ -271,12 +277,24 @@ static inline bool string_truncate_fast(String *s, size_t len, ssize_t *error) {
     return string_delete_fast(s, (s->len - len) + 1, len, error);
 }
 
+static inline bool string_empty(String *s) {
+    return s->len == 0;
+}
+
+static inline char* string_to_cstr(String *s) {
+    return cbstrdup(s->data);
+}
+
 static inline bool string_contents_equal(String *s1, String *s2) {
-    return strcmp(s1->data, s2->data) == 0;
+    return memcmp(s1->data, s2->data, s1->byte_len + 1) == 0;
 }
 
 static inline bool string_equals_cstr(String *s, const char *cs) {
     return utf8ncmp(s->data, cs, s->byte_len);
+}
+
+static inline bool string_starts_with_cstr(String *s, const char *cs) {
+    return (strlen(cs) == s->byte_len) && utf8ncmp(s->data, cs, s->byte_len);
 }
 
 static inline void string_clear(String *s) {

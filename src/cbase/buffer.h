@@ -30,7 +30,7 @@ void buffer_clear(Buffer *buffer);
 void buffer_free(Buffer *buffer);
 
 static inline void buffer_copy_fast(Buffer *dst, Buffer *src) {
-    memmove(dst->data, src->data, src->len);
+    cbmemmove(dst->data, src->data, src->len);
     dst->len = src->len;
 }
 
@@ -44,7 +44,7 @@ static inline void buffer_zero_section_fast(Buffer *buffer, size_t index,
 }
 
 static inline void buffer_delete_fast(Buffer *buffer, size_t index, size_t len) {
-    memmove(buffer->data + index, buffer->data + index + len, len);
+    cbmemmove(buffer->data + index, buffer->data + index + len, len);
     buffer->len -= len;
 }
 
@@ -63,7 +63,7 @@ static inline void buffer_shift_left_fast(Buffer *buffer, size_t len) {
 }
 
 static inline void buffer_shift_right_fast(Buffer *buffer, size_t len) {
-    memmove(buffer->data + len, buffer->data, len);
+    cbmemmove(buffer->data + len, buffer->data, len);
     buffer->len += len;
 }
 
@@ -75,13 +75,13 @@ static inline void buffer_slice_fast(Buffer *buffer, size_t index,
 }
 
 static inline void buffer_insert_fast(Buffer *buffer, size_t pos, Slice *slice) {
-    memmove(
+    cbmemmove(
         buffer->data + pos + slice->len,
         buffer->data + pos,
         slice->len
     );
 
-    memmove(
+    cbmemmove(
         buffer->data + pos,
         slice->data,
         slice->len

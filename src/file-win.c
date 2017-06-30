@@ -42,6 +42,36 @@ typedef struct stat CBStat
     strerror(errno)                                    \
 )
 
+static void normalize_path(Path *path) {
+#ifdef _WIN32
+    char   *lp = path->normal_path.data;
+    size_t  sz = path->normal_path.byte_len;
+
+    for (size_t i = 0; i < sz; i++) {
+        if (lp->data[i] == '\\') {
+            lp->data[i] = '/';
+        }
+    }
+#else
+    (void)path;
+#endif
+}
+
+static void unnormalize_path(Path *path) {
+#ifdef _WIN32
+    char   *lp = path->normal_path.data;
+    size_t  sz = path->normal_path.byte_len;
+
+    for (size_t i = 0; i < sz; i++) {
+        if (lp[i] == '/') {
+            lp[i] = '\\';
+        }
+    }
+#else
+    (void)path;
+#endif
+}
+
 /*
  * path_init(&path, "C:\Program Files (x86)\SuperApp\config.ini", status);
  * path_init(&path, "/home/user/.config/SuperApp/config.ini", status);
@@ -51,35 +81,11 @@ typedef struct stat CBStat
  * path_new_join(&full_config_path, app_config_path, "SuperApp/config.ini", status)
  */
 
-static bool rebuild_normal_path(Path *path, Status *status) {
-    Slice ss;
-
-    if (!buffer_slice(&path->local_path, 0, path->local_path.len, &ss,
-                                                                  status)) {
-        return false;
-    }
-
-    string_clear(&path->normal_path);
-
-    return charset_localize_to_string(&ss, &path->normal_path, status);
-}
-
-static bool rebuild_local_path(Path *path, Status *status) {
-    SSlice ss;
-
-    if (!string_slice(&path->normal_path, 0, path->normal_path.len, &ss,
-                                                                    status)) {
-        return false;
-    }
-
-    buffer_clear(&path->local_path);
-
-    return charset_localize_from_string(&ss, &path->local_path, status);
-}
-
 static bool base_set_path(Path *path, Slice *input, bool init,
                                                     bool local,
                                                     Status *status) {
+    Slice s;
+
     if (local) {
         if (init) {
             if (!string_init(&path->normal_path, "", status)) {
@@ -89,12 +95,9 @@ static bool base_set_path(Path *path, Slice *input, bool init,
 
         if (!charset_unlocalize_to_string(&input, &path->normal_path,
                                                   status)) {
-            return false;
         }
     }
     else {
-        SSlice ss;
-
         if (init) {
             if (!string_init_len(&path->normal_path, input->data, input->len,
                                                                   status)) {
@@ -106,31 +109,30 @@ static bool base_set_path(Path *path, Slice *input, bool init,
                                                         status)) {
             return false;
         }
+    }
 
-        if (!string_slice(&path->normal_path, 0, path->normal_path.len,
-                                                 &ss,
-                                                 status)) {
-            if (init) {
-                string_free(&path->normal_path);
-            }
-            else {
-                string_clear(&path->normal_path);
-            }
-
-            return false;
-        }
-
-        if (!charset_localize_from_string(&ss, &path->local_path, status)) {
-            if (init) {
-                string_free(&path->normal_path);
-            }
-            else {
-                string_clear(&path->normal_path);
-            }
-
+    if (init) {
+        if (!buffer_init(&path->local_path, status)) {
+            string_free(&path->normal_path);
             return false;
         }
     }
+    else {
+        buffer_clear(&path->local_path);
+    }
+
+    unnormalize_path(&path->normal_path);
+
+    s.data = path->normal_path.data;
+    s.len = path->normal_path.len;
+
+    if (!charset_localize(&s, &path->local_path, status)) {
+        string_free(&path->normal_path);
+        buffer_free(&path->local_path);
+        return false;
+    }
+
+    normalize_path(&path->normal_path);
 
     return true;
 }
@@ -477,38 +479,29 @@ bool path_is_readable_and_writable(Path *path, bool *readable_and_writable,,
     return true;
 }
 
-bool path_is_absolute(Path *path) {
-    return string_starts_with_cstr(&path->normal_path, "/");
+bool path_is_absolute(Path *path, bool *is_absolute, Status *status) {
+    SSlice ss;
+
+    if (!string_slice(path->normal_path, 0, path->normal_path.len, &ss,
+                                                                   status)) {
+        return false;
+    }
+
+    if (
+#ifdef _WIN32
+
 }
 
 bool path_strip_absolute_path(Path *path, Status *status) {
-    return (!path_is_absolute(path)) || string_shift_left(s, 1, status);
 }
 
 bool path_strip_extension(Path *path, Status *status) {
-    SSlice extension;
-
-    return (
-        path_extension(path, &extension, status) &&
-        string_truncate(&path->normal_path, extension->len, status) &&
-        rebuild_local_path(path)
-    );
 }
 
 bool path_rename(Path *old_path, Path *new_path, Status *status) {
-    if (rename(old_path->local_path.data, new_path->local_path.data) != 0) {
-        return file_errno_error("path", status);
-    }
-
-    return true;
 }
 
 bool path_delete(Path *path, Status *status) {
-    if (remove(old_path->local_path.data) != 0) {
-        return file_errno_error("path", status);
-    }
-
-    return true;
 }
 
 bool path_join(Path *out, Path *path1, Path *path2, Status *status) {

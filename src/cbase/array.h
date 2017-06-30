@@ -70,7 +70,7 @@ static inline void array_zero_element_fast(Array *array, size_t index) {
 
 static inline void* array_insert_fast(Array *array, size_t index) {
     if (index < array->len) {
-        memmove(
+        cbmemmove(
             array_index_fast(array, index + 1),
             array_index_fast(array, index),
             array->element_size * (array->len - index)
@@ -114,7 +114,7 @@ static inline void* array_append_fast(Array *array) {
 }
 
 static inline void array_delete_fast(Array *array, size_t index) {
-    memmove(
+    cbmemmove(
         array_index_fast(array, index),
         array_index_fast(array, index + 1),
         array->element_size * (array->len - index)
@@ -124,7 +124,7 @@ static inline void array_delete_fast(Array *array, size_t index) {
 }
 
 static inline void array_delete_unordered_fast(Array *array, size_t index) {
-    memmove(
+    cbmemmove(
         array_index_fast(array, index),
         array_index_fast(array, array->len - 1),
         array->element_size
@@ -139,7 +139,7 @@ static inline void array_truncate_fast(Array *array, size_t length) {
 
 static inline void array_copy_element_fast(Array *array, size_t index,
                                                          void **element) {
-    memmove(element, array_index_fast(array, index), array->element_size);
+    cbmemmove(element, array_index_fast(array, index), array->element_size);
 }
 
 static inline void array_pop_fast(Array *array, size_t index, void *element) {
@@ -179,7 +179,7 @@ static inline void array_pop_right_unordered_fast(Array *array, void *element) {
 }
 
 static inline void array_concat_fast(Array *dst, Array *src) {
-    memmove(
+    cbmemmove(
         array_index_fast(dst, dst->len),
         src->elements,
         src->element_size * src->len
@@ -190,13 +190,13 @@ static inline void array_concat_fast(Array *dst, Array *src) {
 
 static inline void array_insert_array_fast(Array *dst, Array *src,
                                                        size_t index) {
-    memmove(
+    cbmemmove(
         array_index_fast(dst, index + src->len),
         array_index_fast(dst, index),
         dst->element_size * (dst->len - index)
     );
 
-    memmove(
+    cbmemmove(
         array_index_fast(dst, index),
         src->elements,
         src->element_size * src->len

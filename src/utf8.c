@@ -373,7 +373,7 @@ bool rune_to_string(rune r, char **out, Status *status) {
 
     buf[bytes_written] = '\0';
 
-    memmove(s, &buf[0], (bytes_written + 1) * sizeof(byte));
+    cbmemmove(s, &buf[0], (bytes_written + 1) * sizeof(byte));
 
     *out = s;
 

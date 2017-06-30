@@ -303,7 +303,7 @@ bool array_deep_copy(Array *dst, Array *src, Status *status) {
         return false;
     }
 
-    memmove(dst->elements, src->elements, src->element_size * src->len);
+    cbmemmove(dst->elements, src->elements, src->element_size * src->len);
     dst->len = src->len;
 
     return status_ok(status);

@@ -1,15 +1,74 @@
 #include "cbase.h"
 
+#define empty(status) status_failure( \
+    status,                           \
+    "string",                         \
+    STRING_EMPTY,                     \
+    "String is empty"                 \
+)
+
 bool string_printf(String *s, Status *status, const char *fmt, ...) {
     va_list args;
-    va_list args2;
-    size_t size;
 
     va_start(args, fmt);
+
+    if (!string_vprintf(s, status, fmt, args)) {
+        va_end(args);
+        return false;
+    }
+
+    va_end(args);
+    return true;
+}
+
+bool string_vprintf(String *s, Status *status, const char *fmt, va_list args) {
+    va_list args2;
+    size_t size;
 
     va_copy(args2, args);
 
     size = vsnprintf(NULL, 0, fmt, args2);
+
+    if (!string_ensure_capacity(s, size, status)) {
+        va_end(args);
+        return false;
+    }
+
+    vsnprintf(s->data, size + 1, fmt, args);
+
+    va_end(args);
+
+    if (!utf8len(s->data, &s->len, status)) {
+        return false;
+    }
+
+    s->byte_len = size;
+
+    return status_ok(status);
+}
+
+bool string_append_printf(String *s, Status *status, const char *fmt, ...) {
+    va_list args;
+
+    va_start(args, fmt);
+
+    if (!string_append_vprintf(s, status, fmt, args)) {
+        va_end(args);
+        return false;
+    }
+
+    va_end(args);
+    return true;
+}
+
+bool string_append_vprintf(String *s, Status *status, const char *fmt,
+                                                      va_list args) {
+    va_list args2;
+    size_t size;
+
+    va_copy(args2, args);
+
+    size = vsnprintf(NULL, 0, fmt, args2) + s->byte_len;
 
     if (!string_ensure_capacity(s, size, status)) {
         va_end(args);
@@ -65,7 +124,7 @@ bool string_init_from_sslice(String *s, SSlice *ss, Status *status) {
 
     s->len = ss->len;
     s->byte_len = ss->byte_len;
-    memmove(s->data, ss->data, ss->byte_len);
+    cbmemmove(s->data, ss->data, ss->byte_len);
     s->data[s->byte_len] = '\0';
 
     return status_ok(status);
@@ -281,10 +340,10 @@ bool string_insert_cstr_fast(String *s, size_t pos, const char *data,
     size_t byte_offset = (start - s->data) - 1;
 
     if (byte_offset < s->byte_len) {
-        memmove(start + byte_len, start, s->byte_len - byte_offset);
+        cbmemmove(start + byte_len, start, s->byte_len - byte_offset);
     }
 
-    memmove(start, data, byte_len);
+    cbmemmove(start, data, byte_len);
 
     s->len += len;
     s->byte_len += byte_len;
@@ -319,7 +378,7 @@ bool string_delete_fast(String *s, size_t index, size_t len, ssize_t *error) {
         return false;
     }
 
-    memmove(start, end, (s->byte_len - (end - s->data)) + 1);
+    cbmemmove(start, end, (s->byte_len - (end - s->data)) + 1);
 
     s->len -= len;
     s->byte_len -= (end - start);
@@ -339,6 +398,14 @@ bool string_delete(String *s, size_t index, size_t len, Status *status) {
     }
 
     return status_ok(status);
+}
+
+bool string_get_first_rune(String *s, rune *r, Status *status) {
+    if (string_empty(s)) {
+        return empty(status);
+    }
+
+    return utf8_get_first_rune(s->data, r, status);
 }
 
 void string_free(String *s) {
