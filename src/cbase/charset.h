@@ -13,7 +13,7 @@ bool charset_convert(Slice *in, const char *from, const char *to,
                                                   Buffer *out,
                                                   Status *status);
 
-bool charset_convert_to_string(Slice *in, const char *from, Buffer *out,
+bool charset_convert_to_string(Slice *in, const char *from, String *out,
                                                             Status *status);
 
 

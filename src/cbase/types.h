@@ -10,13 +10,12 @@ typedef int16_t  s16;
 typedef int32_t  s32;
 typedef int64_t  s64;
 
-typedef unsigned char          uchar;
+typedef unsigned char          byte;
 typedef unsigned short         ushort;
 typedef unsigned int           uint;
 typedef unsigned long int      ulong;
 typedef unsigned long long int ulonglong;
 
-typedef unsigned char byte;
 
 typedef float  f32;
 typedef double f64;

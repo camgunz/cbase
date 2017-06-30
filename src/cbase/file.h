@@ -12,24 +12,32 @@
  */
 
 typedef struct {
-    bool starts_with_drive;
     Buffer local_path;
     String normal_path;
-    Buffer normal_local_path;
 } Path;
 
 typedef void* File
 
-void path_init(Path *path, const char *dirname, const char *basename,
-                                                const char *extension);
-bool path_init_from_local_full_path(Path *path, const char *local_full_path,
-                                                Status *status);
-bool path_new(Path **path, const char *dirname, const char *basename,
-                                                const char *extension,
-                                                Status *status);
-bool path_new_from_local_full_path(Path **path, const char *local_full_path,
-                                                Status *status);
-bool path_get_local_full_path(Path *path, Status *status);
+bool path_init(Path *path, Slice *path_slice, Status *status);
+bool path_init_non_local(Path *path, Slice *non_local_path, Status *status);
+bool path_init_non_local_from_cstr(Path *path, const char *non_local_path,
+                                               Status *status);
+bool path_new(Path **path, Slice *path_slice, Status *status);
+bool path_new_non_local(Path *path, Slice *non_local_path, Status *status);
+bool path_new_non_local_from_cstr(Path *path, const char *non_local_path,
+                                              Status *status);
+bool path_new(Path **path, Slice *path_slice, Status *status);
+bool path_new_non_local(Path *path, Slice *non_local_path, Status *status);
+bool path_new_non_local_from_cstr(Path *path, const char *non_local_path,
+                                              Status *status);
+bool path_set(Path *path, Slice *path_slice, Status *status);
+bool path_set_non_local(Path *path, Slice *non_local_path, Status *status);
+bool path_set_non_local_from_cstr(Path *path, const char *non_local_path,
+                                              Status *status);
+bool path_dirname(Path *path, SSlice *dirname, Status *status);
+bool path_basename(Path *path, SSlice *basename, Status *status);
+bool path_extension(Path *path, SSlice *extension, Status *status);
+
 bool path_exists(Path *path, bool *exists, Status *status);
 bool path_dirname_is_folder(Path *path, bool *is_folder, Status *status);
 bool path_is_folder(Path *path, bool *is_folder, Status *status);
@@ -88,6 +96,7 @@ bool        M_DeleteFolderAndContents(const char *path);
 bool        M_ReadFromFile(void *ptr, size_t size, size_t count, FILE *f);
 bool        M_WriteToFile(const void *ptr, size_t size, size_t count, FILE *f);
 #endif
+
 int         M_Open(const char *path, int flags, int mode);
 bool        M_Close(int fd);
 bool        M_Seek(int fd, off_t offset, int origin);

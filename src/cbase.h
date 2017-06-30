@@ -1,6 +1,10 @@
 #ifndef CBASE_H__
 #define CBASE_H__
 
+#ifdef _WIN32
+#define UNICODE
+#endif
+
 #include <errno.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -30,6 +34,8 @@
 #include "cbase/sslice.h"
 #include "cbase/str.h"
 #include "cbase/table.h"
+
+#include "cbase/charset.h"
 
 #endif
 

@@ -344,7 +344,7 @@ static inline bool decimal_context_set_correct_rounding(DecimalContext *ctx,
 
 static inline bool decimal_init_cstr(Decimal *dec, const char *s,
                                                    const DecimalContext *ctx,
-                                                   size_t *data,
+                                                   void *data,
                                                    Status *status) {
     uint32_t res = 0;
 
@@ -370,7 +370,7 @@ static inline bool decimal_init_cstr(Decimal *dec, const char *s,
 
 static inline bool decimal_init_ssize(Decimal *dec, ssize_t ssize,
                                                     const DecimalContext *ctx,
-                                                    size_t *data,
+                                                    void *data,
                                                     Status *status) {
     uint32_t res = 0;
 
@@ -396,7 +396,7 @@ static inline bool decimal_init_ssize(Decimal *dec, ssize_t ssize,
 
 static inline bool decimal_init_i32(Decimal *dec, int32_t i32,
                                                   const DecimalContext *ctx,
-                                                  size_t *data,
+                                                  void *data,
                                                   Status *status) {
     uint32_t res = 0;
 
@@ -422,7 +422,7 @@ static inline bool decimal_init_i32(Decimal *dec, int32_t i32,
 
 static inline bool decimal_init_i64(Decimal *dec, int64_t i64,
                                                   const DecimalContext *ctx,
-                                                  size_t *data,
+                                                  void *data,
                                                   Status *status) {
     uint32_t res = 0;
 
@@ -448,7 +448,7 @@ static inline bool decimal_init_i64(Decimal *dec, int64_t i64,
 
 static inline bool decimal_init_uint(Decimal *dec, unsigned int uint,
                                                    const DecimalContext *ctx,
-                                                   size_t *data,
+                                                   void *data,
                                                    Status *status) {
     uint32_t res = 0;
 
@@ -474,7 +474,7 @@ static inline bool decimal_init_uint(Decimal *dec, unsigned int uint,
 
 static inline bool decimal_init_u32(Decimal *dec, uint32_t u32,
                                                   const DecimalContext *ctx,
-                                                  size_t *data,
+                                                  void *data,
                                                   Status *status) {
     uint32_t res = 0;
 
@@ -500,7 +500,7 @@ static inline bool decimal_init_u32(Decimal *dec, uint32_t u32,
 
 static inline bool decimal_init_u64(Decimal *dec, uint64_t u64,
                                                   const DecimalContext *ctx,
-                                                  size_t *data,
+                                                  void *data,
                                                   Status *status) {
     uint32_t res = 0;
 
