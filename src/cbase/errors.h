@@ -6,6 +6,7 @@ enum {
     ERROR_MEMORY_ALLOCATION_FAILED,
     ERROR_NOT_FOUND,
     ERROR_NOT_EQUAL,
+    ERROR_NUMERIC_OVERFLOW,
     ERROR_GENERAL_ERROR,
 };
 
@@ -35,6 +36,13 @@ enum {
     "base",                               \
     ERROR_NOT_EQUAL,                      \
     "values not equal"                    \
+)
+
+#define numeric_overflow(status) status_error( \
+    status,                                    \
+    "base",                                    \
+    ERROR_NUMERIC_OVERFLOW,                    \
+    "numeric overflow"                         \
 )
 
 #define general_error(status) status_critical( \

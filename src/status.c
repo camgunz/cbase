@@ -96,13 +96,12 @@ void status_clear_handler(const char *domain, int code) {
     }
 }
 
-bool _status_new(StatusLevel level, const char *domain,
-                                    int code,
-                                    const char *message,
-                                    const char *file,
-                                    int line,
-                                    Status **new_status,
-                                    Status *status) {
+bool _status_new(StatusLevel level, const char *domain, int code,
+                                                        const char *message,
+                                                        const char *file,
+                                                        int line,
+                                                        Status **new_status,
+                                                        Status *status) {
     *new_status = cbmalloc(1, sizeof(Status));
 
     if (!(*new_status)) {
@@ -139,12 +138,11 @@ bool status_is_ok(Status *status) {
            status->message == NULL;
 }
 
-void _status_set(Status *status, StatusLevel level,
-                                 const char *domain,
-                                 int code,
-                                 const char *message,
-                                 const char *file,
-                                 int line) {
+void _status_set(Status *status, StatusLevel level, const char *domain,
+                                                    int code,
+                                                    const char *message,
+                                                    const char *file,
+                                                    int line) {
     status->level = level;
     status->domain = domain;
     status->code = code;
@@ -153,11 +151,10 @@ void _status_set(Status *status, StatusLevel level,
     status->line = line;
 }
 
-bool _status_debug(Status *status, const char *domain,
-                                   int code,
-                                   const char *message,
-                                   const char *file,
-                                   int line) {
+bool _status_debug(Status *status, const char *domain, int code,
+                                                       const char *message,
+                                                       const char *file,
+                                                       int line) {
     if (status) {
         _status_set(status, STATUS_DEBUG, domain, code, message, file, line);
         status_handle(status);
@@ -172,11 +169,10 @@ bool _status_debug(Status *status, const char *domain,
     return true;
 }
 
-bool _status_info(Status *status, const char *domain,
-                                  int code,
-                                  const char *message,
-                                  const char *file,
-                                  int line) {
+bool _status_info(Status *status, const char *domain, int code,
+                                                      const char *message,
+                                                      const char *file,
+                                                      int line) {
     if (status) {
         _status_set(status, STATUS_INFO, domain, code, message, file, line);
         status_handle(status);
@@ -191,11 +187,10 @@ bool _status_info(Status *status, const char *domain,
     return true;
 }
 
-bool _status_warning(Status *status, const char *domain,
-                                     int code,
-                                     const char *message,
-                                     const char *file,
-                                     int line) {
+bool _status_warning(Status *status, const char *domain, int code,
+                                                         const char *message,
+                                                         const char *file,
+                                                         int line) {
     if (status) {
         _status_set(status, STATUS_WARNING, domain, code, message, file, line);
         status_handle(status);
@@ -210,11 +205,10 @@ bool _status_warning(Status *status, const char *domain,
     return true;
 }
 
-bool _status_error(Status *status, const char *domain,
-                                   int code,
-                                   const char *message,
-                                   const char *file,
-                                   int line) {
+bool _status_error(Status *status, const char *domain, int code,
+                                                       const char *message,
+                                                       const char *file,
+                                                       int line) {
     if (status) {
         _status_set(status, STATUS_ERROR, domain, code, message, file, line);
         status_handle(status);
@@ -229,11 +223,10 @@ bool _status_error(Status *status, const char *domain,
     return false;
 }
 
-bool _status_failure(Status *status, const char *domain,
-                                     int code,
-                                     const char *message,
-                                     const char *file,
-                                     int line) {
+bool _status_failure(Status *status, const char *domain, int code,
+                                                         const char *message,
+                                                         const char *file,
+                                                         int line) {
     if (status) {
         _status_set(status, STATUS_FAILURE, domain, code, message, file, line);
         status_handle(status);
@@ -248,11 +241,10 @@ bool _status_failure(Status *status, const char *domain,
     return false;
 }
 
-bool _status_critical(Status *status, const char *domain,
-                                      int code,
-                                      const char *message,
-                                      const char *file,
-                                      int line) {
+bool _status_critical(Status *status, const char *domain, int code,
+                                                          const char *message,
+                                                          const char *file,
+                                                          int line) {
     if (status) {
         _status_set(status, STATUS_CRITICAL, domain, code, message, file, line);
         status_handle(status);
@@ -267,11 +259,10 @@ bool _status_critical(Status *status, const char *domain,
     return false;
 }
 
-bool _status_fatal(Status *status, const char *domain,
-                                   int code,
-                                   const char *message,
-                                   const char *file,
-                                   int line) {
+bool _status_fatal(Status *status, const char *domain, int code,
+                                                       const char *message,
+                                                       const char *file,
+                                                       int line) {
     if (status) {
         _status_set(status, STATUS_FATAL, domain, code, message, file, line);
         status_handle(status);

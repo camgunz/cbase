@@ -10,7 +10,7 @@ static inline void* __cbmemmove(void *dest, const void *src, size_t size) {
 #endif
 
 static inline void* __cbmalloc(size_t count, size_t size) {
-    if ((count > 1) && (size > 1) && ((SIZE_MAX / count) < size)) {
+    if (!check_overflow(count, size)) {
         errno = ENOMEM;
         return NULL;
     }
@@ -23,7 +23,7 @@ static inline void* __cbmalloc(size_t count, size_t size) {
 #endif
 
 static inline void* __cbcalloc(size_t count, size_t size) {
-    if ((count > 1) && (size > 1) && ((SIZE_MAX / count) < size)) {
+    if (!check_overflow(count, size)) {
         errno = ENOMEM;
         return NULL;
     }
@@ -36,7 +36,7 @@ static inline void* __cbcalloc(size_t count, size_t size) {
 #endif
 
 static inline void* __cbrealloc(void *ptr, size_t count, size_t size) {
-    if ((count > 1) && (size > 1) && ((SIZE_MAX / count) < size)) {
+    if (!check_overflow(count, size)) {
         errno = ENOMEM;
         return NULL;
     }

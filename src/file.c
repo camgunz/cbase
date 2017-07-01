@@ -1,25 +1,172 @@
 #include "cbase.h"
 
-#include <ctypes.h>
 #include <stdio.h>
 
+#include <unistd.h>
 #include <sys/stat.h>
 
-#ifdef _WIN32
-
-#define cbstat   _wstat
-#define cbaccess _waccess
-typedef struct _stat CBStat
-
-#else
-
-#define cbstat   stat
-#define cbaccess access
-typedef struct stat CBStat
-
-#endif
-
 #define INIT_BUFFER_ALLOC 64
+
+#define permission_denied(status) status_error( \
+    status,                                     \
+    "path",                                     \
+    PATH_PERMISSION_DENIED,                     \
+    "path has no dirname"                       \
+)
+
+#define invalid_file_descriptor(status) status_error( \
+    status,                                           \
+    "path",                                           \
+    PATH_INVALID_FILE_DESCRIPTOR,                     \
+    "invalid file descriptor"                         \
+)
+
+#define invalid_memory_address(status) status_error( \
+    status,                                          \
+    "path",                                          \
+    PATH_INVALID_MEMORY_ADDRESS,                     \
+    "invalid memory address"                         \
+)
+
+#define symbolic_link_depth_exceeded(status) status_error( \
+    status,                                                \
+    "path",                                                \
+    PATH_SYMBOLIC_LINK_DEPTH_EXCEEDED,                     \
+    "symbolic link depth exceeded"                         \
+)
+
+#define path_too_long(status) status_error( \
+    status,                                 \
+    "path",                                 \
+    PATH_TOO_LONG,                          \
+    "path too long"                         \
+)
+
+#define path_not_found(status) status_error( \
+    status,                                  \
+    "path",                                  \
+    PATH_NOT_FOUND,                          \
+    "path not found"                         \
+)
+
+#define out_of_memory(status) status_error( \
+    status,                                 \
+    "path",                                 \
+    PATH_OUT_OF_MEMORY,                     \
+    "out of memory"                         \
+)
+
+#define path_not_folder(status) status_error( \
+    status,                                   \
+    "path",                                   \
+    PATH_NOT_FOLDER,                          \
+    "path or path component is not a folder"  \
+)
+
+#define data_overflow(status) status_error( \
+    status,                                 \
+    "path",                                 \
+    PATH_INVALID_FILE_DESCRIPTOR,           \
+    "invalid file descriptor"               \
+)
+
+#define invalid_mode(status) status_error( \
+    status,                                \
+    "path",                                \
+    PATH_INVALID_MODE,                     \
+    "invalid mode"                         \
+)
+
+#define read_only_filesystem(status) status_error( \
+    status,                                        \
+    "path",                                        \
+    PATH_READ_ONLY_FILESYSTEM,                     \
+    "read-only filesystem"                         \
+)
+
+#define io_error(status) status_error( \
+    status,                            \
+    "path",                            \
+    PATH_IO_ERROR,                     \
+    "i/o error"                        \
+)
+
+#define file_busy(status) status_error( \
+    status,                             \
+    "path",                             \
+    PATH_FILE_BUSY,                     \
+    "file busy"                         \
+)
+
+#define quota_exceeded(status) status_error( \
+    status,                                  \
+    "path",                                  \
+    PATH_QUOTA_EXCEEDED,                     \
+    "quota exceeded"                         \
+)
+
+#define rename_to_subfolder_of_self(status) status_error( \
+    status,                                               \
+    "path",                                               \
+    PATH_RENAME_TO_SUBFOLDER_OF_SELF,                     \
+    "path renamed to a subfolder of itself"               \
+)
+
+#define rename_folder_to_file(status) status_error( \
+    status,                                         \
+    "path",                                         \
+    PATH_RENAME_FOLDER_TO_FILE,                     \
+    "new path is a folder, but old path is not"     \
+)
+
+#define link_count_exceeded(status) status_error( \
+    status,                                       \
+    "path",                                       \
+    PATH_LINK_COUNT_EXCEEDED,                     \
+    "link count exceeded"                         \
+)
+
+#define device_full(status) status_error( \
+    status,                               \
+    "path",                               \
+    PATH_DEVICE_FULL,                     \
+    "device full"                         \
+)
+
+#define folder_not_empty(status) status_error( \
+    status,                                    \
+    "path",                                    \
+    PATH_FOLDER_NOT_EMPTY,                     \
+    "folder not empty"                         \
+)
+
+#define sticky_permission_denied(status) status_error( \
+    status,                                            \
+    "path",                                            \
+    PATH_STICKY_PERMISSION_DENIED,                     \
+    "permission denied (sticky)"                       \
+)
+
+#define different_filesystems(status) status_error( \
+    status,                                         \
+    "path",                                         \
+    PATH_DIFFERENT_FILESYSTEMS,                     \
+    "operation not allowed across filesystems"      \
+)
+
+#define unlink_folder(status) status_error( \
+    status,                                 \
+    "path",                                 \
+    PATH_UNLINK_FOLDER,                     \
+    "attempted to unlink folder"            \
+)
+
+#define invalid_path(status) status_error( \
+    status,                                \
+    "path",                                \
+    PATH_INVALID_PATH,                     \
+    "invalid path"                         \
+)
 
 #define path_has_no_dirname(status) status_error( \
     status,                                       \
@@ -35,21 +182,134 @@ typedef struct stat CBStat
     "path has no extension"                         \
 )
 
-#define file_errno_error(domain, status) status_error( \
-    status,                                            \
-    domain,                                            \
-    errno,                                             \
-    strerror(errno)                                    \
+#define path_end_of_file(status) status_error( \
+    status,                                    \
+    "path",                                    \
+    PATH_END_OF_FILE,                          \
+    "end of file"                              \
 )
 
-/*
- * path_init(&path, "C:\Program Files (x86)\SuperApp\config.ini", status);
- * path_init(&path, "/home/user/.config/SuperApp/config.ini", status);
- * Path *base_config_path = sys_get_config_folder();
- * Path *full_config_path = NULL;
- * // path_join returns an error if the 2nd path is absolute
- * path_new_join(&full_config_path, app_config_path, "SuperApp/config.ini", status)
- */
+#define file_already_exists(status) status_error( \
+    status,                                       \
+    "path",                                       \
+    PATH_FILE_ALREADY_EXISTS,                     \
+    "file already exists"                         \
+)
+
+#define operation_interrupted(status) status_error( \
+    status,                                         \
+    "path",                                         \
+    PATH_OPERATION_INTERRUPTED,                     \
+    "operation interrupted"                         \
+)
+
+#define invalid_flags(status) status_error( \
+    status,                                 \
+    "path",                                 \
+    PATH_INVALID_FLAGS,                     \
+    "invalid flags"                         \
+)
+
+#define per_process_file_limit_reached(status) status_error( \
+    status,                                                  \
+    "path",                                                  \
+    PATH_PER_PROCESS_FILE_LIMIT_REACHED,                     \
+    "per-process file limit reached"                         \
+)
+
+#define system_wide_file_limit_reached(status) status_error( \
+    status,                                                  \
+    "path",                                                  \
+    PATH_SYSTEM_WIDE_FILE_LIMIT_REACHED,                     \
+    "system-wide file limit reached"                         \
+)
+
+#define no_peer(status) status_error( \
+    status,                           \
+    "path",                           \
+    PATH_NO_PEER,                     \
+    "no peer on other side of file"   \
+)
+
+#define operation_not_supported(status) status_error( \
+    status,                                           \
+    "path",                                           \
+    PATH_OPERATION_NOT_SUPPORTED,                     \
+    "operation not supported"                         \
+)
+
+#define file_too_large(status) status_error( \
+    status,                                  \
+    "path",                                  \
+    PATH_FILE_TOO_LARGE,                     \
+    "file too large"                         \
+)
+
+#define would_block(status) status_error( \
+    status,                               \
+    "path",                               \
+    PATH_WOULD_BLOCK,                     \
+    "operation would block"               \
+)
+
+#define invalid_mode_or_flags(status) status_error( \
+    status,                                         \
+    "path",                                         \
+    PATH_INVALID_MODE_OR_FLAGS,                     \
+    "invalid mode or flags"                         \
+)
+
+#define expected_file(status) status_error( \
+    status,                                 \
+    "path",                                 \
+    PATH_EXPECTED_FILE,                     \
+    "expected file"                         \
+)
+
+#define unknown_error(status) status_error( \
+    status,                                 \
+    "path",                                 \
+    PATH_UNKNOWN_ERROR,                     \
+    "unknown error"                         \
+)
+
+static bool canonicalize_path(Path *path, Status *status) {
+    char buf[PATH_MAX + 1];
+    char *canonicalized_path = realpath(path->normal_path.data, buf);
+
+    if (!canonicalized_path) {
+        switch (errno) {
+            case EACCES:
+                return permission_denied(status);
+                break;
+            case EINVAL:
+                return invalid_path(status);
+                break;
+            case EIO:
+                return io_error(status);
+                break;
+            case ENAMETOOLONG:
+                return path_too_long(status);
+                break;
+            case ENOENT:
+                return path_not_found(status);
+                break;
+            case ENOMEM:
+                return out_of_memory(status);
+                break;
+            case ENOTDIR:
+                return path_not_folder(status);
+                break;
+            default:
+                return unknown_error(status);
+                break;
+        }
+    }
+
+    string_clear(&path->normal_path);
+
+    return string_assign(&path->normal_path, buf, status);
+}
 
 static bool rebuild_normal_path(Path *path, Status *status) {
     Slice ss;
@@ -61,7 +321,7 @@ static bool rebuild_normal_path(Path *path, Status *status) {
 
     string_clear(&path->normal_path);
 
-    return charset_localize_to_string(&ss, &path->normal_path, status);
+    return charset_unlocalize_to_string(&ss, &path->normal_path, status);
 }
 
 static bool rebuild_local_path(Path *path, Status *status) {
@@ -77,62 +337,71 @@ static bool rebuild_local_path(Path *path, Status *status) {
     return charset_localize_from_string(&ss, &path->local_path, status);
 }
 
+static bool base_set_local_path(Path *path, Slice *input, bool init,
+                                                          Status *status) {
+    if (init) {
+        if (!string_init(&path->normal_path, "", status)) {
+            return false;
+        }
+    }
+
+    return (
+        charset_unlocalize_to_string(input, &path->normal_path, status) &&
+        rebuild_normal_path(path, status)
+    );
+}
+
+static bool base_set_normal_path(Path *path, Slice *input, bool init,
+                                                           Status *status) {
+    SSlice ss;
+
+    if (init) {
+        if (!string_init_len(&path->normal_path, input->data, input->len,
+                                                              status)) {
+            return false;
+        }
+    }
+    else if (!string_assign_len(&path->normal_path, input->data,
+                                                    input->len,
+                                                    status)) {
+        return false;
+    }
+
+    if (!string_slice(&path->normal_path, 0, path->normal_path.len,
+                                             &ss,
+                                             status)) {
+        if (init) {
+            string_free(&path->normal_path);
+        }
+        else {
+            string_clear(&path->normal_path);
+        }
+
+        return false;
+    }
+
+    if (!charset_localize_from_string(&ss, &path->local_path, status)) {
+        if (init) {
+            string_free(&path->normal_path);
+        }
+        else {
+            string_clear(&path->normal_path);
+        }
+
+        return false;
+    }
+
+    return rebuild_normal_path(path, status);
+}
+
 static bool base_set_path(Path *path, Slice *input, bool init,
                                                     bool local,
                                                     Status *status) {
     if (local) {
-        if (init) {
-            if (!string_init(&path->normal_path, "", status)) {
-                return false;
-            }
-        }
-
-        if (!charset_unlocalize_to_string(&input, &path->normal_path,
-                                                  status)) {
-            return false;
-        }
-    }
-    else {
-        SSlice ss;
-
-        if (init) {
-            if (!string_init_len(&path->normal_path, input->data, input->len,
-                                                                  status)) {
-                return false;
-            }
-        }
-        else if (!string_assign_len(&path->normal_path, input->data,
-                                                        input->len,
-                                                        status)) {
-            return false;
-        }
-
-        if (!string_slice(&path->normal_path, 0, path->normal_path.len,
-                                                 &ss,
-                                                 status)) {
-            if (init) {
-                string_free(&path->normal_path);
-            }
-            else {
-                string_clear(&path->normal_path);
-            }
-
-            return false;
-        }
-
-        if (!charset_localize_from_string(&ss, &path->local_path, status)) {
-            if (init) {
-                string_free(&path->normal_path);
-            }
-            else {
-                string_clear(&path->normal_path);
-            }
-
-            return false;
-        }
+        return base_set_local_path(path, input, init, status);
     }
 
-    return true;
+    return base_set_normal_path(path, input, init, status);
 }
 
 static inline bool set_path(Path *path, Slice *input, bool local,
@@ -145,15 +414,43 @@ static inline bool init_path(Path *path, Slice *input, bool local,
     return base_set_path(path, input, true, local, status);
 }
 
-static bool stat_path(const char *path, cbstat *stat_obj, Status *status) {
-    CBStat stat_obj;
-    int res = cbstat(path, &stat_obj);
+static bool stat_path(const char *path, struct stat *stat_obj, Status *status) {
+    int res = stat(path, stat_obj);
 
     if (res != 0) {
-        return file_errno_error("path", status);
+        switch (errno) {
+            case EACCES:
+                return permission_denied(status);
+                break;
+            case EBADF:
+                return invalid_file_descriptor(status);
+                break;
+            case EFAULT:
+                return invalid_memory_address(status);
+                break;
+            case ELOOP:
+                return symbolic_link_depth_exceeded(status);
+                break;
+            case ENAMETOOLONG:
+                return path_too_long(status);
+                break;
+            case ENOENT:
+                return path_not_found(status);
+                break;
+            case ENOMEM:
+                return out_of_memory(status);
+                break;
+            case ENOTDIR:
+                return path_not_folder(status);
+                break;
+            case EOVERFLOW:
+                return data_overflow(status);
+                break;
+            default:
+                return unknown_error(status);
+        }
     }
 
-    *stat_obj = stat_obj;
     return true;
 }
 
@@ -192,14 +489,14 @@ bool path_new(Path **path, Slice *path_slice, Status *status) {
     return true;
 }
 
-bool path_new_non_local(Path *path, Slice *non_local_path, Status *status) {
+bool path_new_non_local(Path **path, Slice *non_local_path, Status *status) {
     Path *new_path = cbmalloc(1, sizeof(Path));
 
     if (!new_path) {
         return alloc_failure(status);
     }
 
-    if (!path_init_non_local(path, non_local_path, status)) {
+    if (!path_init_non_local(new_path, non_local_path, status)) {
         cbfree(new_path);
         return false;
     }
@@ -209,7 +506,7 @@ bool path_new_non_local(Path *path, Slice *non_local_path, Status *status) {
     return true;
 }
 
-bool path_new_non_local_from_cstr(Path *path, const char *non_local_path,
+bool path_new_non_local_from_cstr(Path **path, const char *non_local_path,
                                               Status *status) {
     Path *new_path = cbmalloc(1, sizeof(Path));
 
@@ -217,7 +514,7 @@ bool path_new_non_local_from_cstr(Path *path, const char *non_local_path,
         return alloc_failure(status);
     }
 
-    if (!path_init_non_local_from_cstr(path, non_local_path, status)) {
+    if (!path_init_non_local_from_cstr(new_path, non_local_path, status)) {
         cbfree(new_path);
         return false;
     }
@@ -232,7 +529,7 @@ bool path_set(Path *path, Slice *path_slice, Status *status) {
 }
 
 bool path_set_non_local(Path *path, Slice *non_local_path, Status *status) {
-    return set_path(path, path_slice, false, status);
+    return set_path(path, non_local_path, false, status);
 }
 
 bool path_set_non_local_from_cstr(Path *path, const char *non_local_path,
@@ -246,15 +543,15 @@ bool path_set_non_local_from_cstr(Path *path, const char *non_local_path,
 }
 
 bool path_dirname(Path *path, SSlice *dirname, Status *status) {
-    if (!string_slice(&path->normal_path, dirname, path->normal_path->len,
-                                                   status)) {
+    if (!string_slice(&path->normal_path, 0, path->normal_path.len, dirname,
+                                                                    status)) {
         return false;
     }
 
     if (!sslice_truncate_at(dirname, '/', status)) {
         sslice_clear(dirname);
 
-        if (status_match("base", ERROR_NOT_FOUND)) {
+        if (status_match(status, "base", ERROR_NOT_FOUND)) {
             return path_has_no_dirname(status);
         }
 
@@ -265,14 +562,14 @@ bool path_dirname(Path *path, SSlice *dirname, Status *status) {
 }
 
 bool path_basename(Path *path, SSlice *basename, Status *status) {
-    if (!string_slice(&path->normal_path, basename, 0, path->normal_path->len,
-                                                       status)) {
+    if (!string_slice(&path->normal_path, 0, path->normal_path.len, basename,
+                                                                    status)) {
         return false;
     }
 
     while (true) {
         if (!sslice_seek_to(basename, '/', status)) {
-            if (!status_match("base", ERROR_NOT_FOUND)) {
+            if (!status_match(status, "base", ERROR_NOT_FOUND)) {
                 sslice_clear(basename);
                 return false;
             }
@@ -293,7 +590,7 @@ bool path_extension(Path *path, SSlice *extension, Status *status) {
     if (!sslice_seek_to(extension, '.', status)) {
         sslice_clear(extension);
 
-        if (status_match("base", ERROR_NOT_FOUND)) {
+        if (status_match(status, "base", ERROR_NOT_FOUND)) {
             return path_has_no_extension(status);
         }
 
@@ -303,19 +600,26 @@ bool path_extension(Path *path, SSlice *extension, Status *status) {
     return sslice_skip_rune(extension, status);
 }
 
-bool path_exists(Path *path, bool *exists, Status *status) {
-    CBStat stat_obj;
+bool path_strip_extension(Path *path, Status *status) {
+    SSlice extension;
 
-    if (!stat_path(path, stat_obj)) {
-        if (status_match(status, "path", PATH_DOES_NOT_EXIST)) {
-            *exists = false;
-        }
-        else {
-            return false;
-        }
+    return (
+        path_extension(path, &extension, status) &&
+        string_truncate(&path->normal_path, extension.len, status) &&
+        rebuild_local_path(path, status)
+    );
+}
+
+bool path_exists(Path *path, bool *exists, Status *status) {
+    struct stat stat_obj;
+
+    if (stat_path(path->local_path.data, &stat_obj, status)) {
+        *exists = true;
+    } else if (status_match(status, "path", PATH_NOT_FOUND)) {
+        *exists = false;
     }
     else {
-        *exists = true;
+        return false;
     }
 
     return true;
@@ -324,22 +628,20 @@ bool path_exists(Path *path, bool *exists, Status *status) {
 bool path_dirname_exists(Path *path, bool *exists, Status *status) {
     SSlice dirname;
     Buffer local_dirname;
-    CBStat stat_obj;
+    struct stat stat_obj;
 
     if (!path_dirname(path, &dirname, status)) {
         return false;
     }
 
-    if (!buffer_init(&local_dirname)) {
-        return false;
-    }
+    buffer_init(&local_dirname);
 
     if (!charset_localize_from_string(&dirname, &local_dirname, status)) {
         buffer_free(&local_dirname);
     }
 
-    if (!stat_path(local_dirname->data, &stat_obj)) {
-        if (status_match(status, "path", PATH_DOES_NOT_EXIST)) {
+    if (!stat_path(local_dirname.data, &stat_obj, status)) {
+        if (status_match(status, "path", PATH_NOT_FOUND)) {
             *exists = false;
         }
         else {
@@ -356,41 +658,29 @@ bool path_dirname_exists(Path *path, bool *exists, Status *status) {
     return true;
 }
 
-bool path_is_folder(Path *path, bool *is_folder, Status *status) {
-    CBStat stat_obj;
-
-    if (!stat_path(path, stat_obj)) {
-        return false;
-    }
-
-    *is_folder = ((stat_obj.st_mode & S_IFDIR) == S_IFDIR);
-
-    return true;
-}
-
 bool path_is_file(Path *path, bool *is_file, Status *status) {
-    CBStat stat_obj;
+    struct stat stat_obj;
 
-    if (!stat_path(path, stat_obj)) {
+    if (!stat_path(path->local_path.data, &stat_obj, status)) {
         return false;
     }
 
     *is_file = (
-        ((stat_obj.st_mode & S_IFBLK) == S_IFBLK) ||
-        ((stat_obj.st_mode & S_IFCHR) == S_IFCHR) ||
-        ((stat_obj.st_mode & S_IFIFO) == S_IFIFO) ||
-        ((stat_obj.st_mode & S_IREG ) == S_IREG ) ||
-        ((stat_obj.st_mode & S_ILNK ) == S_ILNK ) ||
-        ((stat_obj.st_mode & S_ISOCK) == S_ISOCK)
+        ((stat_obj.st_mode & S_IFBLK ) == S_IFBLK ) ||
+        ((stat_obj.st_mode & S_IFCHR ) == S_IFCHR ) ||
+        ((stat_obj.st_mode & S_IFIFO ) == S_IFIFO ) ||
+        ((stat_obj.st_mode & S_IFREG ) == S_IFREG ) ||
+        ((stat_obj.st_mode & S_IFLNK ) == S_IFLNK ) ||
+        ((stat_obj.st_mode & S_IFSOCK) == S_IFSOCK)
     );
 
     return true;
 }
 
 bool path_is_regular_file(Path *path, bool *is_regular_file, Status *status) {
-    CBStat stat_obj;
+    struct stat stat_obj;
 
-    if (!stat_path(path, stat_obj)) {
+    if (!stat_path(path->local_path.data, &stat_obj, status)) {
         return false;
     }
 
@@ -399,10 +689,22 @@ bool path_is_regular_file(Path *path, bool *is_regular_file, Status *status) {
     return true;
 }
 
-bool path_is_symlink(Path *path, bool *is_symlink, Status *status) {
-    CBStat stat_obj;
+bool path_is_folder(Path *path, bool *is_folder, Status *status) {
+    struct stat stat_obj;
 
-    if (!stat_path(path, stat_obj)) {
+    if (!stat_path(path->local_path.data, &stat_obj, status)) {
+        return false;
+    }
+
+    *is_folder = ((stat_obj.st_mode & S_IFDIR) == S_IFDIR);
+
+    return true;
+}
+
+bool path_is_symlink(Path *path, bool *is_symlink, Status *status) {
+    struct stat stat_obj;
+
+    if (!stat_path(path->local_path.data, &stat_obj, status)) {
         return false;
     }
 
@@ -412,194 +714,501 @@ bool path_is_symlink(Path *path, bool *is_symlink, Status *status) {
 }
 
 bool path_is_readable(Path *path, bool *readable, Status *status) {
-#ifdef _WIN32
-    if ((cbaccess(path->local_path.data, 4) == 0) ||
-        (cbaccess(path->local_path.data, 6) == 0)) {
+    if (access(path->local_path.data, R_OK) == 0) {
         *readable = true;
         return true;
     }
-#else
-    if (cbaccess(path->local_path.data, R_OK) == 0) {
-        *readable = true;
-        return true;
-    }
-#endif
 
-    if (errno != EACCES) {
-        return file_errno_error("path", status);
+    switch (errno) {
+        case EACCES:
+            *readable = false;
+            break;
+        case ELOOP:
+            return symbolic_link_depth_exceeded(status);
+            break;
+        case ENAMETOOLONG:
+            return path_too_long(status);
+            break;
+        case ENOENT:
+            return path_not_found(status);
+            break;
+        case ENOTDIR:
+            return path_not_folder(status);
+            break;
+        case EROFS:
+            return read_only_filesystem(status);
+            break;
+        case EFAULT:
+            return invalid_memory_address(status);
+            break;
+        case EINVAL:
+            return invalid_mode(status);
+            break;
+        case EIO:
+            return io_error(status);
+            break;
+        case ENOMEM:
+            return out_of_memory(status);
+            break;
+        case ETXTBSY:
+            return file_busy(status);
+            break;
+        default:
+            return unknown_error(status);
+            break;
     }
 
-    *readable = false;
     return true;
 }
 
 bool path_is_writable(Path *path, bool *writable, Status *status) {
-#ifdef _WIN32
-    if ((cbaccess(path->local_path.data, 2) == 0) ||
-        (cbaccess(path->local_path.data, 6) == 0)) {
+    if (access(path->local_path.data, W_OK) == 0) {
         *writable = true;
         return true;
     }
-#else
-    if (cbaccess(path->local_path.data, W_OK) == 0) {
-        *writable = true;
-        return true;
-    }
-#endif
 
-    if (errno != EACCES) {
-        return file_errno_error("path", status);
+    switch (errno) {
+        case EACCES:
+            *writable = false;
+            break;
+        case ELOOP:
+            return symbolic_link_depth_exceeded(status);
+            break;
+        case ENAMETOOLONG:
+            return path_too_long(status);
+            break;
+        case ENOENT:
+            return path_not_found(status);
+            break;
+        case ENOTDIR:
+            return path_not_folder(status);
+            break;
+        case EROFS:
+            return read_only_filesystem(status);
+            break;
+        case EFAULT:
+            return invalid_memory_address(status);
+            break;
+        case EINVAL:
+            return invalid_mode(status);
+            break;
+        case EIO:
+            return io_error(status);
+            break;
+        case ENOMEM:
+            return out_of_memory(status);
+            break;
+        case ETXTBSY:
+            return file_busy(status);
+            break;
+        default:
+            return unknown_error(status);
+            break;
     }
 
-    *writable = false;
     return true;
 }
 
-bool path_is_readable_and_writable(Path *path, bool *readable_and_writable,,
+bool path_is_readable_and_writable(Path *path, bool *readable_and_writable,
                                                Status *status) {
-#ifdef _WIN32
-    if (cbaccess(path->local_path.data, 6) == 0) {
+    if (access(path->local_path.data, R_OK | W_OK) == 0) {
         *readable_and_writable = true;
         return true;
     }
-#else
-    if (cbaccess(path->local_path.data, RW_OK) == 0) {
-        *readable_and_writable = true;
-        return true;
-    }
-#endif
 
-    if (errno == EACCES) {
-        return file_errno_error("path", status);
+    switch (errno) {
+        case EACCES:
+            *readable_and_writable = false;
+            break;
+        case ELOOP:
+            return symbolic_link_depth_exceeded(status);
+            break;
+        case ENAMETOOLONG:
+            return path_too_long(status);
+            break;
+        case ENOENT:
+            return path_not_found(status);
+            break;
+        case ENOTDIR:
+            return path_not_folder(status);
+            break;
+        case EROFS:
+            return read_only_filesystem(status);
+            break;
+        case EFAULT:
+            return invalid_memory_address(status);
+            break;
+        case EINVAL:
+            return invalid_mode(status);
+            break;
+        case EIO:
+            return io_error(status);
+            break;
+        case ENOMEM:
+            return out_of_memory(status);
+            break;
+        case ETXTBSY:
+            return file_busy(status);
+            break;
+        default:
+            return unknown_error(status);
+            break;
     }
 
-    *readable_and_writable = false;
     return true;
 }
 
-bool path_is_absolute(Path *path) {
-    return string_starts_with_cstr(&path->normal_path, "/");
-}
+bool path_size(Path *path, size_t *size, Status *status) {
+    struct stat stat_buf;
 
-bool path_strip_absolute_path(Path *path, Status *status) {
-    return (!path_is_absolute(path)) || string_shift_left(s, 1, status);
-}
+    if (!stat_path(path->local_path.data, &stat_buf, status)) {
+        return false;
+    }
 
-bool path_strip_extension(Path *path, Status *status) {
-    SSlice extension;
+    *size = (size_t)stat_buf.st_size;
 
-    return (
-        path_extension(path, &extension, status) &&
-        string_truncate(&path->normal_path, extension->len, status) &&
-        rebuild_local_path(path)
-    );
+    return true;
 }
 
 bool path_rename(Path *old_path, Path *new_path, Status *status) {
     if (rename(old_path->local_path.data, new_path->local_path.data) != 0) {
-        return file_errno_error("path", status);
+        switch (errno) {
+            case EACCES:
+                return permission_denied(status);
+                break;
+            case EBUSY:
+                return file_busy(status);
+                break;
+            case EDQUOT:
+                return quota_exceeded(status);
+                break;
+            case EFAULT:
+                return invalid_memory_address(status);
+                break;
+            case EINVAL:
+                return rename_to_subfolder_of_self(status);
+                break;
+            case EISDIR:
+                return rename_folder_to_file(status);
+                break;
+            case ELOOP:
+                return symbolic_link_depth_exceeded(status);
+                break;
+            case EMLINK:
+                return link_count_exceeded(status);
+                break;
+            case ENAMETOOLONG:
+                return path_too_long(status);
+                break;
+            case ENOENT:
+                return path_not_found(status);
+                break;
+            case ENOMEM:
+                return out_of_memory(status);
+                break;
+            case ENOSPC:
+                return device_full(status);
+                break;
+            case ENOTDIR:
+                return path_not_folder(status);
+                break;
+            case ENOTEMPTY:
+            case EEXIST:
+                return folder_not_empty(status);
+                break;
+            case EPERM:
+                return sticky_permission_denied(status);
+                break;
+            case EROFS:
+                return read_only_filesystem(status);
+                break;
+            case EXDEV:
+                return different_filesystems(status);
+                break;
+            default:
+                return unknown_error(status);
+                break;
+        }
     }
 
     return true;
 }
 
-bool path_delete(Path *path, Status *status) {
-    if (remove(old_path->local_path.data) != 0) {
-        return file_errno_error("path", status);
-    }
+bool path_join(Path *out, Path *path1, const char *path2, Status *status) {
+    string_clear(&out->normal_path);
 
-    return true;
-}
-
-bool path_join(Path *out, Path *path1, Path *path2, Status *status) {
-}
-
-bool path_folder_contains_file(Path *path, const char *filename,
-                                           bool *contains_file,
-                                           Status *status) {
-}
-
-bool path_folder_create(Path *path, int mode, Status *status) {
+    return (
+        string_copy(&out->normal_path, &path1->normal_path, status) &&
+        string_ensure_capacity(
+            &out->normal_path,
+            out->normal_path.byte_len + strlen(path2) + 1,
+            status
+        ) &&
+        string_append_cstr(&out->normal_path, "/", status) &&
+        string_append_cstr(&out->normal_path, path2, status) &&
+        canonicalize_path(out, status) &&
+        rebuild_local_path(out, status)
+    );
 }
 
 bool path_folder_delete(Path *path, Status *status) {
-}
+    if (rmdir(path->local_path.data) != 0) {
+        switch (errno) {
+            case EACCES:
+                return permission_denied(status);
+                break;
+            case EBUSY:
+                return file_busy(status);
+                break;
+            case EFAULT:
+                return invalid_memory_address(status);
+                break;
+            case EINVAL:
+                return invalid_path(status);
+                break;
+            case ELOOP:
+                return symbolic_link_depth_exceeded(status);
+                break;
+            case ENAMETOOLONG:
+                return path_too_long(status);
+                break;
+            case ENOENT:
+                return path_not_found(status);
+                break;
+            case ENOMEM:
+                return out_of_memory(status);
+                break;
+            case ENOTDIR:
+                return path_not_folder(status);
+                break;
+            case ENOTEMPTY:
+                return folder_not_empty(status);
+                break;
+            case EPERM:
+                return permission_denied(status);
+                break;
+            case EROFS:
+                return read_only_filesystem(status);
+                break;
+            default:
+                return unknown_error(status);
+                break;
+        }
+    }
 
-bool path_folder_delete_file(Path *path, const char *filename, Status *status) {
-}
-
-bool path_folder_list_files(Path *path, PArray *files, Status *status) {
-}
-
-bool path_folder_list_folders(Path *path, PArray *folders, Status *status) {
-}
-
-bool path_folder_list_files_and_folders(Path *path, PArray *files_and_folders,
-                                                    Status *status) {
-}
-
-bool path_file_create(Path *path, int mode, Status *status) {
+    return true;
 }
 
 bool path_file_delete(Path *path, Status *status) {
+    if (remove(path->local_path.data) != 0) {
+        switch (errno) {
+            case EACCES:
+            case EPERM:
+                /*
+                 * EPERM is overloaded like crazy, so give up and just return
+                 * permission denied; the user will have to figure it out.
+                 */
+                return permission_denied(status);
+                break;
+            case EBUSY:
+                return file_busy(status);
+                break;
+            case EFAULT:
+                return invalid_memory_address(status);
+                break;
+            case EIO:
+                return io_error(status);
+                break;
+            case EISDIR:
+                return unlink_folder(status);
+                break;
+            case ELOOP:
+                return symbolic_link_depth_exceeded(status);
+                break;
+            case ENAMETOOLONG:
+                return path_too_long(status);
+                break;
+            case ENOENT:
+                return path_not_found(status);
+                break;
+            case ENOMEM:
+                return out_of_memory(status);
+                break;
+            case ENOTDIR:
+                return path_not_folder(status);
+                break;
+            case EROFS:
+                return read_only_filesystem(status);
+                break;
+            default:
+                return unknown_error(status);
+                break;
+        }
+    }
+
+    return true;
 }
 
-bool path_file_open(Path *path, const char *mode) {
+bool path_file_read(Path *path, Buffer *buffer, Status *status) {
+    File *file = NULL;
+    size_t file_size = 0;
+
+    if (!path_size(path, &file_size, status)) {
+        return false;
+    }
+
+    if (!buffer_ensure_capacity(buffer, buffer->len + file_size, status)) {
+        return false;
+    }
+
+    if (!path_file_open(path, &file, "rb", status)) {
+        return false;
+    }
+
+    if (!file_read(file, buffer, file_size, sizeof(char), status)) {
+        Status close_status;
+
+        status_init(&close_status);
+
+        /*
+         * This is unfortunate, but just swallow this error.  The FILE* is
+         * invalid at this point anyway (can't even call `fclose` on it again),
+         * so there's nothing the user can really do anyway.  It would provide
+         * more troubleshooting information, but too bad.
+         */
+        file_close(file, &close_status);
+
+        return false;
+    }
+
+    return file_close(file, status);
 }
 
-bool path_file_fdopen(Path *path, int flags, int mode, int *fd,
-                                                       Status *status) {
+bool path_file_open(Path *path, File **file, const char *mode, Status *status) {
+    FILE *fobj = fopen(path->local_path.data, mode);
+
+    if (!fobj) {
+        switch (errno) {
+            case EINVAL:
+                return invalid_mode_or_flags(status);
+                break;
+            case ENOMEM:
+                return alloc_failure(status);
+                break;
+            case EACCES:
+                return permission_denied(status);
+                break;
+            case EDQUOT:
+                return quota_exceeded(status);
+                break;
+            case EEXIST:
+                return file_already_exists(status);
+                break;
+            case EFAULT:
+                return invalid_memory_address(status);
+                break;
+            case EFBIG:
+            case EOVERFLOW:
+                return file_too_large(status);
+                break;
+            case EINTR:
+                return operation_interrupted(status);
+            case EISDIR:
+                return expected_file(status);
+                break;
+            case ELOOP:
+                return symbolic_link_depth_exceeded(status);
+                break;
+            case EMFILE:
+                return per_process_file_limit_reached(status);
+                break;
+            case ENAMETOOLONG:
+                return path_too_long(status);
+                break;
+            case ENFILE:
+                return system_wide_file_limit_reached(status);
+                break;
+            case ENODEV:
+            case ENXIO:
+                return no_peer(status);
+                break;
+            case EOPNOTSUPP:
+                return operation_not_supported(status);
+                break;
+            case EPERM:
+                return permission_denied(status);
+                break;
+            case ETXTBSY:
+                return file_busy(status);
+                break;
+            case EWOULDBLOCK:
+                return would_block(status);
+                break;
+            default:
+                return unknown_error(status);
+                break;
+        }
+    }
+
+    *file = (File *)fobj;
+    return true;
 }
 
-bool file_read(File *file, void *buf, size_t byte_count, Status *status) {
-}
+bool file_read(File *file, Buffer *buffer, size_t count, size_t size,
+                                                         Status *status) {
+    FILE *fobj = (FILE *)file;
+    size_t bytes_read = 0;
+    size_t bytes_requested = 0;
 
-bool file_write(File *file, const void *buf, size_t byte_count, Status *status) {
-}
+    if (!check_overflow(count, size)) {
+        return numeric_overflow(status);
+    }
 
-bool file_seek(File *file, off_t offset, int whence, Status *status) {
-}
+    bytes_requested = count * size;
 
-bool file_tell(File *file, size_t *pos, Status *status) {
-}
+    if (!buffer_ensure_capacity(buffer, buffer->len + bytes_requested, status)) {
+        return false;
+    }
 
-bool file_size(File *file, size_t *size, Status *status) {
+    bytes_read = fread(buffer->data + buffer->len, size, count, fobj);
+
+    buffer->len += bytes_read;
+
+    if (bytes_read != bytes_requested) {
+        if (feof(fobj)) {
+            return path_end_of_file(status);
+        }
+        if (ferror(fobj) == -1) {
+            return invalid_file_descriptor(status);
+        }
+
+        return unknown_error(status);
+    }
+
+    return true;
 }
 
 bool file_close(File *file, Status *status) {
+    FILE *fobj = (FILE *)file;
+
+    if (fclose(fobj) == EOF) {
+        switch (errno) {
+            case EBADF:
+                return invalid_file_descriptor(status);
+                break;
+            default:
+                return unknown_error(status);
+                break;
+        }
+    }
+
+    return true;
 }
 
-bool file_flush(File *file, Status *status) {
-}
-
-bool file_is_eof(File *file) {
-}
-
-int file_get_error(File *file) {
-}
-
-void file_clear_error(File *file) {
-}
-
-int  file_get_fd(File *file) {
-}
-
-bool file_fdread(int fd, void *buf, size_t byte_count, Status *status) {
-}
-
-bool file_fdwrite(int fd, const void *buf, size_t byte_count, Status *status) {
-}
-
-bool file_fdseek(int fd, off_t offset, int whence, Status *status) {
-}
-
-bool file_fdtell(int fd, size_t *pos, Status *status) {
-}
-
-bool file_fdsize(int fd, size_t *size, Status *status) {
-}
-
-bool file_fdclose(int fd, Status *status) {
-}
+// ssize_t read(int fildes, void *buf, size_t nbyte);
+// ssize_t write(int fildes, const void *buf, size_t nbyte);
+// off_t lseek(int fildes, off_t offset, int whence);
+// off_t lseek(int fildes, off_t offset, int whence);
+// int close(int filedes);
 
 /* vi: set et ts=4 sw=4: */

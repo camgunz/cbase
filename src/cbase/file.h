@@ -1,25 +1,65 @@
 #ifndef FILE_H__
 #define FILE_H__
 
+enum {
+    PATH_PERMISSION_DENIED,
+    PATH_INVALID_FILE_DESCRIPTOR,
+    PATH_INVALID_MEMORY_ADDRESS,
+    PATH_SYMBOLIC_LINK_DEPTH_EXCEEDED,
+    PATH_TOO_LONG,
+    PATH_NOT_FOUND,
+    PATH_OUT_OF_MEMORY,
+    PATH_NOT_FOLDER,
+    PATH_READ_ONLY_FILESYSTEM,
+    PATH_INVALID_MODE,
+    PATH_IO_ERROR,
+    PATH_FILE_BUSY,
+    PATH_QUOTA_EXCEEDED,
+    PATH_RENAME_TO_SUBFOLDER_OF_SELF,
+    PATH_RENAME_FOLDER_TO_FILE,
+    PATH_LINK_COUNT_EXCEEDED,
+    PATH_DEVICE_FULL,
+    PATH_FOLDER_NOT_EMPTY,
+    PATH_STICKY_PERMISSION_DENIED,
+    PATH_DIFFERENT_FILESYSTEMS,
+    PATH_UNLINK_FOLDER,
+    PATH_INVALID_PATH,
+    PATH_HAS_NO_DIRNAME,
+    PATH_HAS_NO_EXTENSION,
+    PATH_END_OF_FILE,
+    PATH_FILE_ALREADY_EXISTS,
+    PATH_OPERATION_INTERRUPTED,
+    PATH_INVALID_FLAGS,
+    PATH_PER_PROCESS_FILE_LIMIT_REACHED,
+    PATH_SYSTEM_WIDE_FILE_LIMIT_REACHED,
+    PATH_NO_PEER,
+    PATH_OPERATION_NOT_SUPPORTED,
+    PATH_FILE_TOO_LARGE,
+    PATH_WOULD_BLOCK,
+    PATH_INVALID_MODE_OR_FLAGS,
+    PATH_EXPECTED_FILE,
+    PATH_UNKNOWN_ERROR,
+};
+
 typedef struct {
     Buffer local_path;
     String normal_path;
 } Path;
 
-typedef void* File
+typedef void* File;
 
 bool path_init(Path *path, Slice *path_slice, Status *status);
 bool path_init_non_local(Path *path, Slice *non_local_path, Status *status);
 bool path_init_non_local_from_cstr(Path *path, const char *non_local_path,
                                                Status *status);
 bool path_new(Path **path, Slice *path_slice, Status *status);
-bool path_new_non_local(Path *path, Slice *non_local_path, Status *status);
-bool path_new_non_local_from_cstr(Path *path, const char *non_local_path,
-                                              Status *status);
+bool path_new_non_local(Path **path, Slice *non_local_path, Status *status);
+bool path_new_non_local_from_cstr(Path **path, const char *non_local_path,
+                                               Status *status);
 bool path_new(Path **path, Slice *path_slice, Status *status);
-bool path_new_non_local(Path *path, Slice *non_local_path, Status *status);
-bool path_new_non_local_from_cstr(Path *path, const char *non_local_path,
-                                              Status *status);
+bool path_new_non_local(Path **path, Slice *non_local_path, Status *status);
+bool path_new_non_local_from_cstr(Path **path, const char *non_local_path,
+                                               Status *status);
 bool path_set(Path *path, Slice *path_slice, Status *status);
 bool path_set_non_local(Path *path, Slice *non_local_path, Status *status);
 bool path_set_non_local_from_cstr(Path *path, const char *non_local_path,
@@ -27,29 +67,28 @@ bool path_set_non_local_from_cstr(Path *path, const char *non_local_path,
 bool path_dirname(Path *path, SSlice *dirname, Status *status);
 bool path_basename(Path *path, SSlice *basename, Status *status);
 bool path_extension(Path *path, SSlice *extension, Status *status);
-
+bool path_strip_extension(Path *path, Status *status);
 bool path_exists(Path *path, bool *exists, Status *status);
 bool path_dirname_exists(Path *path, bool *exists, Status *status);
-bool path_is_folder(Path *path, bool *is_folder, Status *status);
 bool path_is_file(Path *path, bool *is_file, Status *status);
+bool path_is_regular_file(Path *path, bool *is_regular_file, Status *status);
+bool path_is_folder(Path *path, bool *is_folder, Status *status);
 bool path_is_regular_file(Path *path, bool *is_regular_file, Status *status);
 bool path_is_symlink(Path *path, bool *is_symlink, Status *status);
 bool path_is_readable(Path *path, bool *readable, Status *status);
 bool path_is_writable(Path *path, bool *writable, Status *status);
-bool path_is_readable_and_writable(Path *path, bool *readable_and_writable,,
+bool path_is_readable_and_writable(Path *path, bool *readable_and_writable,
                                                Status *status);
-
-bool path_strip_absolute_path(Path *path, Status *status);
-bool path_strip_extension(Path *path, Status *status);
+bool path_size(Path *path, size_t *size, Status *status);
 bool path_rename(Path *old_path, Path *new_path, Status *status);
-bool path_delete(Path *path, Status *status);
-bool path_join(Path *out, Path *path1, Path *path2, Status *status);
+bool path_join(Path *out, Path *path1, const char *path2, Status *status);
+
+bool path_folder_delete(Path *path, Status *status);
 
 bool path_folder_contains_file(Path *path, const char *filename,
                                            bool *contains_file,
                                            Status *status);
 bool path_folder_create(Path *path, int mode, Status *status);
-bool path_folder_delete(Path *path, Status *status);
 bool path_folder_delete_file(Path *path, const char *filename, Status *status);
 bool path_folder_list_files(Path *path, PArray *files, Status *status);
 bool path_folder_list_folders(Path *path, PArray *folders, Status *status);
@@ -58,13 +97,18 @@ bool path_folder_list_files_and_folders(Path *path, PArray *files_and_folders,
 
 bool path_file_create(Path *path, int mode, Status *status);
 bool path_file_delete(Path *path, Status *status);
+bool path_file_read(Path *path, Buffer *buffer, Status *status);
+bool path_file_read_text(Path *path, String *string, Status *status);
+bool path_file_read_local_text(Path *path, String *string, Status *status);
 
-bool path_file_open(Path *path, const char *mode);
+bool path_file_open(Path *path, File **file, const char *mode, Status *status);
 bool path_file_fdopen(Path *path, int flags, int mode, int *fd,
                                                        Status *status);
 
-bool file_read(File *file, void *buf, size_t byte_count, Status *status);
-bool file_write(File *file, const void *buf, size_t byte_count, Status *status);
+bool file_read(File *file, Buffer *buffer, size_t count, size_t size,
+                                                         Status *status);
+bool file_write(File *file, Buffer *buffer, size_t byte_count, Status *status);
+bool file_sync(File *file, Status *status);
 bool file_seek(File *file, off_t offset, int whence, Status *status);
 bool file_tell(File *file, size_t *pos, Status *status);
 bool file_size(File *file, size_t *size, Status *status);

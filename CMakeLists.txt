@@ -169,6 +169,7 @@ SET(LIBCBASE_SOURCE_FILES
   ${CMAKE_SOURCE_DIR}/src/array.c
   ${CMAKE_SOURCE_DIR}/src/buffer.c
   ${CMAKE_SOURCE_DIR}/src/charset.c
+  ${CMAKE_SOURCE_DIR}/src/file.c
   ${CMAKE_SOURCE_DIR}/src/list.c
   ${CMAKE_SOURCE_DIR}/src/log.c
   ${CMAKE_SOURCE_DIR}/src/parray.c
@@ -189,6 +190,7 @@ SET(INCLUDE_FILES
   ${CMAKE_SOURCE_DIR}/src/cbase/charset.h
   ${CMAKE_SOURCE_DIR}/src/cbase/decimal.h
   ${CMAKE_SOURCE_DIR}/src/cbase/errors.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/file.h
   ${CMAKE_SOURCE_DIR}/src/cbase/hash.h
   ${CMAKE_SOURCE_DIR}/src/cbase/list.h
   ${CMAKE_SOURCE_DIR}/src/cbase/log.h

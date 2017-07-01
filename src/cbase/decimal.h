@@ -130,11 +130,11 @@ extern void (* mpd_traphandler)(mpd_context_t *);
     "Not implemented"                           \
 )
 
-#define overflow(status) status_failure( \
-    status,                              \
-    "decimal",                           \
-    DECIMAL_OVERFLOW,                    \
-    "Overflow"                           \
+#define decimal_overflow(status) status_failure( \
+    status,                                      \
+    "decimal",                                   \
+    DECIMAL_OVERFLOW,                            \
+    "Overflow"                                   \
 )
 
 #define rounded(status) status_failure( \
@@ -260,7 +260,7 @@ static inline bool decimal_handle_error_code(uint32_t error_code,
         case MPD_Not_implemented:
             return not_implemented(status);
         case MPD_Overflow:
-            return overflow(status);
+            return decimal_overflow(status);
         case MPD_Rounded:
             return rounded(status);
         case MPD_Subnormal:

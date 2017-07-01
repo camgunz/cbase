@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "cbase/util.h"
+
 #include "cbase/alloc.h"
 #include "cbase/types.h"
 #include "cbase/swap.h"
@@ -36,6 +38,7 @@
 #include "cbase/table.h"
 
 #include "cbase/charset.h"
+#include "cbase/file.h"
 
 #endif
 
