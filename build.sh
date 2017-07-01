@@ -20,8 +20,6 @@ cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
       -DLIB_DIR=~/local/lib \
       -DINCLUDE_DIR=~/local/include \
       -DSHARE_DIR=~/local/share \
-      -DMPDECIMAL_INCLUDE_DIR=/Users/cgunyon/local/include \
-      -DMPDECIMAL_LIBRARIES=/Users/cgunyon/local/lib/libmpdec.a \
       ..
 
 make
