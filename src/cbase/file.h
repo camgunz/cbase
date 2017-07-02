@@ -42,6 +42,7 @@ enum {
     PATH_FOLDER_BUSY,
     PATH_NO_SPACE,
     PATH_FILE_IS_NAMED_STREAM,
+    PATH_ALREADY_ROOT,
     PATH_UNKNOWN_ERROR,
 };
 
@@ -74,6 +75,7 @@ bool path_extension(Path *path, SSlice *extension, Status *status);
 bool path_strip_extension(Path *path, Status *status);
 bool path_exists(Path *path, bool *exists, Status *status);
 bool path_dirname_exists(Path *path, bool *exists, Status *status);
+bool path_set_to_dirname(Path *path, Status *status);
 bool path_is_file(Path *path, bool *is_file, Status *status);
 bool path_is_regular_file(Path *path, bool *is_regular_file, Status *status);
 bool path_is_folder(Path *path, bool *is_folder, Status *status);

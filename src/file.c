@@ -294,6 +294,13 @@
     "file is named_stream"                         \
 )
 
+#define is_already_root(status) status_error( \
+    status,                                   \
+    "path",                                   \
+    PATH_ALREADY_ROOT,                        \
+    "path is already the root path"           \
+)
+
 #define unknown_error(status) status_error( \
     status,                                 \
     "path",                                 \
@@ -690,6 +697,34 @@ bool path_dirname_exists(Path *path, bool *exists, Status *status) {
     buffer_free(&local_dirname);
 
     return true;
+}
+
+bool path_set_to_dirname(Path *path, Status *status) {
+    size_t dir_count = 0;
+    SSlice dirname;
+
+    for (size_t i = 0; i < path->normal_path.byte_len; i++) {
+        if (path->normal_path.data[i] == '/') {
+            dir_count++;
+            if (dir_count > 1) {
+                break;
+            }
+        }
+    }
+
+    if (dir_count < 2) {
+        return is_already_root(status);
+    }
+
+    return (
+        path_dirname(path, &dirname, status) &&
+        string_truncate(
+            &path->normal_path,
+            path->normal_path.len - dirname.len,
+            status
+        ) &&
+        rebuild_local_path(path, status)
+    );
 }
 
 bool path_is_file(Path *path, bool *is_file, Status *status) {
