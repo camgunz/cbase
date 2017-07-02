@@ -92,36 +92,42 @@ bool path_join(Path *out, Path *path1, const char *path2, Status *status);
 
 bool path_folder_create(Path *path, int mode, Status *status);
 bool path_folder_delete(Path *path, Status *status);
-bool path_folder_contains_file(Path *path, const char *filename,
-                                           bool *contains_file,
-                                           Status *status);
-bool path_folder_delete_file(Path *path, const char *filename, Status *status);
+
+/*
 bool path_folder_list_files(Path *path, PArray *files, Status *status);
 bool path_folder_list_folders(Path *path, PArray *folders, Status *status);
 bool path_folder_list_files_and_folders(Path *path, PArray *files_and_folders,
                                                     Status *status);
+*/
 
 bool path_file_create(Path *path, int mode, Status *status);
 bool path_file_delete(Path *path, Status *status);
 bool path_file_read(Path *path, Buffer *buffer, Status *status);
+/*
 bool path_file_read_text(Path *path, String *string, Status *status);
 bool path_file_read_local_text(Path *path, String *string, Status *status);
+*/
 
 bool path_file_open(Path *path, File **file, const char *mode, Status *status);
+/*
 bool path_file_fdopen(Path *path, int flags, int mode, int *fd,
                                                        Status *status);
+*/
 
 bool file_read(File *file, Buffer *buffer, size_t count, size_t size,
                                                          Status *status);
+/*
 bool file_write(File *file, Buffer *buffer, size_t byte_count, Status *status);
 bool file_sync(File *file, Status *status);
 bool file_seek(File *file, off_t offset, int whence, Status *status);
 bool file_tell(File *file, size_t *pos, Status *status);
 bool file_size(File *file, size_t *size, Status *status);
+*/
 bool file_close(File *file, Status *status);
+/*
 bool file_flush(File *file, Status *status);
 bool file_is_eof(File *file);
-int  file_get_error(File *file);
+bool file_has_error(File *file);
 void file_clear_error(File *file);
 int  file_get_fd(File *file);
 
@@ -131,6 +137,7 @@ bool file_fdseek(int fd, off_t offset, int whence, Status *status);
 bool file_fdtell(int fd, size_t *pos, Status *status);
 bool file_fdsize(int fd, size_t *size, Status *status);
 bool file_fdclose(int fd, Status *status);
+*/
 
 #endif
 
