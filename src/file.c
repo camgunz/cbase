@@ -189,11 +189,11 @@
     "end of file"                              \
 )
 
-#define file_already_exists(status) status_error( \
-    status,                                       \
-    "path",                                       \
-    PATH_FILE_ALREADY_EXISTS,                     \
-    "file already exists"                         \
+#define already_exists(status) status_error( \
+    status,                                  \
+    "path",                                  \
+    PATH_ALREADY_EXISTS,                     \
+    "path already exists"                    \
 )
 
 #define operation_interrupted(status) status_error( \
@@ -264,6 +264,20 @@
     "path",                                 \
     PATH_EXPECTED_FILE,                     \
     "expected file"                         \
+)
+
+#define folder_busy(status) status_error( \
+    status,                               \
+    "path",                               \
+    PATH_FOLDER_BUSY,                     \
+    "folder busy"                         \
+)
+
+#define no_space(status) status_error( \
+    status,                            \
+    "path",                            \
+    PATH_NO_SPACE,                     \
+    "no space"                         \
 )
 
 #define unknown_error(status) status_error( \
@@ -951,6 +965,60 @@ bool path_join(Path *out, Path *path1, const char *path2, Status *status) {
     );
 }
 
+bool path_folder_create(Path *path, int mode, Status *status) {
+    if (mkdir(path->local_path.data, mode) != 0) {
+        switch (errno) {
+            case EACCES:
+                return permission_denied(status);
+                break;
+            case EBUSY:
+                return folder_busy(status);
+                break;
+            case EDQUOT:
+                return quota_exceeded(status);
+                break;
+            case EEXIST:
+                return already_exists(status);
+                break;
+            case EFAULT:
+                return invalid_memory_address(status);
+                break;
+            case ELOOP:
+                return symbolic_link_depth_exceeded(status);
+                break;
+            case EMLINK:
+                return link_count_exceeded(status);
+                break;
+            case ENAMETOOLONG:
+                return path_too_long(status);
+                break;
+            case ENOENT:
+                return path_not_found(status);
+                break;
+            case ENOMEM:
+                return out_of_memory(status);
+                break;
+            case ENOSPC:
+                return no_space(status);
+                break;
+            case ENOTDIR:
+                return path_not_folder(status);
+                break;
+            case EPERM:
+                return permission_denied(status);
+                break;
+            case EROFS:
+                return read_only_filesystem(status);
+                break;
+            default:
+                return unknown_error(status);
+                break;
+        }
+    }
+
+    return true;
+}
+
 bool path_folder_delete(Path *path, Status *status) {
     if (rmdir(path->local_path.data) != 0) {
         switch (errno) {
@@ -1000,7 +1068,7 @@ bool path_folder_delete(Path *path, Status *status) {
 }
 
 bool path_file_delete(Path *path, Status *status) {
-    if (remove(path->local_path.data) != 0) {
+    if (unlink(path->local_path.data) != 0) {
         switch (errno) {
             case EACCES:
             case EPERM:
@@ -1102,7 +1170,7 @@ bool path_file_open(Path *path, File **file, const char *mode, Status *status) {
                 return quota_exceeded(status);
                 break;
             case EEXIST:
-                return file_already_exists(status);
+                return already_exists(status);
                 break;
             case EFAULT:
                 return invalid_memory_address(status);

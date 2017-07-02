@@ -27,7 +27,7 @@ enum {
     PATH_HAS_NO_DIRNAME,
     PATH_HAS_NO_EXTENSION,
     PATH_END_OF_FILE,
-    PATH_FILE_ALREADY_EXISTS,
+    PATH_ALREADY_EXISTS,
     PATH_OPERATION_INTERRUPTED,
     PATH_INVALID_FLAGS,
     PATH_PER_PROCESS_FILE_LIMIT_REACHED,
@@ -38,6 +38,8 @@ enum {
     PATH_WOULD_BLOCK,
     PATH_INVALID_MODE_OR_FLAGS,
     PATH_EXPECTED_FILE,
+    PATH_FOLDER_BUSY,
+    PATH_NO_SPACE,
     PATH_UNKNOWN_ERROR,
 };
 
@@ -83,12 +85,11 @@ bool path_size(Path *path, size_t *size, Status *status);
 bool path_rename(Path *old_path, Path *new_path, Status *status);
 bool path_join(Path *out, Path *path1, const char *path2, Status *status);
 
+bool path_folder_create(Path *path, int mode, Status *status);
 bool path_folder_delete(Path *path, Status *status);
-
 bool path_folder_contains_file(Path *path, const char *filename,
                                            bool *contains_file,
                                            Status *status);
-bool path_folder_create(Path *path, int mode, Status *status);
 bool path_folder_delete_file(Path *path, const char *filename, Status *status);
 bool path_folder_list_files(Path *path, PArray *files, Status *status);
 bool path_folder_list_folders(Path *path, PArray *folders, Status *status);
