@@ -266,6 +266,13 @@
     "expected file"                         \
 )
 
+#define expected_folder(status) status_error( \
+    status,                                   \
+    "path",                                   \
+    PATH_EXPECTED_FOLDER,                     \
+    "expected folder"                         \
+)
+
 #define folder_busy(status) status_error( \
     status,                               \
     "path",                               \
@@ -278,6 +285,13 @@
     "path",                            \
     PATH_NO_SPACE,                     \
     "no space"                         \
+)
+
+#define file_is_named_stream(status) status_error( \
+    status,                                        \
+    "path",                                        \
+    PATH_FILE_IS_NAMED_STREAM,                     \
+    "file is named_stream"                         \
 )
 
 #define unknown_error(status) status_error( \
@@ -301,6 +315,9 @@ static bool canonicalize_path(Path *path, Status *status) {
                 break;
             case EIO:
                 return io_error(status);
+                break;
+            case ELOOP:
+                return symbolic_link_depth_exceeded(status);
                 break;
             case ENAMETOOLONG:
                 return path_too_long(status);
@@ -441,6 +458,9 @@ static bool stat_path(const char *path, struct stat *stat_obj, Status *status) {
                 break;
             case EFAULT:
                 return invalid_memory_address(status);
+                break;
+            case EIO:
+                return io_error(status);
                 break;
             case ELOOP:
                 return symbolic_link_depth_exceeded(status);
@@ -737,21 +757,6 @@ bool path_is_readable(Path *path, bool *readable, Status *status) {
         case EACCES:
             *readable = false;
             break;
-        case ELOOP:
-            return symbolic_link_depth_exceeded(status);
-            break;
-        case ENAMETOOLONG:
-            return path_too_long(status);
-            break;
-        case ENOENT:
-            return path_not_found(status);
-            break;
-        case ENOTDIR:
-            return path_not_folder(status);
-            break;
-        case EROFS:
-            return read_only_filesystem(status);
-            break;
         case EFAULT:
             return invalid_memory_address(status);
             break;
@@ -761,8 +766,23 @@ bool path_is_readable(Path *path, bool *readable, Status *status) {
         case EIO:
             return io_error(status);
             break;
+        case ELOOP:
+            return symbolic_link_depth_exceeded(status);
+            break;
+        case ENAMETOOLONG:
+            return path_too_long(status);
+            break;
+        case ENOENT:
+            return path_not_found(status);
+            break;
         case ENOMEM:
             return out_of_memory(status);
+            break;
+        case ENOTDIR:
+            return path_not_folder(status);
+            break;
+        case EROFS:
+            return read_only_filesystem(status);
             break;
         case ETXTBSY:
             return file_busy(status);
@@ -785,21 +805,6 @@ bool path_is_writable(Path *path, bool *writable, Status *status) {
         case EACCES:
             *writable = false;
             break;
-        case ELOOP:
-            return symbolic_link_depth_exceeded(status);
-            break;
-        case ENAMETOOLONG:
-            return path_too_long(status);
-            break;
-        case ENOENT:
-            return path_not_found(status);
-            break;
-        case ENOTDIR:
-            return path_not_folder(status);
-            break;
-        case EROFS:
-            return read_only_filesystem(status);
-            break;
         case EFAULT:
             return invalid_memory_address(status);
             break;
@@ -809,8 +814,23 @@ bool path_is_writable(Path *path, bool *writable, Status *status) {
         case EIO:
             return io_error(status);
             break;
+        case ELOOP:
+            return symbolic_link_depth_exceeded(status);
+            break;
+        case ENAMETOOLONG:
+            return path_too_long(status);
+            break;
+        case ENOENT:
+            return path_not_found(status);
+            break;
         case ENOMEM:
             return out_of_memory(status);
+            break;
+        case ENOTDIR:
+            return path_not_folder(status);
+            break;
+        case EROFS:
+            return read_only_filesystem(status);
             break;
         case ETXTBSY:
             return file_busy(status);
@@ -834,21 +854,6 @@ bool path_is_readable_and_writable(Path *path, bool *readable_and_writable,
         case EACCES:
             *readable_and_writable = false;
             break;
-        case ELOOP:
-            return symbolic_link_depth_exceeded(status);
-            break;
-        case ENAMETOOLONG:
-            return path_too_long(status);
-            break;
-        case ENOENT:
-            return path_not_found(status);
-            break;
-        case ENOTDIR:
-            return path_not_folder(status);
-            break;
-        case EROFS:
-            return read_only_filesystem(status);
-            break;
         case EFAULT:
             return invalid_memory_address(status);
             break;
@@ -858,8 +863,23 @@ bool path_is_readable_and_writable(Path *path, bool *readable_and_writable,
         case EIO:
             return io_error(status);
             break;
+        case ELOOP:
+            return symbolic_link_depth_exceeded(status);
+            break;
+        case ENAMETOOLONG:
+            return path_too_long(status);
+            break;
+        case ENOENT:
+            return path_not_found(status);
+            break;
         case ENOMEM:
             return out_of_memory(status);
+            break;
+        case ENOTDIR:
+            return path_not_folder(status);
+            break;
+        case EROFS:
+            return read_only_filesystem(status);
             break;
         case ETXTBSY:
             return file_busy(status);
@@ -886,21 +906,33 @@ bool path_size(Path *path, size_t *size, Status *status) {
 
 bool path_rename(Path *old_path, Path *new_path, Status *status) {
     if (rename(old_path->local_path.data, new_path->local_path.data) != 0) {
+
         switch (errno) {
             case EACCES:
                 return permission_denied(status);
                 break;
+            case EBADF:
+                return invalid_file_descriptor(status);
+                break;
             case EBUSY:
+            case ETXTBSY:
                 return file_busy(status);
                 break;
             case EDQUOT:
                 return quota_exceeded(status);
+                break;
+            case EEXIST:
+            case ENOTEMPTY:
+                return folder_not_empty(status);
                 break;
             case EFAULT:
                 return invalid_memory_address(status);
                 break;
             case EINVAL:
                 return rename_to_subfolder_of_self(status);
+                break;
+            case EIO:
+                return io_error(status);
                 break;
             case EISDIR:
                 return rename_folder_to_file(status);
@@ -926,10 +958,6 @@ bool path_rename(Path *old_path, Path *new_path, Status *status) {
             case ENOTDIR:
                 return path_not_folder(status);
                 break;
-            case ENOTEMPTY:
-            case EEXIST:
-                return folder_not_empty(status);
-                break;
             case EPERM:
                 return sticky_permission_denied(status);
                 break;
@@ -938,6 +966,60 @@ bool path_rename(Path *old_path, Path *new_path, Status *status) {
                 break;
             case EXDEV:
                 return different_filesystems(status);
+                break;
+            default:
+                return unknown_error(status);
+                break;
+        }
+    }
+
+    return true;
+}
+
+bool path_delete(Path *path, Status *status) {
+    if (remove(path->local_path.data) != 0) {
+        switch (errno) {
+            case EACCES:
+            case EPERM:
+                /*
+                 * EPERM is overloaded like crazy, so give up and just return
+                 * permission denied; the user will have to figure it out.
+                 */
+                return permission_denied(status);
+                break;
+            case EBUSY:
+                return file_busy(status);
+                break;
+            case EEXIST:
+            case ENOTEMPTY:
+                return folder_not_empty(status);
+                break;
+            case EFAULT:
+                return invalid_memory_address(status);
+                break;
+            case EINVAL:
+                return invalid_path(status);
+                break;
+            case EIO:
+                return io_error(status);
+                break;
+            case ELOOP:
+                return symbolic_link_depth_exceeded(status);
+                break;
+            case ENAMETOOLONG:
+                return path_too_long(status);
+                break;
+            case ENOENT:
+                return path_not_found(status);
+                break;
+            case ENOMEM:
+                return out_of_memory(status);
+                break;
+            case ENOTDIR:
+                return path_not_folder(status);
+                break;
+            case EROFS:
+                return read_only_filesystem(status);
                 break;
             default:
                 return unknown_error(status);
@@ -969,10 +1051,8 @@ bool path_folder_create(Path *path, int mode, Status *status) {
     if (mkdir(path->local_path.data, mode) != 0) {
         switch (errno) {
             case EACCES:
+            case EPERM:
                 return permission_denied(status);
-                break;
-            case EBUSY:
-                return folder_busy(status);
                 break;
             case EDQUOT:
                 return quota_exceeded(status);
@@ -1004,9 +1084,6 @@ bool path_folder_create(Path *path, int mode, Status *status) {
             case ENOTDIR:
                 return path_not_folder(status);
                 break;
-            case EPERM:
-                return permission_denied(status);
-                break;
             case EROFS:
                 return read_only_filesystem(status);
                 break;
@@ -1023,16 +1100,24 @@ bool path_folder_delete(Path *path, Status *status) {
     if (rmdir(path->local_path.data) != 0) {
         switch (errno) {
             case EACCES:
+            case EPERM:
                 return permission_denied(status);
                 break;
             case EBUSY:
                 return file_busy(status);
+                break;
+            case EEXIST:
+            case ENOTEMPTY:
+                return folder_not_empty(status);
                 break;
             case EFAULT:
                 return invalid_memory_address(status);
                 break;
             case EINVAL:
                 return invalid_path(status);
+                break;
+            case EIO:
+                return io_error(status);
                 break;
             case ELOOP:
                 return symbolic_link_depth_exceeded(status);
@@ -1049,12 +1134,6 @@ bool path_folder_delete(Path *path, Status *status) {
             case ENOTDIR:
                 return path_not_folder(status);
                 break;
-            case ENOTEMPTY:
-                return folder_not_empty(status);
-                break;
-            case EPERM:
-                return permission_denied(status);
-                break;
             case EROFS:
                 return read_only_filesystem(status);
                 break;
@@ -1065,6 +1144,13 @@ bool path_folder_delete(Path *path, Status *status) {
     }
 
     return true;
+}
+
+bool path_file_create(Path *path, int mode, Status *status) {
+    (void)path;
+    (void)mode;
+    (void)status;
+    return false;
 }
 
 bool path_file_delete(Path *path, Status *status) {
@@ -1079,7 +1165,7 @@ bool path_file_delete(Path *path, Status *status) {
                 return permission_denied(status);
                 break;
             case EBUSY:
-                return file_busy(status);
+                return file_is_named_stream(status);
                 break;
             case EFAULT:
                 return invalid_memory_address(status);
@@ -1088,7 +1174,7 @@ bool path_file_delete(Path *path, Status *status) {
                 return io_error(status);
                 break;
             case EISDIR:
-                return unlink_folder(status);
+                return expected_folder(status);
                 break;
             case ELOOP:
                 return symbolic_link_depth_exceeded(status);
@@ -1107,6 +1193,9 @@ bool path_file_delete(Path *path, Status *status) {
                 break;
             case EROFS:
                 return read_only_filesystem(status);
+                break;
+            case ETXTBSY:
+                return file_busy(status);
                 break;
             default:
                 return unknown_error(status);
@@ -1157,12 +1246,6 @@ bool path_file_open(Path *path, File **file, const char *mode, Status *status) {
 
     if (!fobj) {
         switch (errno) {
-            case EINVAL:
-                return invalid_mode_or_flags(status);
-                break;
-            case ENOMEM:
-                return alloc_failure(status);
-                break;
             case EACCES:
                 return permission_denied(status);
                 break;
@@ -1181,6 +1264,10 @@ bool path_file_open(Path *path, File **file, const char *mode, Status *status) {
                 break;
             case EINTR:
                 return operation_interrupted(status);
+                break;
+            case EINVAL:
+                return invalid_mode_or_flags(status);
+                break;
             case EISDIR:
                 return expected_file(status);
                 break;
@@ -1199,6 +1286,18 @@ bool path_file_open(Path *path, File **file, const char *mode, Status *status) {
             case ENODEV:
             case ENXIO:
                 return no_peer(status);
+                break;
+            case ENOENT:
+                return path_not_found(status);
+                break;
+            case ENOMEM:
+                return alloc_failure(status);
+                break;
+            case ENOSPC:
+                return no_space(status);
+                break;
+            case ENOTDIR:
+                return path_not_folder(status);
                 break;
             case EOPNOTSUPP:
                 return operation_not_supported(status);

@@ -38,8 +38,10 @@ enum {
     PATH_WOULD_BLOCK,
     PATH_INVALID_MODE_OR_FLAGS,
     PATH_EXPECTED_FILE,
+    PATH_EXPECTED_FOLDER,
     PATH_FOLDER_BUSY,
     PATH_NO_SPACE,
+    PATH_FILE_IS_NAMED_STREAM,
     PATH_UNKNOWN_ERROR,
 };
 
@@ -83,6 +85,7 @@ bool path_is_readable_and_writable(Path *path, bool *readable_and_writable,
                                                Status *status);
 bool path_size(Path *path, size_t *size, Status *status);
 bool path_rename(Path *old_path, Path *new_path, Status *status);
+bool path_delete(Path *path, Status *status);
 bool path_join(Path *out, Path *path1, const char *path2, Status *status);
 
 bool path_folder_create(Path *path, int mode, Status *status);
