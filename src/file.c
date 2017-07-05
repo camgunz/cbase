@@ -1390,6 +1390,26 @@ bool file_read(File *file, Buffer *buffer, size_t count, size_t size,
     return true;
 }
 
+bool file_read_raw(File *file, void *buf, size_t byte_count, Status *status) {
+    FILE *fobj = (FILE *)file;
+    size_t bytes_read = 0;
+
+    bytes_read = fread(buf, byte_count, 1, fobj);
+
+    if (bytes_read != byte_count) {
+        if (feof(fobj)) {
+            return path_end_of_file(status);
+        }
+        if (ferror(fobj) == -1) {
+            return invalid_file_descriptor(status);
+        }
+
+        return unknown_error(status);
+    }
+
+    return true;
+}
+
 bool file_close(File *file, Status *status) {
     FILE *fobj = (FILE *)file;
 

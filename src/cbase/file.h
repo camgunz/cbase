@@ -116,6 +116,7 @@ bool path_file_fdopen(Path *path, int flags, int mode, int *fd,
 
 bool file_read(File *file, Buffer *buffer, size_t count, size_t size,
                                                          Status *status);
+bool file_read_raw(File *file, void *buf, size_t byte_count, Status *status);
 /*
 bool file_write(File *file, Buffer *buffer, size_t byte_count, Status *status);
 bool file_sync(File *file, Status *status);
