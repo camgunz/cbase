@@ -114,15 +114,16 @@ bool buffer_slice(Buffer *buffer, size_t index,
 
     buffer_slice_fast(buffer, index, len, slice);
 
-    return true;
+    return status_ok(status);
 }
 
-bool buffer_insert(Buffer *buffer, size_t pos, Slice *slice, Status *status) {
-    if (!buffer_ensure_capacity(buffer, buffer->len + slice->len, status)) {
+bool buffer_insert(Buffer *buffer, size_t pos, char *bytes, size_t count,
+                                                            Status *status) {
+    if (!buffer_ensure_capacity(buffer, buffer->len + count, status)) {
         return false;
     }
 
-    buffer_insert_fast(buffer, pos, slice);
+    buffer_insert_fast(buffer, pos, bytes, count);
 
     return status_ok(status);
 }

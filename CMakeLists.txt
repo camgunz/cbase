@@ -204,6 +204,7 @@ SET(INCLUDE_FILES
   ${CMAKE_SOURCE_DIR}/src/cbase/table.h
   ${CMAKE_SOURCE_DIR}/src/cbase/types.h
   ${CMAKE_SOURCE_DIR}/src/cbase/utf8.h
+  ${CMAKE_SOURCE_DIR}/src/cbase/util.h
   ${CMAKE_SOURCE_DIR}/src/cbase/xxhash.h
   ${CMAKE_SOURCE_DIR}/src/cbase.h
 )

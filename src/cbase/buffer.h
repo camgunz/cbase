@@ -20,8 +20,8 @@ bool buffer_shift_right(Buffer *buffer, size_t len, Status *status);
 bool buffer_shift_right_no_zero(Buffer *buffer, size_t len, Status *status);
 bool buffer_slice(Buffer *buffer, size_t index, size_t len, Slice *slice,
                                                             Status *status);
-bool buffer_insert(Buffer *buffer, size_t pos, Slice *slice,
-                                               Status *status);
+bool buffer_insert(Buffer *buffer, size_t pos, char *bytes, size_t count,
+                                                            Status *status);
 bool buffer_delete(Buffer *buffer, size_t index, size_t len,
                                                  Status *status);
 bool buffer_delete_no_zero(Buffer *buffer, size_t index, size_t len,
@@ -74,38 +74,62 @@ static inline void buffer_slice_fast(Buffer *buffer, size_t index,
     slice->len = len;
 }
 
-static inline void buffer_insert_fast(Buffer *buffer, size_t pos, Slice *slice) {
-    cbmemmove(
-        buffer->data + pos + slice->len,
-        buffer->data + pos,
-        slice->len
-    );
-
-    cbmemmove(
-        buffer->data + pos,
-        slice->data,
-        slice->len
-    );
-
-    buffer->len += slice->len;
+static inline void buffer_insert_fast(Buffer *buffer, size_t pos,
+                                                      char *bytes,
+                                                      size_t count) {
+    cbmemmove(buffer->data + pos + count, buffer->data + pos, count);
+    cbmemmove(buffer->data + pos, bytes, count);
+    buffer->len += count;
 }
 
-static inline bool buffer_prepend(Buffer *buffer, Slice *slice,
+static inline bool buffer_insert_slice(Buffer *buffer, size_t pos,
+                                                       Slice *slice,
+                                                       Status *status) {
+    return buffer_insert(buffer, pos, slice->data, slice->len, status);
+}
+
+static inline void buffer_insert_slice_fast(Buffer *buffer, size_t pos,
+                                                            Slice *slice) {
+    buffer_insert_fast(buffer, pos, slice->data, slice->len);
+}
+
+static inline bool buffer_prepend(Buffer *buffer, char *bytes,
+                                                  size_t count,
                                                   Status *status) {
-    return buffer_insert(buffer, 0, slice, status);
+    return buffer_insert(buffer, 0, bytes, count, status);
 }
 
-static inline void buffer_prepend_fast(Buffer *buffer, Slice *slice) {
-    buffer_insert_fast(buffer, 0, slice);
+static inline void buffer_prepend_fast(Buffer *buffer, char *bytes,
+                                                       size_t count) {
+    buffer_insert_fast(buffer, 0, bytes, count);
 }
 
-static inline bool buffer_append(Buffer *buffer, Slice *slice,
-                                                 Status *status) {
-    return buffer_insert(buffer, buffer->len, slice, status);
+static inline bool buffer_prepend_slice(Buffer *buffer, Slice *slice,
+                                                        Status *status) {
+    return buffer_prepend(buffer, slice->data, slice->len, status);
 }
 
-static inline void buffer_append_fast(Buffer *buffer, Slice *slice) {
-    buffer_insert_fast(buffer, buffer->len, slice);
+static inline void buffer_prepend_slice_fast(Buffer *buffer, Slice *slice) {
+    buffer_prepend_fast(buffer, slice->data, slice->len);
+}
+
+static inline bool buffer_append(Buffer *buffer, char *bytes, size_t count,
+                                                              Status *status) {
+    return buffer_insert(buffer, buffer->len, bytes, count, status);
+}
+
+static inline void buffer_append_fast(Buffer *buffer, char *bytes,
+                                                      size_t count) {
+    buffer_insert_fast(buffer, buffer->len, bytes, count);
+}
+
+static inline bool buffer_append_slice(Buffer *buffer, Slice *slice,
+                                                       Status *status) {
+    return buffer_append(buffer, slice->data, slice->len, status);
+}
+
+static inline void buffer_append_slice_fast(Buffer *buffer, Slice *slice) {
+    buffer_append_fast(buffer, slice->data, slice->len);
 }
 
 #endif

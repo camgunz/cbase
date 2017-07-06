@@ -136,31 +136,17 @@ bool array_set_size(Array *array, size_t length, Status *status) {
 
     array->elements = new_elements;
     array->alloc = length;
-
-    if (array->len > array->alloc) {
-        array->len = array->alloc;
-    }
+    array->len = array->alloc;
 
     return status_ok(status);
 }
 
 bool array_shrink(Array *array, Status *status) {
-    if (array->alloc > array->len) {
-        void *new_elements = cbrealloc(
-            array->elements,
-            array->element_size,
-            array->len
-        );
-
-        if (!new_elements) {
-            return alloc_failure(status);
-        }
-
-        array->elements = new_elements;
-        array->alloc = array->len;
+    if (array->alloc <= array->len) {
+        return status_ok(status);
     }
 
-    return status_ok(status);
+    return array_set_size(array, array->len, status);
 }
 
 bool array_index(Array *array, size_t index, void **element, Status *status) {
