@@ -26,11 +26,24 @@ bool buffer_delete(Buffer *buffer, size_t index, size_t len,
                                                  Status *status);
 bool buffer_delete_no_zero(Buffer *buffer, size_t index, size_t len,
                                                          Status *status);
+bool buffer_read(Buffer *buffer, size_t index, size_t len, void *out,
+                                                           Status *status);
 void buffer_clear(Buffer *buffer);
 void buffer_free(Buffer *buffer);
 
+static inline void buffer_read_fast(Buffer *buffer, size_t index, size_t len,
+                                                                  void *out) {
+    cbmemmove(out, buffer->data + index, len);
+}
+
 static inline void buffer_copy_fast(Buffer *dst, Buffer *src) {
-    cbmemmove(dst->data, src->data, src->len);
+    buffer_read_fast(dst, 0, src->len, src->data);
+    dst->len = src->len;
+}
+
+static inline void buffer_copy_buffer_len_fast(Buffer *dst, Buffer *src,
+                                                            size_t len) {
+    cbmemmove(dst->data, src->data, len);
     dst->len = src->len;
 }
 

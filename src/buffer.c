@@ -161,6 +161,21 @@ bool buffer_delete_no_zero(Buffer *buffer, size_t index,
     return status_ok(status);
 }
 
+bool buffer_read(Buffer *buffer, size_t index, size_t len, void *out,
+                                                           Status *status) {
+    if ((index + len) >= buffer->len) {
+        return index_out_of_bounds(status);
+    }
+
+    if (!len) {
+        return status_ok(status);
+    }
+
+    buffer_read_fast(buffer, index, len, out);
+
+    return status_ok(status);
+}
+
 void buffer_clear(Buffer *buffer) {
     buffer->len = 0;
 }

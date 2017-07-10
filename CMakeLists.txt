@@ -174,7 +174,6 @@ SET(LIBCBASE_SOURCE_FILES
   ${CMAKE_SOURCE_DIR}/src/log.c
   ${CMAKE_SOURCE_DIR}/src/parray.c
   ${CMAKE_SOURCE_DIR}/src/rune.c
-  ${CMAKE_SOURCE_DIR}/src/slice.c
   ${CMAKE_SOURCE_DIR}/src/sslice.c
   ${CMAKE_SOURCE_DIR}/src/status.c
   ${CMAKE_SOURCE_DIR}/src/str.c
