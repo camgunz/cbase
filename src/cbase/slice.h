@@ -27,13 +27,33 @@ static inline bool slice_empty(Slice *slice) {
     return false;
 }
 
+static inline bool slice_equals_data_at_fast(Slice *slice, size_t index,
+                                                           const void *data,
+                                                           size_t len) {
+    return memcmp(slice->data + index, data, len) == 0;
+}
+
 static inline bool slice_equals_data(Slice *slice, const char *data,
                                                    size_t len) {
     if (slice->len != len) {
         return false;
     }
 
-    return memcmp(slice->data, data, len) == 0;
+    return slice_equals_data_at_fast(slice, 0, data, len);
+}
+
+static inline bool slice_equals_data_at(Slice *slice, size_t index,
+                                                      const void *data,
+                                                      size_t len,
+                                                      bool *equal,
+                                                      Status *status) {
+    if ((index + len) >= slice->len) {
+        return index_out_of_bounds(status);
+    }
+
+    *equal = slice_equals_data_at_fast(slice, index, data, len);
+
+    return true;
 }
 
 static inline bool slice_equals(Slice *s1, Slice *s2) {

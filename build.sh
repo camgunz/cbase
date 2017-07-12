@@ -3,13 +3,8 @@
 set -e
 
 BUILD_DIR='cbuild'
-BUILD_TYPE='Debug'
-# BUILD_TYPE='Release'
-
-if [ -d ${BUILD_DIR} ]
-then
-    rm -rf ${BUILD_DIR}
-fi
+# BUILD_TYPE='Debug'
+BUILD_TYPE='Release'
 
 mkdir -p ${BUILD_DIR}
 

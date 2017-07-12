@@ -31,6 +31,39 @@ bool buffer_read(Buffer *buffer, size_t index, size_t len, void *out,
 void buffer_clear(Buffer *buffer);
 void buffer_free(Buffer *buffer);
 
+static inline bool buffer_equals_data_at_fast(Buffer *buffer, size_t index,
+                                                              const void *data,
+                                                              size_t len) {
+    return memcmp(buffer->data + index, data, len) == 0;
+}
+
+static inline bool buffer_equals_data(Buffer *buffer, const char *data,
+                                                      size_t len) {
+    if (buffer->len != len) {
+        return false;
+    }
+
+    return buffer_equals_data_at_fast(buffer, 0, data, len);
+}
+
+static inline bool buffer_equals_data_at(Buffer *buffer, size_t index,
+                                                         const void *data,
+                                                         size_t len,
+                                                         bool *equal,
+                                                         Status *status) {
+    if ((index + len) >= buffer->len) {
+        return index_out_of_bounds(status);
+    }
+
+    *equal = buffer_equals_data_at_fast(buffer, index, data, len);
+
+    return true;
+}
+
+static inline bool buffer_equals(Buffer *b1, Buffer *b2) {
+    return buffer_equals_data(b1, b2->data, b2->len);
+}
+
 static inline void buffer_read_fast(Buffer *buffer, size_t index, size_t len,
                                                                   void *out) {
     cbmemmove(out, buffer->data + index, len);
