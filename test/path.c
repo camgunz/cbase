@@ -14,7 +14,7 @@ void test_path(void **state) {
 
     status_clear(&status);
 
-    assert_true(path_init_from_cstr(
+    assert_true(path_init_non_local_from_cstr(
         &p,
         "C:\\Program Files (x86)\\SuperApp\\config.ini",
         &status

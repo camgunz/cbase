@@ -6,7 +6,6 @@
   - File handling (?)
 - "shrink" should become "compact"
 - Add overflow checks
-- Add `memmove` define in `alloc`
 
 ## Benchmarks
 

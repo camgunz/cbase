@@ -7,6 +7,7 @@ enum {
     CHARSET_INCOMPLETE_CHARACTER_SEQUENCE,
     CHARSET_INVALID_ICONV_HANDLE,
     CHARSET_UNKNOWN_ICONV_ERROR,
+    CHARSET_BUFFER_DATA_UNINITIALIZED,
 };
 
 bool charset_convert(Slice *in, const char *from, const char *to,
