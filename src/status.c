@@ -41,12 +41,14 @@ static bool get_status_handler_index(const char *domain, int code,
 
         if ((!sh->domain) && (!domain)) {
             *index = i;
-            return true;
+
+            return status_ok(status);
         }
 
         if (sh->domain && domain && strcmp(sh->domain, domain) == 0) {
             *index = i;
-            return true;
+
+            return status_ok(status);
         }
     }
 

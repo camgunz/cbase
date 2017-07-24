@@ -14,14 +14,14 @@
     "SSlice is not a subslice"               \
 )
 
-bool sslice_starts_with_cstr(SSlice *s, const char *cs) {
-    size_t byte_len = strlen(cs);
-
-    if (byte_len > s->byte_len) {
+bool sslice_init_from_cstr(SSlice *s, char *cs, Status *status) {
+    if (!utf8_len_and_byte_len(cs, &s->len, &s->byte_len, status)) {
         return false;
     }
 
-    return utf8ncmp(s->data, cs, byte_len);
+    s->data = cs;
+
+    return status_ok(status);
 }
 
 bool sslice_get_first_rune(SSlice *s, rune *r, Status *status) {
@@ -30,10 +30,6 @@ bool sslice_get_first_rune(SSlice *s, rune *r, Status *status) {
     }
 
     return utf8_get_first_rune(s->data, r, status);
-}
-
-bool sslice_skip_rune(SSlice *s, Status *status) {
-    return sslice_skip_runes(s, 1, status);
 }
 
 bool sslice_skip_runes(SSlice *s, size_t len, Status *status) {

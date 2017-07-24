@@ -297,7 +297,8 @@ bool table_iterate(Table *table, size_t *index, void **obj) {
         if (!table_node_empty(node)) {
             *index = i;
             *obj = node->obj;
-            return true;
+
+            return status_ok(status);
         }
 
         i++;

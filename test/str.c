@@ -25,6 +25,16 @@ void test_string(void **state) {
     string_free(s);
     cbfree(s);
 
+    assert_true(string_new(&s, "We are great", &status));
+    assert_true(string_starts_with_cstr(s, "We are"));
+    assert_true(string_starts_with_cstr(s, "We are great"));
+    assert_false(string_starts_with_cstr(s, "We sre"));
+    assert_false(string_starts_with_cstr(
+        s, "We are great because we are good"
+    ));
+    string_free(s);
+    cbfree(s);
+
     assert_true(string_new_len(&s, "We are great", 12, &status));
     assert_non_null(s->data);
     assert_int_equal(s->len, 12);
@@ -55,7 +65,7 @@ void test_string(void **state) {
     assert_int_equal(ss.byte_len, 4);
     assert_true(sslice_equals_cstr(&ss, "good"));
 
-    assert_true(string_assign_slice(s, &ss, &status));
+    assert_true(string_assign_sslice(s, &ss, &status));
     assert_int_equal(s->len, 4);
     assert_int_equal(s->byte_len, 4);
     assert_int_equal(s->alloc, 13);
@@ -67,14 +77,14 @@ void test_string(void **state) {
     assert_int_equal(ss.byte_len, 19);
     assert_true(sslice_equals_cstr(&ss, "because we are good"));
 
-    assert_true(string_assign_slice(s, &ss, &status));
+    assert_true(string_assign_sslice(s, &ss, &status));
     assert_int_equal(s->len, 19);
     assert_int_equal(s->byte_len, 19);
     assert_int_equal(s->alloc, 20);
     assert_int_equal(strnlen(s->data, 20), 19);
     assert_true(string_equals_cstr(s, "because we are good"));
 
-    assert_true(string_assign_slice(s, &ss, &status));
+    assert_true(string_assign_sslice(s, &ss, &status));
     assert_int_equal(s->len, 19);
     assert_int_equal(s->byte_len, 19);
     assert_int_equal(s->alloc, 20);

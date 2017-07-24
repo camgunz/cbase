@@ -14,140 +14,114 @@ unsigned char codepoints[16] = {
     0xB1, 0x82, 0x00, 0x00,
 };
 
-unsigned char utf8_bytes[12] = {
-    0xE8, 0xA6, 0x8B, 0xE3, 0x81, 0xAC, 0xE3, 0x81, 0x8C, 0xE8, 0x8A, 0xB1
+unsigned char utf8_bytes[13] = {
+    0xE8, 0xA6, 0x8B, 0xE3,
+    0x81, 0xAC, 0xE3, 0x81,
+    0x8C, 0xE8, 0x8A, 0xB1,
+    0x00
 };
 
-unsigned char utf16_bytes[10] = {
-    0xFF, 0xFE,
+unsigned char utf16le_bytes[10] = {
     0x8B, 0x89,
     0x6C, 0x30,
     0x4C, 0x30,
-    0xB1, 0x82
+    0xB1, 0x82,
+    0x00, 0x00,
 };
 
-unsigned char utf32_bytes[20] = {
-    0xFF, 0xFE, 0x00, 0x00,
-    0x8B, 0x89, 0x00, 0x00,
-    0x6C, 0x30, 0x00, 0x00,
-    0x4C, 0x30, 0x00, 0x00,
-    0xB1, 0x82, 0x00, 0x00,
+unsigned char utf16be_bytes[10] = {
+    0x89, 0x8B,
+    0x30, 0x6C,
+    0x30, 0x4C,
+    0x82, 0xB1,
+    0x00, 0x00
 };
 
-unsigned char shiftjis_bytes[8] = {
-    0x8C, 0xA9, 0x82, 0xCA, 0x82, 0xAA, 0x89, 0xD4
+unsigned char utf32le_bytes[20] = {
+    0x8B, 0x89, 0x00, 0x00, 
+    0x6C, 0x30, 0x00, 0x00, 
+    0x4C, 0x30, 0x00, 0x00, 
+    0xB1, 0x82, 0x00, 0x00, 
+    0x00, 0x00, 0x00, 0x00
 };
 
-#include <stdio.h>
+unsigned char utf32be_bytes[20] = {
+    0x00, 0x00, 0x89, 0x8B,
+    0x00, 0x00, 0x30, 0x6C,
+    0x00, 0x00, 0x30, 0x4C,
+    0x00, 0x00, 0x82, 0xB1,
+    0x00, 0x00, 0x00, 0x00
+};
+
+unsigned char shiftjis_bytes[9] = {
+    0x8C, 0xA9, 0x82, 0xCA, 0x82, 0xAA, 0x89, 0xD4, 0x00
+};
+
+typedef struct EncodingInfoStruct {
+    const char *name;
+    unsigned char *data;
+    size_t len;
+} EncodingInfo;
+
+EncodingInfo encoding_info[6] = {
+    { "utf-8",     &utf8_bytes[0],     sizeof(utf8_bytes)     },
+    { "utf-16le",  &utf16le_bytes[0],  sizeof(utf16le_bytes)  },
+    { "utf-16be",  &utf16be_bytes[0],  sizeof(utf16be_bytes)  },
+    { "utf-32le",  &utf32le_bytes[0],  sizeof(utf32le_bytes)  },
+    { "utf-32be",  &utf32be_bytes[0],  sizeof(utf32be_bytes)  },
+    { "shift-jis", &shiftjis_bytes[0], sizeof(shiftjis_bytes) },
+};
 
 void test_charset(void **state) {
+    Slice inslice;
+    Slice outslice;
     Buffer out;
-    Slice s;
     String sout;
-    SSlice ss;
     Status status;
 
     (void)state;
 
     status_clear(&status);
 
-    assert_true(buffer_init_alloc(&out, 1, &status));
+    assert_true(buffer_init_alloc(&out, 64, &status));
     assert_true(string_init(&sout, " ", &status));
+    assert_true(string_ensure_capacity(&sout, 64, &status));
 
-    buffer_clear(&out);
-    s.data = (char *)utf8_bytes;
-    s.len = sizeof(utf8_bytes);
-    assert_true(charset_convert(&s, "utf-8", "utf-16", &out, &status));
-    assert_int_equal(out.len, sizeof(utf16_bytes));
-    assert_memory_equal(out.data, utf16_bytes, out.len);
+    for (size_t i = 0; i < 6; i++) {
+        for (size_t j = 0; j < 6; j++) {
+            EncodingInfo *from_encoding = &encoding_info[i];
+            EncodingInfo *to_encoding = &encoding_info[j];
 
-    string_clear(&sout);
-    assert_true(buffer_slice(&out, 0, out.len, &s, &status));
-    assert_true(charset_convert_to_string(&s, "utf-16", &sout, &status));
-    assert_int_equal(sout.byte_len, strlen(utf8_phrase));
-    assert_memory_equal(sout.data, utf8_phrase, sout.byte_len);
+            if (j == i) {
+                continue;
+            }
 
-    buffer_clear(&out);
-    assert_true(string_slice(&sout, 0, sout.byte_len, &ss, &status));
-    assert_true(charset_convert_from_string(&ss, "utf-16", &out, &status));
-    assert_int_equal(out.len, sizeof(utf16_bytes));
-    assert_memory_equal(out.data, utf16_bytes, out.len);
+            buffer_clear(&out);
+            inslice.data = (char *)from_encoding->data;
+            inslice.len = from_encoding->len;
+            outslice.data = out.data;
+            outslice.len = out.alloc;
+            assert_true(charset_convert(&inslice, from_encoding->name,
+                                                  to_encoding->name,
+                                                  &outslice,
+                                                  &status));
+            out.len = (outslice.data - out.data);
+            assert_int_equal(out.len, to_encoding->len);
+            assert_memory_equal(out.data, to_encoding->data, out.len);
 
-    buffer_clear(&out);
-    s.data = (char *)utf8_bytes;
-    s.len = sizeof(utf8_bytes);
-    assert_true(charset_convert(&s, "utf-8", "utf-32", &out, &status));
-    assert_int_equal(out.len, sizeof(utf32_bytes));
-    assert_memory_equal(out.data, utf32_bytes, out.len);
+            string_clear(&sout);
+            assert_true(string_assign_buffer(&sout, &out, to_encoding->name,
+                                                          &status));
+            assert_int_equal(sout.byte_len, strlen(utf8_phrase) + 1);
+            assert_memory_equal(sout.data, utf8_phrase, sout.byte_len);
 
-    string_clear(&sout);
-    assert_true(buffer_slice(&out, 0, out.len, &s, &status));
-    assert_true(charset_convert_to_string(&s, "utf-32", &sout, &status));
-    assert_int_equal(sout.byte_len, strlen(utf8_phrase));
-    assert_memory_equal(sout.data, utf8_phrase, sout.byte_len);
-
-    buffer_clear(&out);
-    assert_true(string_slice(&sout, 0, sout.byte_len, &ss, &status));
-    assert_true(charset_convert_from_string(&ss, "utf-32", &out, &status));
-    assert_int_equal(out.len, sizeof(utf32_bytes));
-    assert_memory_equal(out.data, utf32_bytes, out.len);
-
-    buffer_clear(&out);
-    s.data = (char *)shiftjis_bytes;
-    s.len = sizeof(shiftjis_bytes);
-    assert_true(charset_convert(&s, "shift-jis", "utf-8", &out, &status));
-    assert_int_equal(out.len, sizeof(utf8_bytes));
-    assert_memory_equal(out.data, utf8_bytes, out.len);
-
-    string_clear(&sout);
-    assert_true(buffer_slice(&out, 0, out.len, &s, &status));
-    assert_true(charset_convert_to_string(&s, "utf-8", &sout, &status));
-    assert_int_equal(sout.byte_len, strlen(utf8_phrase));
-    assert_memory_equal(sout.data, utf8_phrase, sout.byte_len);
-
-    buffer_clear(&out);
-    assert_true(string_slice(&sout, 0, sout.byte_len, &ss, &status));
-    assert_true(charset_convert_from_string(&ss, "shift-jis", &out, &status));
-    assert_int_equal(out.len, sizeof(shiftjis_bytes));
-    assert_memory_equal(out.data, shiftjis_bytes, out.len);
-
-    buffer_clear(&out);
-    s.data = (char *)shiftjis_bytes;
-    s.len = sizeof(shiftjis_bytes);
-    assert_true(charset_convert(&s, "shift-jis", "utf-16", &out, &status));
-    assert_int_equal(out.len, sizeof(utf16_bytes));
-    assert_memory_equal(out.data, utf16_bytes, out.len);
-
-    string_clear(&sout);
-    assert_true(buffer_slice(&out, 0, out.len, &s, &status));
-    assert_true(charset_convert_to_string(&s, "utf-16", &sout, &status));
-    assert_int_equal(sout.byte_len, strlen(utf8_phrase));
-    assert_memory_equal(sout.data, utf8_phrase, sout.byte_len);
-
-    buffer_clear(&out);
-    assert_true(string_slice(&sout, 0, sout.byte_len, &ss, &status));
-    assert_true(charset_convert_from_string(&ss, "shift-jis", &out, &status));
-    assert_int_equal(out.len, sizeof(shiftjis_bytes));
-    assert_memory_equal(out.data, shiftjis_bytes, out.len);
-
-    buffer_clear(&out);
-    s.data = (char *)shiftjis_bytes;
-    s.len = sizeof(shiftjis_bytes);
-    assert_true(charset_convert(&s, "shift-jis", "utf-32", &out, &status));
-    assert_int_equal(out.len, sizeof(utf32_bytes));
-    assert_memory_equal(out.data, utf32_bytes, out.len);
-
-    string_clear(&sout);
-    assert_true(buffer_slice(&out, 0, out.len, &s, &status));
-    assert_true(charset_convert_to_string(&s, "utf-32", &sout, &status));
-    assert_int_equal(sout.byte_len, strlen(utf8_phrase));
-    assert_memory_equal(sout.data, utf8_phrase, sout.byte_len);
-
-    buffer_clear(&out);
-    assert_true(string_slice(&sout, 0, sout.byte_len, &ss, &status));
-    assert_true(charset_convert_from_string(&ss, "shift-jis", &out, &status));
-    assert_int_equal(out.len, sizeof(shiftjis_bytes));
-    assert_memory_equal(out.data, shiftjis_bytes, out.len);
+            buffer_clear(&out);
+            assert_true(string_encode(&sout, from_encoding->name, &out,
+                                                                  &status));
+            assert_int_equal(out.len, from_encoding->len);
+            assert_memory_equal(out.data, from_encoding->data, out.len);
+        }
+    }
 }
 
 /* vi: set et ts=4 sw=4: */

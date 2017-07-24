@@ -17,13 +17,22 @@ bool  string_init_len(String *s, const char *data, size_t len, Status *status);
 bool  string_init_full(String *s, const char *data, size_t len,
                                                     size_t byte_len,
                                                     Status *status);
+bool  string_init_from_sslice(String *s, SSlice *sslice, Status *status);
+bool  string_init_from_slice(String *s, Slice *slice, const char *encoding,
+                                                      Status *status);
+bool  string_init_from_buffer(String *s, Buffer *buffer, const char *encoding,
+                                                         Status *status);
 bool  string_new(String **s, const char *data, Status *status);
 bool  string_new_len(String **s, const char *data, size_t byte_len,
                                                    Status *status);
 bool  string_new_full(String **s, const char *data, size_t len,
                                                     size_t byte_len,
                                                     Status *status);
-bool  string_init_from_sslice(String *s, SSlice *ss, Status *status);
+bool  string_new_from_sslice(String **s, SSlice *sslice, Status *status);
+bool  string_new_from_slice(String **s, Slice *slice, const char *encoding,
+                                                      Status *status);
+bool  string_new_from_buffer(String **s, Buffer *buffer, const char *encoding,
+                                                         Status *status);
 bool  string_ensure_capacity(String *s, size_t byte_len, Status *status);
 bool  string_assign(String *s, const char *data, Status *status);
 bool  string_assign_len(String *s, const char *data, size_t byte_len,
@@ -31,7 +40,11 @@ bool  string_assign_len(String *s, const char *data, size_t byte_len,
 bool  string_assign_full(String *s, const char *data, size_t len,
                                                       size_t byte_len,
                                                       Status *status);
-bool  string_assign_slice(String *s, SSlice *sslice, Status *status);
+bool  string_assign_sslice(String *s, SSlice *sslice, Status *status);
+bool  string_assign_slice(String *s, Slice *slice, const char *encoding,
+                                                   Status *status);
+bool  string_assign_buffer(String *s, Buffer *buffer, const char *encoding,
+                                                      Status *status);
 bool  string_shrink(String *s, Status *status);
 bool  string_copy(String *dst, String *src, Status *status);
 bool  string_slice(String *s, size_t index, size_t len, SSlice *sslice,
@@ -54,7 +67,41 @@ bool  string_append_vprintf(String *s, Status *status, const char *fmt,
                                                        va_list args);
 bool  string_delete(String *s, size_t index, size_t len, Status *status);
 bool  string_delete_fast(String *s, size_t index, size_t len, ssize_t *error);
+bool  string_get_first_rune(String *s, rune *r, Status *status);
+bool  string_encode(String *s, const char *encoding, Buffer *out,
+                                                     Status *status);
+
 void  string_free(String *s);
+
+static inline bool string_init_from_local_slice(String *s, Slice *slice,
+                                                           Status *status) {
+    return string_init_from_slice(s, slice, "wchar_t", status);
+}
+
+static inline bool string_init_from_local_buffer(String *s, Buffer *buffer,
+                                                            Status *status) {
+    return string_init_from_buffer(s, buffer, "wchar_t", status);
+}
+
+static inline bool string_new_from_local_slice(String **s, Slice *slice,
+                                                           Status *status) {
+    return string_new_from_slice(s, slice, "wchar_t", status);
+}
+
+static inline bool string_new_from_local_buffer(String **s, Buffer *buffer,
+                                                            Status *status) {
+    return string_new_from_buffer(s, buffer, "wchar_t", status);
+}
+
+static inline bool string_assign_local_slice(String *s, Slice *slice,
+                                                        Status *status) {
+    return string_assign_slice(s, slice, "wchar_t", status);
+}
+
+static inline bool string_assign_local_buffer(String *s, Buffer *buffer,
+                                                         Status *status) {
+    return string_assign_buffer(s, buffer, "wchar_t", status);
+}
 
 static inline void string_assign_cstr_full_fast(String *s, const char *data,
                                                            size_t len,
@@ -68,7 +115,8 @@ static inline void string_assign_cstr_full_fast(String *s, const char *data,
 }
 
 static inline void string_assign_fast(String *s, SSlice *sslice) {
-    string_assign_cstr_full_fast(s, sslice->data, sslice->len, sslice->byte_len);
+    string_assign_cstr_full_fast(s, sslice->data, sslice->len,
+                                                  sslice->byte_len);
 }
 
 static inline void string_copy_fast(String *dst, String *src) {
@@ -294,7 +342,25 @@ static inline bool string_equals_cstr(String *s, const char *cs) {
 }
 
 static inline bool string_starts_with_cstr(String *s, const char *cs) {
-    return (strlen(cs) == s->byte_len) && utf8ncmp(s->data, cs, s->byte_len);
+    size_t byte_len = strlen(cs);
+
+    return (
+        (byte_len <= s->byte_len) &&
+        utf8ncmp(s->data, cs, byte_len)
+    );
+}
+
+static inline bool string_ends_with_cstr(String *s, const char *cs) {
+    size_t byte_len = strlen(cs);
+
+    return (
+        (byte_len <= s->byte_len) &&
+        utf8cmp(s->data + (s->byte_len - byte_len), cs)
+    );
+}
+
+static inline bool string_localize(String *s, Buffer *out, Status *status) {
+    return string_encode(s, "wchar_t", out, status);
 }
 
 static inline void string_clear(String *s) {

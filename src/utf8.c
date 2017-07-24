@@ -73,6 +73,17 @@ bool utf8len(const char *data, size_t *len, Status *status) {
     return status_ok(status);
 }
 
+bool utf8_len_and_byte_len(const char *data, size_t *len, size_t *byte_len,
+                                                          Status *status) {
+    ssize_t error;
+
+    if (!utf8_len_and_byte_len_fast(data, len, byte_len, &error)) {
+        return utf8_handle_error_code(error, status);
+    }
+
+    return status_ok(status);
+}
+
 bool utf8len_fast(const char *data, size_t *len, ssize_t *error) {
     size_t local_len = 0;
 
@@ -93,7 +104,34 @@ bool utf8len_fast(const char *data, size_t *len, ssize_t *error) {
 
     *len = local_len;
 
-    return true;
+    return status_ok(status);
+}
+
+bool utf8_len_and_byte_len_fast(const char *data, size_t *len,
+                                                  size_t *byte_len,
+                                                  ssize_t *error) {
+    size_t local_len = 0;
+    const char *data_start = data;
+
+    while (*data) {
+        rune r;
+        ssize_t bytes_read = utf8proc_iterate(
+            (const unsigned char *)data, -1, &r
+        );
+
+        if (bytes_read < 1) {
+            *error = bytes_read;
+            return false;
+        }
+
+        local_len++;
+        data += bytes_read;
+    }
+
+    *len = local_len;
+    *byte_len = data - data_start;
+
+    return status_ok(status);
 }
 
 bool utf8nlen(const char *data, size_t n, size_t *len, Status *status) {
@@ -128,7 +166,7 @@ bool utf8nlen_fast(const char *data, size_t n, size_t *len, ssize_t *error) {
 
     *len = local_len;
 
-    return true;
+    return status_ok(status);
 }
 
 bool utf8_index(const char *data, size_t len, char **cursor,
@@ -162,7 +200,7 @@ bool utf8_index_fast(const char *data, size_t len, char **cursor,
 
     *cursor = local_cursor;
 
-    return true;
+    return status_ok(status);
 }
 
 bool utf8_skip(const char *data, size_t len, char **cursor,
@@ -196,7 +234,7 @@ bool utf8_skip_fast(const char *data, size_t len, char **cursor,
 
     *cursor = local_cursor;
 
-    return true;
+    return status_ok(status);
 }
 
 bool utf8_slice(const char *data, size_t index, size_t len, char **start,
@@ -229,7 +267,7 @@ bool utf8_slice_fast(const char *data, size_t index, size_t len,
     *start = local_start;
     *end = local_end;
 
-    return true;
+    return status_ok(status);
 }
 
 bool utf8_get_first_rune(const char *data, rune *r, Status *status) {
@@ -274,7 +312,7 @@ bool utf8_get_first_rune_len_fast(const char *data, rune *r, size_t *len,
     *len = bytes_read;
     *r = r2;
 
-    return true;
+    return status_ok(status);
 }
 
 bool utf8_get_end_offset(const char *data, size_t rune_count, size_t byte_len,

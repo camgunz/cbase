@@ -12,9 +12,8 @@ typedef struct {
     char *data;
 } SSlice;
 
-bool  sslice_starts_with_cstr(SSlice *s, const char *cs);
+bool  sslice_init_from_cstr(SSlice *s, char *cs, Status *status);
 bool  sslice_get_first_rune(SSlice *s, rune *r, Status *status);
-bool  sslice_skip_rune(SSlice *s, Status *status);
 bool  sslice_skip_runes(SSlice *s, size_t rune_count, Status *status);
 bool  sslice_skip_rune_if_equals(SSlice *s, rune r, Status *status);
 bool  sslice_pop_rune(SSlice *s, rune *r, Status *status);
@@ -64,6 +63,28 @@ static inline void sslice_copy(SSlice *dst, SSlice *src) {
     dst->len = src->len;
     dst->byte_len = src->byte_len;
     dst->data = src->data;
+}
+
+static inline bool sslice_starts_with_cstr(SSlice *s, const char *cs) {
+    size_t byte_len = strlen(cs);
+
+    return (
+        (byte_len <= s->byte_len) &&
+        utf8ncmp(s->data, cs, byte_len)
+    );
+}
+
+static inline bool sslice_ends_with_cstr(SSlice *s, const char *cs) {
+    size_t byte_len = strlen(cs);
+
+    return (
+        (byte_len <= s->byte_len) &&
+        utf8cmp(s->data + (s->byte_len - byte_len), cs)
+    );
+}
+
+static inline bool sslice_skip_rune(SSlice *s, Status *status) {
+    return sslice_skip_runes(s, 1, status);
 }
 
 static inline bool sslice_truncate_rune(SSlice *s, Status *status) {

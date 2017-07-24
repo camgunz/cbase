@@ -12,7 +12,12 @@ enum {
 
 bool utf8_handle_error_code(ssize_t error_code, Status *status);
 bool utf8len(const char *data, size_t *len, Status *status);
+bool utf8_len_and_byte_len(const char *data, size_t *len, size_t *byte_len,
+                                                          Status *status);
 bool utf8len_fast(const char *data, size_t *len, ssize_t *error);
+bool utf8_len_and_byte_len_fast(const char *data, size_t *len,
+                                                  size_t *byte_len,
+                                                  ssize_t *error);
 bool utf8nlen(const char *data, size_t n, size_t *len, Status *status);
 bool utf8nlen_fast(const char *data, size_t n, size_t *len, ssize_t *error);
 bool utf8_index(const char *data, size_t len, char **cursor,
@@ -23,6 +28,15 @@ bool utf8_skip(const char *data, size_t len, char **cursor,
                                              Status *status);
 bool utf8_skip_fast(const char *data, size_t len, char **cursor,
                                                   ssize_t *error);
+bool utf8_slice(const char *data, size_t index, size_t len,
+                                                char **start,
+                                                char **end,
+                                                Status *status);
+bool utf8_slice_fast(const char *data, size_t index, size_t len,
+                                                     char **start,
+                                                     char **end,
+                                                     ssize_t *error);
+
 bool utf8_get_first_rune(const char *data, rune *r, Status *status);
 bool utf8_get_first_rune_fast(const char *data, rune *r, ssize_t *error);
 bool utf8_get_first_rune_len(const char *data, rune *r, size_t *len,
@@ -36,14 +50,6 @@ bool utf8_get_end_rune_offset(const char *data, size_t byte_len,
                                                 rune *r,
                                                 size_t *offset,
                                                 Status *status);
-bool utf8_slice(const char *data, size_t index, size_t len,
-                                                char **start,
-                                                char **end,
-                                                Status *status);
-bool utf8_slice_fast(const char *data, size_t index, size_t len,
-                                                     char **start,
-                                                     char **end,
-                                                     ssize_t *error);
 bool rune_to_string(rune r, char **out, Status *status);
 
 

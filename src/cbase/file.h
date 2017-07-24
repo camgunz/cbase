@@ -43,6 +43,7 @@ enum {
     PATH_NO_SPACE,
     PATH_FILE_IS_NAMED_STREAM,
     PATH_ALREADY_ROOT,
+    PATH_SUBPATH_IS_ABSOLUTE,
     PATH_UNKNOWN_ERROR,
 };
 
@@ -53,35 +54,20 @@ typedef struct {
 
 typedef void* File;
 
-bool path_init(Path *path, Slice *path_slice, Status *status);
-/*
- * So whenever I set a path's local path, I rebuild the normal path, then
- * rebuild the local path from that.
- * Whenever I set the path's normal path, I build the local path from that.
- * Whenever I set or build the normal path, I canonicalize the path.
- */
-bool path_init_non_local(Path *path, Slice *non_local_path, Status *status);
-bool path_init_non_local_from_cstr(Path *path, const char *non_local_path,
-                                               Status *status);
-bool path_new(Path **path, Slice *path_slice, Status *status);
-bool path_new_non_local(Path **path, Slice *non_local_path, Status *status);
-bool path_new_non_local_from_cstr(Path **path, const char *non_local_path,
-                                               Status *status);
-bool path_new(Path **path, Slice *path_slice, Status *status);
-bool path_new_non_local(Path **path, Slice *non_local_path, Status *status);
-bool path_new_non_local_from_cstr(Path **path, const char *non_local_path,
-                                               Status *status);
-bool path_set(Path *path, Slice *path_slice, Status *status);
-bool path_set_non_local(Path *path, Slice *non_local_path, Status *status);
-bool path_set_non_local_from_cstr(Path *path, const char *non_local_path,
-                                              Status *status);
-bool path_dirname(Path *path, SSlice *dirname, Status *status);
+bool path_init(Path *path, SSlice *input, Status *status);
+bool path_init_from_cstr(Path *path, const char *input, Status *status);
+bool path_init_local(Path *path, Slice *input, Status *status);
+bool path_new(Path **path, SSlice *input, Status *status);
+bool path_new_from_cstr(Path **path, const char *input, Status *status);
+bool path_new_local(Path **path, Slice *input, Status *status);
+bool path_set(Path *path, SSlice *new_path, Status *status);
+bool path_set_from_cstr(Path *path, const char *new_path, Status *status);
+bool path_set_local(Path *path, Slice *new_path, Status *status);
+bool path_dirname(Path *path, Path *out, Status *status);
 bool path_basename(Path *path, SSlice *basename, Status *status);
 bool path_extension(Path *path, SSlice *extension, Status *status);
 bool path_strip_extension(Path *path, Status *status);
 bool path_exists(Path *path, bool *exists, Status *status);
-bool path_dirname_exists(Path *path, bool *exists, Status *status);
-bool path_set_to_dirname(Path *path, Status *status);
 bool path_is_file(Path *path, bool *is_file, Status *status);
 bool path_is_regular_file(Path *path, bool *is_regular_file, Status *status);
 bool path_is_folder(Path *path, bool *is_folder, Status *status);
@@ -94,7 +80,8 @@ bool path_is_readable_and_writable(Path *path, bool *readable_and_writable,
 bool path_size(Path *path, size_t *size, Status *status);
 bool path_rename(Path *old_path, Path *new_path, Status *status);
 bool path_delete(Path *path, Status *status);
-bool path_join(Path *out, Path *path1, const char *path2, Status *status);
+bool path_join(Path *path, SSlice *path_addition, Status *status);
+bool path_join_cstr(Path *path, const char *path_addition, Status *status);
 
 bool path_folder_create(Path *path, int mode, Status *status);
 bool path_folder_delete(Path *path, Status *status);
