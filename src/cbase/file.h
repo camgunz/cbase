@@ -54,6 +54,12 @@ typedef struct {
 typedef void* File;
 
 bool path_init(Path *path, Slice *path_slice, Status *status);
+/*
+ * So whenever I set a path's local path, I rebuild the normal path, then
+ * rebuild the local path from that.
+ * Whenever I set the path's normal path, I build the local path from that.
+ * Whenever I set or build the normal path, I canonicalize the path.
+ */
 bool path_init_non_local(Path *path, Slice *non_local_path, Status *status);
 bool path_init_non_local_from_cstr(Path *path, const char *non_local_path,
                                                Status *status);

@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#define INIT_BUFFER_ALLOC 64
+#define INIT_ALLOC 64
 
 #define permission_denied(status) status_error( \
     status,                                     \
@@ -308,150 +308,6 @@
     "unknown error"                         \
 )
 
-static bool canonicalize_path(Path *path, Status *status) {
-    char buf[PATH_MAX + 1];
-    char *canonicalized_path = realpath(path->normal_path.data, buf);
-
-    if (!canonicalized_path) {
-        switch (errno) {
-            case EACCES:
-                return permission_denied(status);
-                break;
-            case EINVAL:
-                return invalid_path(status);
-                break;
-            case EIO:
-                return io_error(status);
-                break;
-            case ELOOP:
-                return symbolic_link_depth_exceeded(status);
-                break;
-            case ENAMETOOLONG:
-                return path_too_long(status);
-                break;
-            case ENOENT:
-                return path_not_found(status);
-                break;
-            case ENOMEM:
-                return out_of_memory(status);
-                break;
-            case ENOTDIR:
-                return path_not_folder(status);
-                break;
-            default:
-                return unknown_error(status);
-                break;
-        }
-    }
-
-    string_clear(&path->normal_path);
-
-    return string_assign(&path->normal_path, buf, status);
-}
-
-static bool rebuild_normal_path(Path *path, Status *status) {
-    Slice ss;
-
-    if (!buffer_slice(&path->local_path, 0, path->local_path.len, &ss,
-                                                                  status)) {
-        return false;
-    }
-
-    string_clear(&path->normal_path);
-
-    return charset_unlocalize_to_string(&ss, &path->normal_path, status);
-}
-
-static bool rebuild_local_path(Path *path, Status *status) {
-    SSlice ss;
-
-    if (!string_slice(&path->normal_path, 0, path->normal_path.len, &ss,
-                                                                    status)) {
-        return false;
-    }
-
-    buffer_clear(&path->local_path);
-
-    return charset_localize_from_string(&ss, &path->local_path, status);
-}
-
-static bool base_set_local_path(Path *path, Slice *input, bool init,
-                                                          Status *status) {
-    if (init) {
-        if (!string_init(&path->normal_path, "", status)) {
-            return false;
-        }
-    }
-
-    return (
-        charset_unlocalize_to_string(input, &path->normal_path, status) &&
-        rebuild_normal_path(path, status)
-    );
-}
-
-static bool base_set_normal_path(Path *path, Slice *input, bool init,
-                                                           Status *status) {
-    SSlice ss;
-
-    if (init) {
-        if (!string_init_len(&path->normal_path, input->data, input->len,
-                                                              status)) {
-            return false;
-        }
-    }
-    else if (!string_assign_len(&path->normal_path, input->data,
-                                                    input->len,
-                                                    status)) {
-        return false;
-    }
-
-    if (!string_slice(&path->normal_path, 0, path->normal_path.len,
-                                             &ss,
-                                             status)) {
-        if (init) {
-            string_free(&path->normal_path);
-        }
-        else {
-            string_clear(&path->normal_path);
-        }
-
-        return false;
-    }
-
-    if (!charset_localize_from_string(&ss, &path->local_path, status)) {
-        if (init) {
-            string_free(&path->normal_path);
-        }
-        else {
-            string_clear(&path->normal_path);
-        }
-
-        return false;
-    }
-
-    return rebuild_normal_path(path, status);
-}
-
-static bool base_set_path(Path *path, Slice *input, bool init,
-                                                    bool local,
-                                                    Status *status) {
-    if (local) {
-        return base_set_local_path(path, input, init, status);
-    }
-
-    return base_set_normal_path(path, input, init, status);
-}
-
-static inline bool set_path(Path *path, Slice *input, bool local,
-                                                      Status *status) {
-    return base_set_path(path, input, false, local, status);
-}
-
-static inline bool init_path(Path *path, Slice *input, bool local,
-                                                       Status *status) {
-    return base_set_path(path, input, true, local, status);
-}
-
 static bool stat_path(const char *path, struct stat *stat_obj, Status *status) {
     int res = stat(path, stat_obj);
 
@@ -493,6 +349,151 @@ static bool stat_path(const char *path, struct stat *stat_obj, Status *status) {
     }
 
     return true;
+}
+
+static bool canonicalize_path(Path *path, Status *status) {
+    char buf[PATH_MAX + 1];
+    char *canonicalized_path = realpath(path->local_path.data, buf);
+    size_t buf_size;
+
+    if (!canonicalized_path) {
+        switch (errno) {
+            case EACCES:
+                return permission_denied(status);
+                break;
+            case EINVAL:
+                return invalid_path(status);
+                break;
+            case EIO:
+                return io_error(status);
+                break;
+            case ELOOP:
+                return symbolic_link_depth_exceeded(status);
+                break;
+            case ENAMETOOLONG:
+                return path_too_long(status);
+                break;
+            case ENOENT:
+                return path_not_found(status);
+                break;
+            case ENOMEM:
+                return out_of_memory(status);
+                break;
+            case ENOTDIR:
+                return path_not_folder(status);
+                break;
+            default:
+                return unknown_error(status);
+                break;
+        }
+    }
+
+    buffer_clear(&path->local_path);
+
+    buf_size = strlen(canonicalized_path);
+
+    for (size_t i = 0; i < buf_size; i++) {
+        if (buf[i] == '\\') {
+            buf[i] = '/';
+        }
+    }
+
+    return buffer_insert(&path->local_path, 0, buf_size + 1, status);
+}
+
+static inline bool set_normal_path(Path *path, SSlice *input, Status *status) {
+    Slice s;
+
+    buffer_clear(&path->local_path);
+    string_clear(&path->normal_path);
+
+    res = (
+        charset_localize_from_string(&input, &path->local_path, status)
+        canonicalize_path(&path, status) &&
+        buffer_slice(&path->local_path, 0, path->local_path.len, &s, status) &&
+        charset_unlocalize_to_string(&path->local_path, &path->normal_path,
+                                                        status)
+    );
+}
+
+static inline bool set_local_path(Path *path, Slice *input, Status *status) {
+    SSlice ss;
+
+    buffer_clear(&path->local_path);
+    string_clear(&path->normal_path);
+
+    return (
+        buffer_append(&path->local_path, input, status) &&
+        canonicalize_path(&path, status) &&
+        buffer_slice(&path->local_path, 0, path->local_path.len, &s, status) &&
+        charset_unlocalize_to_string(&path->local_path, &path->normal_path,
+                                                        status)
+    );
+}
+
+static inline bool init_path(Path *path, Slice *input, bool local,
+                                                       Status *status) {
+    size_t string_length;
+    size_t buffer_length;
+    SSlice ss;
+
+    if (local) {
+        if (!buffer_init_alloc(&path->local_path, input->len, status)) {
+            return false;
+        }
+
+        if (!buffer_append_slice(&path->local_path, input, status)) {
+            buffer_free(&path->local_path);
+            return false;
+        }
+
+        if (!buffer_slice(&path->normal_path, 0, path->normal_path.len,
+                                                 &s,
+                                                 status)) {
+            buffer_free(&path->local_path);
+            return false;
+        }
+
+        if (!string_init(&path->normal_path, "", status)) {
+            buffer_free(&path->local_path);
+            return false;
+        }
+
+        if (!string_ensure_capacity(&path->normal_path, INIT_ALLOC, status)) {
+            buffer_free(&path->local_path);
+            string_free(&path->normal_path);
+            return false;
+        }
+
+        if (!charset_unlocalize_to_string(&input, &path->normal_path, status)) {
+            buffer_free(&path->local_path);
+            string_free(&path->normal_path);
+            return false
+        }
+    }
+    else {
+        if (!buffer_init_alloc(&path->local_path, INIT_ALLOC, status)) {
+            string_free(&path->normal_path);
+            return false;
+        }
+
+        if (!string_init_full(&path->normal_path, input->data, input->len,
+                                                               status)) {
+            return false;
+        }
+    }
+
+    if ((!canonicalize_path(&path, status)) ||
+        (!string_slice(&path->normal_path, 0, path->normal_path.len,
+                                              &ss,
+                                              status)) ||
+        (!charset_localize_from_string(&ss, &path->local_path, status))) {
+        buffer_free(&path->local_path);
+        string_free(&path->normal_path);
+        return false
+    }
+
+    return status_ok(status);
 }
 
 bool path_init(Path *path, Slice *path_slice, Status *status) {

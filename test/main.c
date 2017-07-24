@@ -27,7 +27,7 @@ int main(void) {
         cmocka_unit_test(test_dlist),
         cmocka_unit_test(test_list),
         cmocka_unit_test(test_parray),
-        // cmocka_unit_test(test_path),
+        cmocka_unit_test(test_path),
         cmocka_unit_test(test_sslice),
         cmocka_unit_test(test_status),
         cmocka_unit_test(test_string),

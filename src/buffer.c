@@ -73,7 +73,7 @@ bool buffer_copy(Buffer *dst, Buffer *src, Status *status) {
 bool buffer_zero_section(Buffer *buffer, size_t index,
                                          size_t len,
                                          Status *status) {
-    if ((index + len) >= buffer->len) {
+    if ((index + len) > buffer->len) {
         return index_out_of_bounds(status);
     }
 
@@ -108,7 +108,7 @@ bool buffer_slice(Buffer *buffer, size_t index,
                                   size_t len,
                                   Slice *slice,
                                   Status *status) {
-    if ((index + len) >= buffer->len) {
+    if ((index + len) > buffer->len) {
         return index_out_of_bounds(status);
     }
 
@@ -131,7 +131,7 @@ bool buffer_insert(Buffer *buffer, size_t pos, char *bytes, size_t count,
 bool buffer_delete(Buffer *buffer, size_t index,
                                    size_t len,
                                    Status *status) {
-    if ((index + len) >= buffer->len) {
+    if ((index + len) > buffer->len) {
         return index_out_of_bounds(status);
     }
 
@@ -148,7 +148,7 @@ bool buffer_delete(Buffer *buffer, size_t index,
 bool buffer_delete_no_zero(Buffer *buffer, size_t index,
                                            size_t len,
                                            Status *status) {
-    if ((index + len) >= buffer->len) {
+    if ((index + len) > buffer->len) {
         return index_out_of_bounds(status);
     }
 
@@ -163,7 +163,7 @@ bool buffer_delete_no_zero(Buffer *buffer, size_t index,
 
 bool buffer_read(Buffer *buffer, size_t index, size_t len, void *out,
                                                            Status *status) {
-    if ((index + len) >= buffer->len) {
+    if ((index + len) > buffer->len) {
         return index_out_of_bounds(status);
     }
 

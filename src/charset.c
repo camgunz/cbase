@@ -54,7 +54,6 @@ bool charset_convert(Slice *in, const char *from, const char *to,
     size_t in_buf_size;
     char *out_buf;
     size_t out_buf_size;
-    size_t bytes_written = 0;
 
     if (cd == (iconv_t)-1) {
         if (errno == EINVAL) {
@@ -75,7 +74,6 @@ bool charset_convert(Slice *in, const char *from, const char *to,
 
     while (true) {
         size_t res;
-        size_t original_buf_size = out_buf_size;
 
         res = iconv(cd, &in_buf, &in_buf_size, &out_buf, &out_buf_size);
 
@@ -93,14 +91,14 @@ bool charset_convert(Slice *in, const char *from, const char *to,
             }
 
             if (errno == E2BIG) {
-                bytes_written += original_buf_size - out_buf_size;
+                ptrdiff_t bytes_written = out_buf - out->data;
 
                 if (!buffer_ensure_capacity(out, out->alloc * 2, status)) {
                     return false;
                 }
 
                 out_buf = out->data + bytes_written;
-                out_buf_size = out->alloc - (out_buf - out->data);
+                out_buf_size = out->alloc - bytes_written;
 
                 continue;
             }
@@ -122,12 +120,11 @@ bool charset_convert(Slice *in, const char *from, const char *to,
 
 bool charset_convert_to_string(Slice *in, const char *from, String *out,
                                                             Status *status) {
-    iconv_t cd = iconv_open("UTF-8", from);
+    iconv_t cd = iconv_open("utf-8", from);
     char *in_buf;
     size_t in_buf_size;
     char *out_buf;
     size_t out_buf_size;
-    size_t bytes_written = 0;
 
     if (cd == (iconv_t)-1) {
         if (errno == EINVAL) {
@@ -137,6 +134,10 @@ bool charset_convert_to_string(Slice *in, const char *from, String *out,
         return unknown_iconv_error(status);
     }
 
+    if (!out->data) {
+        return null_buffer(status);
+    }
+
     in_buf = in->data;
     in_buf_size = in->len;
     out_buf = out->data;
@@ -144,7 +145,6 @@ bool charset_convert_to_string(Slice *in, const char *from, String *out,
 
     while (true) {
         size_t res;
-        size_t original_buf_size = out_buf_size;
 
         res = iconv(cd, &in_buf, &in_buf_size, &out_buf, &out_buf_size);
 
@@ -162,14 +162,14 @@ bool charset_convert_to_string(Slice *in, const char *from, String *out,
             }
 
             if (errno == E2BIG) {
-                bytes_written += original_buf_size - out_buf_size;
+                ptrdiff_t bytes_written = out_buf - out->data;
 
                 if (!string_ensure_capacity(out, out->alloc * 2, status)) {
                     return false;
                 }
 
                 out_buf = out->data + bytes_written;
-                out_buf_size = out->alloc - (out_buf - out->data);
+                out_buf_size = out->alloc - bytes_written;
 
                 continue;
             }
