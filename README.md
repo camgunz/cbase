@@ -1,4 +1,4 @@
-# cbase
+# cbase (not at all ready for production use)
 
 cbase is an application library for C applications.  It provides:
 
@@ -13,13 +13,11 @@ cbase is an application library for C applications.  It provides:
 - Unicode handling (utf8proc)
 - Charset converstion (libiconv)
 - Byte swapping
+- Path and file manipulation
 - Status
   - Augments C error handling by adding domains and error messages to error
     codes
 - Logging (not full-featured, for statuses and debugging)
-
-Planned:
-- File handling
 
 ## License
 
@@ -31,8 +29,7 @@ License, Version 2.0.  Both are included here, in the [LICENSE](LICENSE) and
 
 cbase strives towards 100% function test coverage.  Currently the tests cover
 69% of functions and 63% of lines.  I estimate I can achieve 100% function
-coverage and 90% line coverage without resorting to injecting allocation
-failures.
+coverage and 80% line coverage without resorting to injecting failures.
 
 I use all the Clang sanitizers and ensure there are no compilation warnings.
 
@@ -44,8 +41,9 @@ cbase requires:
 - dynamic allocation
 - 32 or 64-bit architecture
 
-It may be possible to run on 16-bit or lower architectures if you use different
-hashing functions for `table` than those provided in `hash`.  This is untested.
+It may be possible to run on 16-bit or smaller architectures if you use
+different hashing functions for `table` than those provided in `hash`.
+This is untested.
 
 ## Dependencies
 
