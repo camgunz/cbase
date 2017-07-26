@@ -269,7 +269,7 @@ bool string_new_from_buffer(String **s, Buffer *buffer, const char *encoding,
 }
 
 bool string_ensure_capacity(String *s, size_t byte_len, Status *status) {
-    if ((byte_len > 0) && (s->alloc < (byte_len + 1))) {
+    if (s->alloc < (byte_len + 1)) {
         char *new_data = cbrealloc(s->data, byte_len + 1, sizeof(char));
 
         if (!new_data) {
@@ -567,12 +567,14 @@ bool string_encode(String *s, const char *encoding, Buffer *out,
             outsl.len = out->alloc - bytes_written;
             outsl.data = out->data + bytes_written;
         }
-
         else if (status_match(status, "charset",
                                       CHARSET_BUFFER_DATA_UNINITIALIZED)) {
             if (!buffer_ensure_capacity(out, 64, status)) {
                 return false;
             }
+
+            outsl.len = out->alloc;
+            outsl.data = out->data;
         }
         else {
             return false;

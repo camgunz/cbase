@@ -316,15 +316,28 @@
 )
 
 static inline bool sslice_is_absolute_path(SSlice *ss) {
-    if ((ss->byte_len >= 1) && (ss->data[0] == '/')) {
+    if ((ss->byte_len == 1) && (ss->data[0] == '/')) {
         return true;
     }
 
-    if ((ss->byte_len >= 3) && (isdigit(ss->data[0])) &&
+    /* "C:/" */
+    if ((ss->byte_len == 3) && (isalpha(ss->data[0])) &&
                                (ss->data[1] == ':') &&
                                (ss->data[2] == '/')) {
         return true;
     }
+
+    /* "//?/C:/"                       */
+    if ((ss->byte_len == 7) && (ss->data[0] == '/') &&
+                               (ss->data[1] == '/') &&
+                               (ss->data[2] == '?') &&
+                               (ss->data[3] == '/') &&
+                               (isalpha(ss->data[4])) &&
+                               (ss->data[5] == ':') &&
+                               (ss->data[6] == '/')) {
+        return true;
+    }
+
 
     return false;
 }
@@ -387,70 +400,35 @@ static bool stat_path(const char *path, struct stat *stat_obj, Status *status) {
 }
 
 static bool canonicalize_path(Path *path, Status *status) {
-    /*
-     * [FIXME] `realpath` won't work here because it requires the path to
-     *         exist.  That's kind of a drag as I really contorted everything
-     *         around having to have a localized path to canonicalize, but in
-     *         the long run it's better.  Although, it means I have to
-     *         implement something like `realpath` that doesn't require the
-     *         path to exist.
-     */
-    char buf[PATH_MAX + 1];
-    char *canonicalized_path = realpath(path->local_path.data, buf);
-    size_t buf_size;
+    (void)status;
 
-    if (!canonicalized_path) {
-        switch (errno) {
-            case EACCES:
-                return permission_denied(status);
-                break;
-            case EINVAL:
-                return invalid_path(status);
-                break;
-            case EIO:
-                return io_error(status);
-                break;
-            case ELOOP:
-                return symbolic_link_depth_exceeded(status);
-                break;
-            case ENAMETOOLONG:
-                return path_too_long(status);
-                break;
-            case ENOENT:
-                return path_not_found(status);
-                break;
-            case ENOMEM:
-                return out_of_memory(status);
-                break;
-            case ENOTDIR:
-                return path_not_folder(status);
-                break;
-            default:
-                return unknown_error(status);
-                break;
+    for (size_t i = 0; i < path->normal_path.len; i++) {
+        if (path->normal_path.data[i] == '\\') {
+            path->normal_path.data[i] = '/';
         }
     }
 
-    buffer_clear(&path->local_path);
-
-    buf_size = strlen(canonicalized_path);
-
-    for (size_t i = 0; i < buf_size; i++) {
-        if (buf[i] == '\\') {
-            buf[i] = '/';
-        }
-    }
-
-    return buffer_insert(&path->local_path, 0, buf, buf_size + 1, status);
+    return status_ok(status);
 }
 
-bool path_init(Path *path, SSlice *input, Status *status) {
+bool path_init(Path *path, Status *status) {
+    buffer_init(&path->local_path);
+
+    if (!string_init(&path->normal_path, "", status)) {
+        buffer_free(&path->local_path);
+        return false;
+    }
+
+    return status_ok(status);
+}
+
+bool path_init_and_set(Path *path, SSlice *input, Status *status) {
     if (!buffer_init_alloc(&path->local_path, INIT_ALLOC, status)) {
-        string_free(&path->normal_path);
         return false;
     }
 
     if (!string_init_from_sslice(&path->normal_path, input, status)) {
+        buffer_free(&path->local_path);
         return false;
     }
 
@@ -464,17 +442,18 @@ bool path_init(Path *path, SSlice *input, Status *status) {
     return status_ok(status);
 }
 
-bool path_init_from_cstr(Path *path, const char *input, Status *status) {
+bool path_init_and_set_cstr(Path *path, const char *input,
+                                             Status *status) {
     SSlice ss;
 
     if (!sslice_init_from_cstr(&ss, (char *)input, status)) {
         return false;
     }
 
-    return path_init(path, &ss, status);
+    return path_init_and_set(path, &ss, status);
 }
 
-bool path_init_local(Path *path, Slice *input, Status *status) {
+bool path_init_and_set_local(Path *path, Slice *input, Status *status) {
     if (!buffer_init_alloc(&path->local_path, input->len, status)) {
         return false;
     }
@@ -505,14 +484,14 @@ bool path_init_local(Path *path, Slice *input, Status *status) {
     return status_ok(status);
 }
 
-bool path_new(Path **path, SSlice *input, Status *status) {
+bool path_new(Path **path, Status *status) {
     Path *new_path = cbmalloc(1, sizeof(Path));
 
     if (!new_path) {
         return alloc_failure(status);
     }
 
-    if (!path_init(new_path, input, status)) {
+    if (!path_init(new_path, status)) {
         cbfree(new_path);
         return false;
     }
@@ -522,14 +501,14 @@ bool path_new(Path **path, SSlice *input, Status *status) {
     return status_ok(status);
 }
 
-bool path_new_local(Path **path, Slice *input, Status *status) {
+bool path_new_and_set(Path **path, SSlice *input, Status *status) {
     Path *new_path = cbmalloc(1, sizeof(Path));
 
     if (!new_path) {
         return alloc_failure(status);
     }
 
-    if (!path_init_local(new_path, input, status)) {
+    if (!path_init_and_set(new_path, input, status)) {
         cbfree(new_path);
         return false;
     }
@@ -539,14 +518,31 @@ bool path_new_local(Path **path, Slice *input, Status *status) {
     return status_ok(status);
 }
 
-bool path_new_from_cstr(Path **path, const char *input, Status *status) {
+bool path_new_and_set_local(Path **path, Slice *input, Status *status) {
     Path *new_path = cbmalloc(1, sizeof(Path));
 
     if (!new_path) {
         return alloc_failure(status);
     }
 
-    if (!path_init_from_cstr(new_path, input, status)) {
+    if (!path_init_and_set_local(new_path, input, status)) {
+        cbfree(new_path);
+        return false;
+    }
+
+    *path = new_path;
+
+    return status_ok(status);
+}
+
+bool path_new_and_set_cstr(Path **path, const char *input, Status *status) {
+    Path *new_path = cbmalloc(1, sizeof(Path));
+
+    if (!new_path) {
+        return alloc_failure(status);
+    }
+
+    if (!path_init_and_set_cstr(new_path, input, status)) {
         cbfree(new_path);
         return false;
     }
@@ -562,10 +558,8 @@ bool path_set(Path *path, SSlice *new_path, Status *status) {
 
     return (
         string_assign_sslice(&path->normal_path, new_path, status) &&
-        string_localize(&path->normal_path, &path->local_path, status) &&
         canonicalize_path(path, status) &&
-        string_assign_local_buffer(&path->normal_path, &path->local_path,
-                                                       status)
+        string_localize(&path->normal_path, &path->local_path, status)
     );
 }
 
@@ -584,15 +578,17 @@ bool path_set_local(Path *path, Slice *new_path, Status *status) {
 
     return (
         string_assign_local_slice(&path->normal_path, new_path, status) &&
-        string_localize(&path->normal_path, &path->local_path, status) &&
         canonicalize_path(path, status) &&
-        string_assign_local_buffer(&path->normal_path, &path->local_path,
-                                                       status)
+        string_localize(&path->normal_path, &path->local_path, status)
     );
 }
 
 bool path_dirname(Path *path, Path *out, Status *status) {
     SSlice dirname;
+
+    if (path_is_root(path)) {
+        return is_already_root(status);
+    }
 
     if (!string_slice(&path->normal_path, 0, path->normal_path.len, &dirname,
                                                                     status)) {
@@ -631,6 +627,10 @@ bool path_basename(Path *path, SSlice *basename, Status *status) {
 
             status_clear(status);
             break;
+        }
+
+        if (!sslice_skip_rune(basename, status)) {
+            return false;
         }
     }
 
@@ -737,6 +737,44 @@ bool path_is_symlink(Path *path, bool *is_symlink, Status *status) {
     *is_symlink = ((stat_obj.st_mode & S_IFLNK) == S_IFLNK);
 
     return status_ok(status);
+}
+
+bool path_is_root(Path *path) {
+    String *np = &path->normal_path;
+
+    /* "/" */
+    if ((np->byte_len == 1) && (np->data[0] == '/')) {
+        return true;
+    }
+
+    /* "C:/" */
+    if ((np->byte_len == 3) && (isalpha(np->data[0])) &&
+                               (np->data[1] == ':') &&
+                               (np->data[2] == '/')) {
+        return true;
+    }
+
+    /* "//?/C:/"                       */
+    if ((np->byte_len == 7) && (np->data[0] == '/') &&
+                               (np->data[1] == '/') &&
+                               (np->data[2] == '?') &&
+                               (np->data[3] == '/') &&
+                               (isalpha(np->data[4])) &&
+                               (np->data[5] == ':') &&
+                               (np->data[6] == '/')) {
+        return true;
+    }
+
+    /*
+     * [TODO]
+     *
+     *   //SERVER01/share/
+     *   //?/SERVER01/share/
+     *   //?/UNC/[server]/[sharename]/
+     *   //./[physical_device]/
+     */
+
+    return false;
 }
 
 bool path_is_readable(Path *path, bool *readable, Status *status) {
@@ -1035,10 +1073,8 @@ bool path_join(Path *path, SSlice *path_addition, Status *status) {
 
     return (
         string_append(&path->normal_path, path_addition, status) &&
-        string_localize(&path->normal_path, &path->local_path, status) &&
         canonicalize_path(path, status) &&
-        string_assign_local_buffer(&path->normal_path, &path->local_path,
-                                                       status)
+        string_localize(&path->normal_path, &path->local_path, status)
     );
 }
 
@@ -1055,10 +1091,8 @@ bool path_join_cstr(Path *path, const char *path_addition, Status *status) {
 
     return (
         string_append_cstr(&path->normal_path, path_addition, status) &&
-        string_localize(&path->normal_path, &path->local_path, status) &&
         canonicalize_path(path, status) &&
-        string_assign_local_buffer(&path->normal_path, &path->local_path,
-                                                       status)
+        string_localize(&path->normal_path, &path->local_path, status)
     );
 }
 

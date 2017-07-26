@@ -37,18 +37,18 @@
     "unknown iconv error"                         \
 )
 
-#define null_output_buffer(status) status_error( \
-    status,                                      \
-    "charset",                                   \
-    CHARSET_BUFFER_DATA_UNINITIALIZED,           \
-    "output buffer's data is uninitialized"      \
+#define null_output_buffer(status) status_failure( \
+    status,                                        \
+    "charset",                                     \
+    CHARSET_BUFFER_DATA_UNINITIALIZED,             \
+    "output buffer's data is uninitialized"        \
 )
 
-#define output_buffer_too_small(status) status_error( \
-    status,                                           \
-    "charset",                                        \
-    CHARSET_OUTPUT_BUFFER_TOO_SMALL,                  \
-    "output buffer is too small"                      \
+#define output_buffer_too_small(status) status_failure( \
+    status,                                             \
+    "charset",                                          \
+    CHARSET_OUTPUT_BUFFER_TOO_SMALL,                    \
+    "output buffer is too small"                        \
 )
 
 bool charset_convert(Slice *in, const char *from, const char *to,

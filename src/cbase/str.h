@@ -110,8 +110,10 @@ static inline void string_assign_cstr_full_fast(String *s, const char *data,
     s->byte_len = byte_len;
 
     if (byte_len) {
-        cbmemmove(s->data, data, byte_len + 1);
+        cbmemmove(s->data, data, byte_len);
     }
+
+    s->data[byte_len] = '\0';
 }
 
 static inline void string_assign_fast(String *s, SSlice *sslice) {

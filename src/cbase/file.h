@@ -54,12 +54,14 @@ typedef struct {
 
 typedef void* File;
 
-bool path_init(Path *path, SSlice *input, Status *status);
-bool path_init_from_cstr(Path *path, const char *input, Status *status);
-bool path_init_local(Path *path, Slice *input, Status *status);
-bool path_new(Path **path, SSlice *input, Status *status);
-bool path_new_from_cstr(Path **path, const char *input, Status *status);
-bool path_new_local(Path **path, Slice *input, Status *status);
+bool path_init(Path *path, Status *status);
+bool path_init_and_set(Path *path, SSlice *input, Status *status);
+bool path_init_and_set_cstr(Path *path, const char *input, Status *status);
+bool path_init_and_set_local(Path *path, Slice *input, Status *status);
+bool path_new(Path **path, Status *status);
+bool path_new_and_set(Path **path, SSlice *input, Status *status);
+bool path_new_and_set_cstr(Path **path, const char *input, Status *status);
+bool path_new_and_set_local(Path **path, Slice *input, Status *status);
 bool path_set(Path *path, SSlice *new_path, Status *status);
 bool path_set_from_cstr(Path *path, const char *new_path, Status *status);
 bool path_set_local(Path *path, Slice *new_path, Status *status);
@@ -73,6 +75,7 @@ bool path_is_regular_file(Path *path, bool *is_regular_file, Status *status);
 bool path_is_folder(Path *path, bool *is_folder, Status *status);
 bool path_is_regular_file(Path *path, bool *is_regular_file, Status *status);
 bool path_is_symlink(Path *path, bool *is_symlink, Status *status);
+bool path_is_root(Path *path);
 bool path_is_readable(Path *path, bool *readable, Status *status);
 bool path_is_writable(Path *path, bool *writable, Status *status);
 bool path_is_readable_and_writable(Path *path, bool *readable_and_writable,
