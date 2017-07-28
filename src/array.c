@@ -141,7 +141,7 @@ bool array_set_size(Array *array, size_t length, Status *status) {
     return status_ok(status);
 }
 
-bool array_shrink(Array *array, Status *status) {
+bool array_compact(Array *array, Status *status) {
     if (array->alloc <= array->len) {
         return status_ok(status);
     }

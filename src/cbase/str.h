@@ -45,7 +45,7 @@ bool  string_assign_slice(String *s, Slice *slice, const char *encoding,
                                                    Status *status);
 bool  string_assign_buffer(String *s, Buffer *buffer, const char *encoding,
                                                       Status *status);
-bool  string_shrink(String *s, Status *status);
+bool  string_compact(String *s, Status *status);
 bool  string_copy(String *dst, String *src, Status *status);
 bool  string_slice(String *s, size_t index, size_t len, SSlice *sslice,
                                                         Status *status);
@@ -145,6 +145,12 @@ static inline bool string_slice_fast(String *s, size_t index, size_t len,
     sslice->data = start;
 
     return true;
+}
+
+static inline void string_slice_full(String *s, SSlice *sslice) {
+    sslice->data = s->data;
+    sslice->len = s->len;
+    sslice->byte_len = s->byte_len;
 }
 
 static inline void string_prepend_cstr_fast(String *s, const char *data,
@@ -305,26 +311,74 @@ static inline bool string_insert_fast(String *s, size_t pos, SSlice *sslice,
     return true;
 }
 
-static inline bool string_shift_left_fast(String *s, size_t len, ssize_t *error) {
-    return string_delete_fast(s, 0, len, error);
+static inline bool string_skip_runes(String *s, size_t rune_count,
+                                                Status *status) {
+    SSlice sslice;
+
+    string_slice_full(s, &sslice);
+
+    return (
+        sslice_skip_runes(s, rune_count, status) &&
+        string_assign_sslice(s, &sslice)
+    );
 }
 
-static inline bool string_shift_left(String *s, size_t len, Status *status) {
-    ssize_t error;
+static inline bool string_skip_rune_if_equals(String *s, rune r,
+                                                         Status *status) {
+    SSlice sslice;
 
-    if (!string_shift_left_fast(s, len, &error)) {
-        return utf8_handle_error_code(error, status);
-    }
+    string_slice_full(s, &sslice);
 
-    return status_ok(status);
+    return (
+        sslice_skip_rune_if_equals(s, r, status) &&
+        string_assign_sslice(s, &sslice)
+    );
 }
 
-static inline bool string_truncate(String *s, size_t len, Status *status) {
-    return string_delete(s, (s->len - len) + 1, len, status);
+static inline bool string_pop_rune(String *s, rune *r, Status *status) {
+    SSlice sslice;
+
+    string_slice_full(s, &sslice);
+
+    return (
+        sslice_pop_rune(s, r, status) &&
+        string_assign_sslice(s, &sslice)
+    );
 }
 
-static inline bool string_truncate_fast(String *s, size_t len, ssize_t *error) {
-    return string_delete_fast(s, (s->len - len) + 1, len, error);
+static inline bool string_seek_to(String *s, rune r, Status *status) {
+    SSlice sslice;
+
+    string_slice_full(s, &sslice);
+
+    return (
+        sslice_seek_to(s, r, status) &&
+        string_assign_sslice(s, &sslice)
+    );
+}
+
+static inline bool string_seek_to_cstr(String *s, const char *cs,
+                                                  Status *status) {
+    SSlice sslice;
+
+    string_slice_full(s, &sslice);
+
+    return (
+        sslice_seek_to_cstr(s, cs, status) &&
+        string_assign_sslice(s, &sslice)
+    );
+}
+
+static inline bool string_truncate_runes(String *s, size_t rune_count,
+                                                    Status *status) {
+    SSlice sslice;
+
+    string_slice_full(s, &sslice);
+
+    return (
+        sslice_truncate_runes(s, rune_count, status) &&
+        string_assign_sslice(s, &sslice)
+    );
 }
 
 static inline bool string_empty(String *s) {

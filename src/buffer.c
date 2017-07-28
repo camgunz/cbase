@@ -45,7 +45,7 @@ bool buffer_ensure_capacity(Buffer *buffer, size_t len, Status *status) {
     return status_ok(status);
 }
 
-bool buffer_shrink(Buffer *buffer, Status *status) {
+bool buffer_compact(Buffer *buffer, Status *status) {
     if (buffer->alloc > buffer->len) {
         char *new_data = cbrealloc(buffer->data, buffer->len, sizeof(char));
 

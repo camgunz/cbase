@@ -98,7 +98,7 @@ void test_string(void **state) {
     assert_int_equal(strnlen(s->data, 13), 12);
     assert_true(string_equals_cstr(s, "We are great"));
 
-    assert_true(string_shrink(s, &status));
+    assert_true(string_compact(s, &status));
     assert_int_equal(s->len, 12);
     assert_int_equal(s->byte_len, 12);
     assert_int_equal(s->alloc, 13);

@@ -25,7 +25,7 @@ bool array_new_alloc_zero(Array **array, size_t element_size, size_t alloc,
 bool array_ensure_capacity(Array *array, size_t length, Status *status);
 bool array_ensure_capacity_zero(Array *array, size_t length, Status *status);
 bool array_set_size(Array *array, size_t length, Status *status);
-bool array_shrink(Array *array, Status *status);
+bool array_compact(Array *array, Status *status);
 bool array_index(Array *array, size_t index, void **element, Status *status);
 bool array_zero_elements(Array *array, size_t index, size_t count,
                                                      Status *status);

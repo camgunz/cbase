@@ -198,7 +198,7 @@ void test_array(void **state) {
     assert_string_equal(person->name, "James");
     assert_int_equal(person->age, 53);
 
-    assert_true(array_shrink(array, &status));
+    assert_true(array_compact(array, &status));
     assert_int_equal(array->len, 3);
     assert_int_equal(array->alloc, 3);
 

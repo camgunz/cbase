@@ -379,7 +379,7 @@ bool string_assign_buffer(String *s, Buffer *buffer, const char *encoding,
     );
 }
 
-bool string_shrink(String *s, Status *status) {
+bool string_compact(String *s, Status *status) {
     if (s->alloc > (s->byte_len + 1)) {
         char *new_data = cbrealloc(s->data, s->byte_len + 1, sizeof(char));
 
@@ -539,6 +539,17 @@ bool string_get_first_rune(String *s, rune *r, Status *status) {
     return utf8_get_first_rune(s->data, r, status);
 }
 
+/* [FIXME] Should be a `bool *equals` output param */
+bool string_first_rune_equals(String *s, rune r, Status *status) {
+    rune r2 = 0;
+
+    if (!string_get_first_rune(s, &r2, status)) {
+        return false;
+    }
+
+    return r2 == r;
+}
+
 bool string_encode(String *s, const char *encoding, Buffer *out,
                                                     Status *status) {
     Slice outsl;
@@ -579,6 +590,30 @@ bool string_encode(String *s, const char *encoding, Buffer *out,
         else {
             return false;
         }
+    }
+
+    return status_ok(status);
+}
+
+void string_replace_cstr(String *s, const char *cs, const char *replacement,
+                                                    Status *status) {
+    SSlice ss;
+
+    if (!string_slice(s, 0, s->len, &ss, status)) {
+        return false;
+    }
+
+    while ((!sslice_empty(&ss)) && sslice_seek_to_cstr(&ss, cs)) {
+        size_t original_len = s->len;
+        size_t original_byte_len = s->byte_len;
+        size_t index = ss1.data - s->data;
+
+        if (!string_delete(&s, index, 2, status)) {
+            return false;
+        }
+
+        ss->len -= (original_len - s->len);
+        ss->byte_len -= (original_byte_len - s->byte_len);
     }
 
     return status_ok(status);

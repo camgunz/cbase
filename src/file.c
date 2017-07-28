@@ -400,11 +400,44 @@ static bool stat_path(const char *path, struct stat *stat_obj, Status *status) {
 }
 
 static bool canonicalize_path(Path *path, Status *status) {
-    (void)status;
+    SSlice ss1;
+    SSlice ss2;
 
-    for (size_t i = 0; i < path->normal_path.len; i++) {
-        if (path->normal_path.data[i] == '\\') {
-            path->normal_path.data[i] = '/';
+    if (!string_replace_cstr(&path->normal_path, "\\", "/", status)) {
+        return false;
+    }
+
+    if (!string_replace_cstr(&path->normal_path, "/./", "/", status)) {
+        return false;
+    }
+
+    if (!string_slice(&path->normal_path, 0, path->normal_path.len, &ss1,
+                                                                    status)) {
+        return false;
+    }
+
+    if (!string_slice(&path->normal_path, 0, path->normal_path.len, &ss2,
+                                                                    status)) {
+        return false;
+    }
+
+#if 0
+    if (string_ends_with_cstr(&path->normal_path, "/..")) {
+        if (!string_truncate_runes(&path->normal_path, 3, status)) {
+            return false;
+        }
+    }
+#endif
+
+    if (string_ends_with_cstr(&path->normal_path, "/.")) {
+        if (!string_truncate_runes(&path->normal_path, 2, status)) {
+            return false;
+        }
+    }
+
+    while (string_ends_with_cstr(&path->normal_path, "/")) {
+        if (!string_truncate_runes(&path->normal_path, 1, status)) {
+            return false;
         }
     }
 

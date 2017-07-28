@@ -182,7 +182,7 @@ void test_parray(void **state) {
     assert_string_equal(person->name, "James");
     assert_int_equal(person->age, 53);
 
-    assert_true(parray_shrink(parray, &status));
+    assert_true(parray_compact(parray, &status));
     assert_int_equal(parray->len, 3);
     assert_int_equal(parray->alloc, 3);
 

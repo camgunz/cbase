@@ -12,7 +12,7 @@ bool buffer_init_alloc(Buffer *buffer, size_t alloc, Status *status);
 bool buffer_new(Buffer **new_buffer, Status *status);
 bool buffer_new_alloc(Buffer **new_buffer, size_t alloc, Status *status);
 bool buffer_ensure_capacity(Buffer *buffer, size_t len, Status *status);
-bool buffer_shrink(Buffer *buffer, Status *status);
+bool buffer_compact(Buffer *buffer, Status *status);
 bool buffer_copy(Buffer *dst, Buffer *src, Status *status);
 bool buffer_zero_section(Buffer *buffer, size_t index, size_t len,
                                                        Status *status);

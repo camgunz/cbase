@@ -70,7 +70,7 @@ bool parray_set_size(PArray *parray, size_t length, Status *status) {
     return status_ok(status);
 }
 
-bool parray_shrink(PArray *parray, Status *status) {
+bool parray_compact(PArray *parray, Status *status) {
     if (parray->alloc > parray->len) {
         void *new_elements = cbrealloc(
             parray->elements,

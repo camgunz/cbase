@@ -46,6 +46,5 @@
 
 ## Misc.
 
-- "shrink" should become "compact"
 - statuses should also have a `func` member
 

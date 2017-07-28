@@ -13,7 +13,7 @@ bool parray_new(PArray **parray, Status *status);
 bool parray_new_alloc(PArray **parray, size_t alloc, Status *status);
 bool parray_ensure_capacity(PArray *parray, size_t length, Status *status);
 bool parray_set_size(PArray *parray, size_t length, Status *status);
-bool parray_shrink(PArray *parray, Status *status);
+bool parray_compact(PArray *parray, Status *status);
 bool parray_copy(PArray *dst, PArray *src, Status *status);
 bool parray_index(PArray *parray, size_t index, void **element,
                                                 Status *status);

@@ -84,6 +84,7 @@ bool sslice_pop_rune(SSlice *s, rune *r, Status *status) {
     return status_ok(status);
 }
 
+/* [FIXME] Should be a `bool *equals` output param */
 bool sslice_first_rune_equals(SSlice *s, rune r, Status *status) {
     rune r2 = 0;
 
