@@ -61,6 +61,14 @@ static inline bool utf8ncmp(const char *s1, const char *s2, size_t n) {
     return memcmp(s1, s2, n) == 0;
 }
 
+static inline bool utf8_get_end_rune(const char *data, size_t byte_len,
+                                                       rune *r,
+                                                       Status *status) {
+    size_t offset = 0;
+
+    return utf8_get_end_rune_offset(data, byte_len, r, &offset, status);
+}
+
 #endif
 
 /* vi: set et ts=4 sw=4: */

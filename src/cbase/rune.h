@@ -3,6 +3,8 @@
 
 typedef int32_t rune;
 
+typedef bool(RuneMatchFunc)(rune r);
+
 bool  rune_is_alpha(rune r);
 bool  rune_is_hex_digit(rune r);
 bool  rune_is_digit(rune r);
