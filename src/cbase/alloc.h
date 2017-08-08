@@ -1,8 +1,15 @@
 #ifndef ALLOC_H__
 #define ALLOC_H__
 
-static inline void* __cbmemmove(void *dest, const void *src, size_t size) {
-    return memmove(dest, src, size);
+static inline bool __cbmemmove(void *dest, const void *src, size_t count,
+                                                            size_t size) {
+    if (!check_overflow(count, size)) {
+        return false;
+    }
+
+    (void)memmove(dest, src, count * size);
+
+    return true;
 }
 
 #ifndef cbmemmove

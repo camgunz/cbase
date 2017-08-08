@@ -90,77 +90,6 @@ bool string_append_vprintf(String *s, Status *status, const char *fmt,
     return status_ok(status);
 }
 
-bool string_init(String *s, const char *data, Status *status) {
-    s->len = 0;
-    s->byte_len = 0;
-    s->alloc = 0;
-    s->data = NULL;
-
-    return string_assign(s, data, status);
-}
-
-bool string_init_len(String *s, const char *data, size_t len, Status *status) {
-    s->len = 0;
-    s->byte_len = 0;
-    s->alloc = 0;
-    s->data = NULL;
-
-    return string_assign_len(s, data, len, status);
-}
-
-bool string_init_full(String *s, const char *data, size_t len,
-                                                   size_t byte_len,
-                                                   Status *status) {
-    s->len = 0;
-    s->byte_len = 0;
-    s->alloc = 0;
-    s->data = NULL;
-
-    return string_assign_full(s, data, len, byte_len, status);
-}
-
-bool string_init_from_sslice(String *s, SSlice *sslice, Status *status) {
-    s->len = 0;
-    s->byte_len = 0;
-    s->alloc = 0;
-    s->data = NULL;
-
-    if (!string_ensure_capacity(s, sslice->byte_len, status)) {
-        return false;
-    }
-
-    s->len = sslice->len;
-    s->byte_len = sslice->byte_len;
-    cbmemmove(s->data, sslice->data, sslice->byte_len);
-    s->data[s->byte_len] = '\0';
-
-    return status_ok(status);
-}
-
-bool string_init_from_slice(String *s, Slice *slice, const char *encoding,
-                                                     Status *status) {
-    s->len = 0;
-    s->byte_len = 0;
-    s->alloc = 0;
-    s->data = NULL;
-
-    if (!string_ensure_capacity(s, 64, status)) {
-        return false;
-    }
-
-    return string_assign_slice(s, slice, encoding, status);
-}
-
-bool string_init_from_buffer(String *s, Buffer *buffer, const char *encoding,
-                                                        Status *status) {
-    Slice slice;
-
-    return (
-        buffer_slice(buffer, 0, buffer->len, &slice, status) &&
-        string_init_from_slice(s, &slice, encoding, status)
-    );
-}
-
 bool string_new(String **s, const char *data, Status *status) {
     String *new_string = cbmalloc(1, sizeof(String));
 
@@ -268,60 +197,6 @@ bool string_new_from_buffer(String **s, Buffer *buffer, const char *encoding,
     return status_ok(status);
 }
 
-bool string_ensure_capacity(String *s, size_t byte_len, Status *status) {
-    if (s->alloc < (byte_len + 1)) {
-        char *new_data = cbrealloc(s->data, byte_len + 1, sizeof(char));
-
-        if (!new_data) {
-            return alloc_failure(status);
-        }
-
-        s->data = new_data;
-        s->alloc = byte_len + 1;
-    }
-
-    return status_ok(status);
-}
-
-bool string_assign(String *s, const char *data, Status *status) {
-    size_t len = 0;
-    size_t byte_len = 0;
-    
-    if (data) {
-        if (!utf8len(data, &len, status)) {
-            return false;
-        }
-        byte_len = strlen(data);
-    }
-
-    return string_assign_full(s, data, len, byte_len, status);
-}
-
-bool string_assign_len(String *s, const char *data, size_t byte_len,
-                                                    Status *status) {
-    size_t len = 0;
-
-    if (data) {
-        if (!utf8len(data, &len, status)) {
-            return false;
-        }
-    }
-
-    return string_assign_full(s, data, len, byte_len, status);
-}
-
-bool string_assign_full(String *s, const char *data, size_t len,
-                                                     size_t byte_len,
-                                                     Status *status) {
-    if (!string_ensure_capacity(s, byte_len, status)) {
-        return false;
-    }
-
-    string_assign_cstr_full_fast(s, data, len, byte_len);
-
-    return status_ok(status);
-}
-
 bool string_assign_sslice(String *s, SSlice *sslice, Status *status) {
     if (!string_ensure_capacity(s, sslice->byte_len, status)) {
         return false;
@@ -334,6 +209,13 @@ bool string_assign_sslice(String *s, SSlice *sslice, Status *status) {
 
 bool string_assign_slice(String *s, Slice *slice, const char *encoding,
                                                   Status *status) {
+    if (!string->buffer.data) {
+        if (!string_ensure_capacity(string, STRING_TRANSCODING_INIT_ALLOC,
+                                            status)) {
+            return false;
+        }
+    }
+
     while (true) {
         Slice out;
         ptrdiff_t bytes_written;
@@ -374,7 +256,7 @@ bool string_assign_buffer(String *s, Buffer *buffer, const char *encoding,
     Slice slice;
 
     return (
-        buffer_slice(buffer, 0, buffer->len, &slice, status) &&
+        buffer_slice_full(buffer, &slice, status) &&
         string_assign_slice(s, &slice, encoding, status)
     );
 }
