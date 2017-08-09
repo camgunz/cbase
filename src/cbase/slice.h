@@ -101,6 +101,35 @@ static inline bool slice_read(Slice *slice, size_t index, size_t len,
     return status_ok(status);
 }
 
+static inline
+bool slice_encode(Slice *src, const char *src_encoding,
+                              const char *dst_encoding,
+                              Buffer *dst,
+                              Status *status) {
+    Slice dst_slice;
+
+    while (true) {
+        dst_slice.data = dst->array.data;
+        dst_slice.len = dst->array.alloc;
+
+        if (charset_convert(&src_slice, src_encoding, to_encoding, &dst_slice,
+                                                                   status)) {
+            break;
+        }
+
+        if (status_match(status, "charset", CHARSET_OUTPUT_BUFFER_TOO_SMALL)) {
+            if (!buffer_ensure_capacity(dst, dst->array.alloc * 2, status)) {
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
+    }
+
+    return status_ok(status);
+}
+
 #endif
 
 /* vi: set et ts=4 sw=4: */

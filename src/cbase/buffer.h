@@ -6,6 +6,32 @@ typedef struct {
 } Buffer;
 
 static inline
+void buffer_assign_fast(Buffer *buffer, char *bytes, size_t len) {
+    array_assign_fast(&buffer->array, bytes, len);
+}
+
+static inline
+bool buffer_assign(Buffer *buffer, char *bytes, size_t len,
+                                                Status *status) {
+    return array_assign(&buffer->array, bytes, len, status);
+}
+
+static inline
+void buffer_assign_buffer_fast(Buffer *dst, Buffer *src) {
+    array_assign_array_same_fast(&dst->array, &src->array);
+}
+
+static inline
+bool buffer_assign_buffer(Buffer *dst, Buffer *src, Status *status) {
+    return array_assign_array_same(&dst->array, &src->array, status);
+}
+
+static inline
+void buffer_assign_slice_fast(Buffer *buffer, Slice *slice) {
+    array_assign_fast(&buffer->array, slice->data, slice->len);
+}
+
+static inline
 bool buffer_ensure_capacity(Buffer *buffer, size_t len, Status *status) {
     return array_ensure_capacity(&buffer->array, len, status);
 }
@@ -56,13 +82,13 @@ bool buffer_compact(Buffer *buffer, Status *status) {
 static inline
 void buffer_insert_fast(Buffer *buffer, size_t index, char *bytes,
                                                       size_t count) {
-    array_insert_many(&buffer->array, index, bytes, count);
+    array_insert_many_fast(&buffer->array, index, bytes, count);
 }
 
 static inline
 bool buffer_insert(Buffer *buffer, size_t index, char *bytes, size_t count,
                                                               Status *status) {
-    return array_insert_many_fast(&buffer->array, index, bytes, count, status);
+    return array_insert_many(&buffer->array, index, bytes, count, status);
 }
 
 static inline void buffer_insert_slice_fast(Buffer *buffer, size_t index,
@@ -147,32 +173,6 @@ bool buffer_overwrite_slice(Buffer *buffer, size_t index, Slice *slice,
 }
 
 static inline
-void buffer_assign_fast(Buffer *buffer, char *bytes, size_t len) {
-    array_assign_fast(&buffer->array, bytes, len);
-}
-
-static inline
-bool buffer_assign(Buffer *buffer, char *bytes, size_t len,
-                                                Status *status) {
-    return array_assign(&buffer->array, bytes, len, status);
-}
-
-static inline
-void buffer_assign_buffer_fast(Buffer *dst, Buffer *src) {
-    array_assign_array_same_fast(&dst->array, &src->array);
-}
-
-static inline
-bool buffer_assign_buffer(Buffer *dst, Buffer *src, Status *status) {
-    return array_assign_array_same(&dst->array, &src->array, status);
-}
-
-static inline
-void buffer_assign_slice_fast(Buffer *buffer, Slice *slice) {
-    array_assign_fast(&buffer->array, slice->data, slice->len);
-}
-
-static inline
 bool buffer_assign_slice(Buffer *buffer, Slice *slice, Status *status) {
     return array_assign_fast(&buffer->array, slice->data, slice->len, status);
 }
@@ -221,7 +221,10 @@ bool buffer_slice(Buffer *buffer, size_t index, size_t len,
 }
 
 static inline
-void buffer_slice_full_fast(Buffer
+void buffer_slice_full(Buffer *buffer, Slice *slice) {
+    slice->data = buffer->array.data;
+    slice->len = buffer->array.len;
+}
 
 static inline
 void buffer_delete_fast(Buffer *buffer, size_t index, size_t len) {
@@ -303,6 +306,38 @@ bool buffer_zero_fast(Buffer *buffer, Status *status) {
 static inline
 bool buffer_zero(Buffer *buffer, Status *status) {
     return array_zero_elements(&buffer->array, 0, buffer->array.len, status);
+}
+
+static inline
+bool buffer_encode(Buffer *src const char *src_encoding,
+                               const char *dst_encoding,
+                               Buffer *dst,
+                               Status *status) {
+    Slice src_slice;
+    Slice dst_slice;
+
+    buffer_slice_full(src, &src_slice);
+
+    while (true) {
+        dst_slice.data = dst->array.data;
+        dst_slice.len = dst->array.alloc;
+
+        if (charset_convert(&src_slice, src_encoding, to_encoding, &dst_slice,
+                                                                   status)) {
+            break;
+        }
+
+        if (status_match(status, "charset", CHARSET_OUTPUT_BUFFER_TOO_SMALL)) {
+            if (!buffer_ensure_capacity(dst, dst->array.alloc * 2, status)) {
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
+    }
+
+    return status_ok(status);
 }
 
 #endif
