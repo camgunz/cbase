@@ -16,14 +16,49 @@ typedef struct StringStruct {
  * UTF-8 data (not NULL-terminated)
  * String
  * SSlice
+ * data
  * Buffer
  *   - UTF-8
  *   - Local
  * Slice
  *   - UTF-8
  *   - Local
- * data
  */
+
+static inline
+void string_assign_cstr_full_fast(String *string, const char *cs,
+                                                  size_t len,
+                                                  size_t byte_len) {
+    buffer_assign_fast(&string->buffer, cs, byte_len + 1);
+    string->len = len;
+    string->byte_len = byte_len;
+}
+
+static inline
+bool string_assign_cstr_full(String *string, const char *cs, size_t len,
+                                                             size_t byte_len,
+                                                             Status *status) {
+    if (!buffer_assign(&string->buffer, cs, byte_len + 1, status)) {
+        return false;
+    }
+
+    string->len = len;
+    string->byte_len = byte_len;
+}
+
+static inline
+bool string_assign_cstr(String *string, const char *cs, Status *status) {
+    size_t len = 0;
+    size_t byte_len = 0;
+
+    if (cs) {
+        if (!utf8_len_and_byte_len(cs, &len, &byte_len, status)) {
+            return false;
+        }
+    }
+
+    return string_assign_cstr_full(string, cs, len, byte_len, status);
+}
 
 static inline
 void string_assign_utf8_data_full_fast(String *string, const char *data,
@@ -73,54 +108,72 @@ bool string_assign_utf8_data(String *string, const char *data,
 }
 
 static inline
-void string_assign_cstr_full_fast(String *string, const char *cs,
-                                                  size_t len,
-                                                  size_t byte_len) {
-    buffer_assign_fast(&string->buffer, cs, byte_len + 1);
-    string->len = len;
-    string->byte_len = byte_len;
+void string_assign_string_fast(String *dst, String *src) {
+    string_assign_utf8_data_full_fast(dst, src->data, src->len, src->byte_len);
 }
 
 static inline
-bool string_assign_cstr_full(String *string, const char *cs, size_t len,
-                                                             size_t byte_len,
-                                                             Status *status) {
-    if (!buffer_assign(&string->buffer, cs, byte_len + 1, status)) {
-        return false;
-    }
-
-    string->len = len;
-    string->byte_len = byte_len;
+bool string_assign_string(String *dst, String *src, Status *status) {
+    return string_assign_utf8_data_full(dst, src->data, src->len,
+                                                        src->byte_len,
+                                                        status);
 }
-
-static inline
-bool string_assign_cstr(String *string, const char *cs, Status *status) {
-    size_t len = 0;
-    size_t byte_len = 0;
-
-    if (cs) {
-        if (!utf8_len_and_byte_len(cs, &len, &byte_len, status)) {
-            return false;
-        }
-    }
-
-    return string_assign_cstr_full(string, cs, len, byte_len, status);
-}
-
-static inline
-bool string_assign_slice(String *
 
 static inline
 void string_assign_sslice_fast(String *string, SSlice *sslice) {
-    string_assign_full_fast(string, sslice->data, sslice->len,
-                                                  sslice->byte_len);
+    string_assign_utf8_data_full_fast(string, sslice->data, sslice->len,
+                                                            sslice->byte_len);
 }
 
 static inline
 bool string_assign_sslice(String *string, SSlice *sslice, Status *status) {
-    return string_assign_full_fast(string, sslice->data, sslice->len,
-                                                         sslice->byte_len,
-                                                         status);
+    return string_assign_utf8_data_full_fast(string, sslice->data,
+                                                     sslice->len,
+                                                     sslice->byte_len,
+                                                     status);
+}
+
+bool string_assign_buffer_fast(String *string, Buffer *buffer,
+                                               const char *encoding,
+                                               Status *status) {
+    Buffer output;
+
+    if (!buffer_init_alloc(&output, 64, status)) {
+        return false;
+    }
+
+    if ((!buffer_encode(buffer, encoding, "utf-8", &output, status)) ||
+        (!string_assign_utf8_data(s, output.array.data, output.status))) {
+        buffer_free(&output);
+        return false;
+    }
+
+    buffer_free(&output);
+    return status_ok(status);
+}
+
+bool string_assign_buffer(String *string, Buffer *buffer, const char *encoding,
+                                                          Status *status) {
+    Buffer output;
+
+    if (!buffer_init_alloc(&output, 64, status)) {
+        return false;
+    }
+
+    if ((!buffer_encode(buffer, encoding, "utf-8", &output, status)) ||
+        (!string_assign_utf8_data(s, output.array.data, output.status))) {
+        buffer_free(&output);
+        return false;
+    }
+
+    buffer_free(&output);
+    return status_ok(status);
+}
+
+static inline
+bool string_assign_local_buffer(String *string, Buffer *buffer,
+                                                Status *status) {
+    return string_assign_buffer(s, buffer, "wchar_t", status);
 }
 
 bool string_assign_slice(String *string, Slice *slice, const char *encoding,
@@ -129,15 +182,6 @@ bool string_assign_slice(String *string, Slice *slice, const char *encoding,
 static inline
 bool string_assign_local_slice(String *string, Slice *slice, Status *status) {
     return string_assign_slice(s, slice, "wchar_t", status);
-}
-
-bool string_assign_buffer(String *string, Buffer *buffer, const char *encoding,
-                                                          Status *status);
-
-static inline
-bool string_assign_local_buffer(String *string, Buffer *buffer,
-                                                Status *status) {
-    return string_assign_buffer(s, buffer, "wchar_t", status);
 }
 
 static inline
