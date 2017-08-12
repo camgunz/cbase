@@ -51,10 +51,12 @@
     "output buffer is too small"                        \
 )
 
-bool charset_convert(Slice *in, const char *from, const char *to,
-                                                  Slice *out,
-                                                  Status *status) {
-    iconv_t cd = iconv_open(to, from);
+bool charset_convert_data(const char *data, size_t len,
+                                            const char *src_encoding,
+                                            const char *dst_encoding,
+                                            Slice *out,
+                                            Status *status) {
+    iconv_t cd = iconv_open(dst_encoding, src_encoding);
 
     if (cd == (iconv_t)-1) {
         if (errno == EINVAL) {
@@ -71,7 +73,7 @@ bool charset_convert(Slice *in, const char *from, const char *to,
     while (true) {
         size_t res;
 
-        res = iconv(cd, &in->data, &in->len, &out->data, &out->len);
+        res = iconv(cd, &data, &len, &out->data, &out->len);
 
         if (res == (size_t)-1) {
             switch (errno) {
