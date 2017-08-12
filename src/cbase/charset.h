@@ -11,9 +11,21 @@ enum {
     CHARSET_OUTPUT_BUFFER_TOO_SMALL,
 };
 
-bool charset_convert(Slice *in, const char *from, const char *to,
-                                                  Slice *out,
-                                                  Status *status);
+bool charset_convert_data(const char *data, size_t len,
+                                            const char *src_encoding,
+                                            const char *dst_encoding,
+                                            Slice *out,
+                                            Status *status);
+
+static inline
+bool charset_convert_slice(Slice *in, const char *src_encoding,
+                                      const char *dst_encoding,
+                                      Slice *out,
+                                      Status *status) {
+    return charset_convert_data(in->data, in->len, src_encoding, dst_encoding,
+                                                                 out,
+                                                                 status);
+}
 
 #endif
 

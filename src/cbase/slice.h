@@ -112,8 +112,9 @@ bool slice_encode(Slice *src, const char *src_encoding,
         dst_slice.data = dst->array.data;
         dst_slice.len = dst->array.alloc;
 
-        if (charset_convert(&src_slice, src_encoding, to_encoding, &dst_slice,
-                                                                   status)) {
+        if (charset_convert_slice(&src_slice, src_encoding, to_encoding,
+                                                            &dst_slice,
+                                                            status)) {
             break;
         }
 

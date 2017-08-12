@@ -6,12 +6,12 @@ typedef struct {
 } Buffer;
 
 static inline
-void buffer_assign_fast(Buffer *buffer, char *bytes, size_t len) {
+void buffer_assign_data_fast(Buffer *buffer, char *bytes, size_t len) {
     array_assign_fast(&buffer->array, bytes, len);
 }
 
 static inline
-bool buffer_assign(Buffer *buffer, char *bytes, size_t len,
+bool buffer_assign_data(Buffer *buffer, char *bytes, size_t len,
                                                 Status *status) {
     return array_assign(&buffer->array, bytes, len, status);
 }
@@ -29,6 +29,11 @@ bool buffer_assign_buffer(Buffer *dst, Buffer *src, Status *status) {
 static inline
 void buffer_assign_slice_fast(Buffer *buffer, Slice *slice) {
     array_assign_fast(&buffer->array, slice->data, slice->len);
+}
+
+static inline
+bool buffer_assign_slice(Buffer *buffer, Slice *slice, Status *status) {
+    return array_assign_fast(&buffer->array, slice->data, slice->len, status);
 }
 
 static inline
@@ -52,6 +57,15 @@ bool buffer_init_alloc(Buffer *buffer, size_t alloc, Status *status) {
 }
 
 static inline
+bool buffer_init_from_data(Buffer *buffer, const char *data, size_t len,
+                                                             Status *status) {
+    return (
+        buffer_init_alloc(buffer, len, status) &&
+        buffer_assign_data(buffer, data, len, status)
+    );
+}
+
+static inline
 bool buffer_new(Buffer **new_buffer, Status *status) {
     Buffer *buffer = cbmalloc(1, sizeof(Buffer));
 
@@ -71,6 +85,16 @@ bool buffer_new_alloc(Buffer **new_buffer, size_t alloc, Status *status) {
     return (
         buffer_new(new_buffer, status) &&
         buffer_ensure_capacity(*new_buffer, alloc, status)
+    );
+}
+
+static inline
+bool buffer_new_from_data(Buffer **new_buffer, const char *data,
+                                               size_t len,
+                                               Status *status) {
+    return (
+        buffer_new_alloc(new_buffer, len, status) &&
+        buffer_assign_data(*new_buffer, data, status)
     );
 }
 
@@ -170,11 +194,6 @@ bool buffer_overwrite_slice(Buffer *buffer, size_t index, Slice *slice,
     return array_overwrite_many_fast(&buffer->array, index, slice->data,
                                                             slice->len,
                                                             status);
-}
-
-static inline
-bool buffer_assign_slice(Buffer *buffer, Slice *slice, Status *status) {
-    return array_assign_fast(&buffer->array, slice->data, slice->len, status);
 }
 
 static inline
@@ -313,17 +332,16 @@ bool buffer_encode(Buffer *src const char *src_encoding,
                                const char *dst_encoding,
                                Buffer *dst,
                                Status *status) {
-    Slice src_slice;
     Slice dst_slice;
-
-    buffer_slice_full(src, &src_slice);
 
     while (true) {
         dst_slice.data = dst->array.data;
         dst_slice.len = dst->array.alloc;
 
-        if (charset_convert(&src_slice, src_encoding, to_encoding, &dst_slice,
-                                                                   status)) {
+        if (charset_convert_data(src->array.data, src->array.len, src_encoding,
+                                                                  to_encoding,
+                                                                  &dst_slice,
+                                                                  status)) {
             break;
         }
 
