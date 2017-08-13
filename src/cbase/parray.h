@@ -93,6 +93,37 @@ bool parray_insert_many(PArray *parray, size_t index, void **elements,
 }
 
 static inline
+void parray_shift_elements_down_fast(PArray *parray, size_t index,
+                                                     size_t element_count) {
+    array_shift_elements_down_fast(&parray->array, index, element_count);
+}
+
+static inline
+void parray_shift_elements_down_fast_no_zero(PArray *parray,
+                                             size_t index,
+                                             size_t element_count) {
+    array_shift_elements_down_fast_no_zero(&parray->array, index,
+                                                           element_count);
+}
+
+static inline
+bool parray_shift_elements_down(PArray *parray, size_t index,
+                                                size_t element_count,
+                                                Status *status) {
+    return array_shift_elements_down(&parray->array, index, element_count,
+                                                            status);
+}
+
+static inline
+bool parray_shift_elements_down_no_zero(PArray *parray, size_t index,
+                                                        size_t element_count,
+                                                        Status *status) {
+    return array_shift_elements_down_no_zero(&parray->array, index,
+                                                             element_count,
+                                                             status);
+}
+
+static inline
 void parray_insert_parray_fast(PArray *dst, size_t index, PArray *src) {
     array_insert_array_same_fast(&dst->array, index, &src->array);
 }

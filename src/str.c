@@ -1,104 +1,88 @@
 #include "cbase.h"
 
-#define empty(status) status_failure( \
-    status,                           \
-    "string",                         \
-    STRING_EMPTY,                     \
-    "String is empty"                 \
+#define vsnprintf_failed(status) status_failure( \
+    status,                                      \
+    "string",                                    \
+    STRING_VSNPRINTF_FAILED,                     \
+    "vsnprintf failed"                           \
 )
 
-bool string_printf(String *s, Status *status, const char *fmt, ...) {
-    va_list args;
+bool string_insert_vprintf(String *string, size_t index, Status *status,
+                                                         const char *fmt,
+                                                         va_list args) {
+    va_list args2;
+    char *insertion_point = NULL;
 
-    va_start(args, fmt);
+    if (index > string->len) {
+        return index_out_of_bounds(status);
+    }
 
-    if (!string_vprintf(s, status, fmt, args)) {
-        va_end(args);
+    if (!utf8_skip(string->buffer.array.data, index, &insertion_point,
+                                                     status)) {
         return false;
     }
 
-    va_end(args);
-
-    return status_ok(status);
-}
-
-bool string_vprintf(String *s, Status *status, const char *fmt, va_list args) {
-    va_list args2;
-    size_t size;
-
     va_copy(args2, args);
-
     size = vsnprintf(NULL, 0, fmt, args2);
+    va_end(args2);
 
-    if (!string_ensure_capacity(s, size, status)) {
-        va_end(args);
+    if (index == string->len) {
+        if (!string_ensure_capacity(string, string->byte_len + size,
+                                            status)) {
+            return false;
+        }
+    }
+    else if (!buffer_insert_blank_no_zero(&string->buffer, index, size,
+                                                                  status)) {
         return false;
     }
 
-    vsnprintf(s->data, size + 1, fmt, args);
+    bytes_written = vsnprintf(insertion_point, size - 1, fmt, args);
 
-    va_end(args);
-
-    if (!utf8len(s->data, &s->len, status)) {
-        return false;
+    if (bytes_written != (size - 1)) {
+        return vsnprintf_failed(status);
     }
 
-    s->byte_len = size;
-
-    return status_ok(status);
+    if (!utf8_len_and_byte_len(string->buffer.array.data, &string->len,
+                                                          &string->byte_len,
+                                                          status)) {
+        return false;
+    }
 }
 
-bool string_append_printf(String *s, Status *status, const char *fmt, ...) {
-    va_list args;
+bool string_delete_fast(String *string, size_t index, size_t len,
+                                                      ssize_t *error) {
+    char *start = NULL;
+    char *end = NULL;
 
-    va_start(args, fmt);
+    size_t byte_index = 0;
+    size_t byte_len = 0;
 
-    if (!string_append_vprintf(s, status, fmt, args)) {
-        va_end(args);
+    if (!len) {
+        return status_ok(status);
+    }
+
+    if (index) {
+        if (!utf8_index_fast(string->buffer.array.data, index, &start,
+                                                               error)) {
+            return false;
+        }
+
+        byte_index = start - string->buffer.array.data;
+    }
+
+    if (!utf8_skip_fast(start, len, &end, error)) {
         return false;
     }
 
-    va_end(args);
+    byte_len = end - start;
 
-    return status_ok(status);
-}
+    buffer_delete_fast(&string->buffer, byte_index, byte_len);
 
-bool string_append_vprintf(String *s, Status *status, const char *fmt,
-                                                      va_list args) {
-    va_list args2;
-    size_t size;
-
-    va_copy(args2, args);
-
-    size = vsnprintf(NULL, 0, fmt, args2) + s->byte_len;
-
-    if (!string_ensure_capacity(s, size, status)) {
-        va_end(args);
-        return false;
-    }
-
-    vsnprintf(s->data, size + 1, fmt, args);
-
-    va_end(args);
-
-    if (!utf8len(s->data, &s->len, status)) {
-        return false;
-    }
-
-    s->byte_len = size;
-
-    return status_ok(status);
-}
-
-/* [FIXME] Should be a `bool *equals` output param */
-bool string_first_rune_equals(String *s, rune r, Status *status) {
-    rune r2 = 0;
-
-    if (!string_get_first_rune(s, &r2, status)) {
-        return false;
-    }
-
-    return r2 == r;
+    string->len -= len;
+    string->byte_len -= byte_len;
+  
+    return true;
 }
 
 bool string_encode(String *s, const char *encoding, Buffer *out,
@@ -168,17 +152,6 @@ void string_replace_cstr(String *s, const char *cs, const char *replacement,
     }
 
     return status_ok(status);
-}
-
-void string_free(String *s) {
-    if (s->data) {
-        cbfree(s->data);
-        s->data = NULL;
-    }
-
-    s->len = 0;
-    s->byte_len = 0;
-    s->alloc = 0;
 }
 
 /* vi: set et ts=4 sw=4: */

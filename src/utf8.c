@@ -169,22 +169,22 @@ bool utf8nlen_fast(const char *data, size_t n, size_t *len, ssize_t *error) {
     return status_ok(status);
 }
 
-bool utf8_index(const char *data, size_t len, char **cursor,
-                                              Status *status) {
+bool utf8_index(const char *data, size_t index, char **cursor,
+                                                Status *status) {
     ssize_t error = 0;
 
-    if (!utf8_index_fast(data, len, cursor, &error)) {
+    if (!utf8_index_fast(data, index, cursor, &error)) {
         return utf8_handle_error_code(error, status);
     }
 
     return status_ok(status);
 }
 
-bool utf8_index_fast(const char *data, size_t len, char **cursor,
-                                                   ssize_t *error) {
+bool utf8_index_fast(const char *data, size_t index, char **cursor,
+                                                     ssize_t *error) {
     char *local_cursor = (char *)data;
 
-    for (size_t i = 0; i < (len - 1); i++) {
+    for (size_t i = 0; i < (index - 1); i++) {
         rune r;
         ssize_t bytes_read = utf8proc_iterate(
             (const unsigned char *)local_cursor, -1, &r

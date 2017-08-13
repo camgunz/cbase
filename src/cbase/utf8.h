@@ -20,10 +20,10 @@ bool utf8_len_and_byte_len_fast(const char *data, size_t *len,
                                                   ssize_t *error);
 bool utf8nlen(const char *data, size_t n, size_t *len, Status *status);
 bool utf8nlen_fast(const char *data, size_t n, size_t *len, ssize_t *error);
-bool utf8_index(const char *data, size_t len, char **cursor,
-                                              Status *status);
-bool utf8_index_fast(const char *data, size_t len, char **cursor,
-                                                   ssize_t *error);
+bool utf8_index(const char *data, size_t index, char **cursor,
+                                                Status *status);
+bool utf8_index_fast(const char *data, size_t index, char **cursor,
+                                                     ssize_t *error);
 bool utf8_skip(const char *data, size_t len, char **cursor,
                                              Status *status);
 bool utf8_skip_fast(const char *data, size_t len, char **cursor,

@@ -1,29 +1,11 @@
 #ifndef STR_H__
 #define STR_H__
 
-enum {
-    STRING_EMPTY = 1,
-};
-
 typedef struct StringStruct {
     Buffer buffer;
     size_t len;
     size_t byte_len;
 } String;
-
-/*
- * cstr (NULL-terminated UTF-8 data)
- * UTF-8 data (not NULL-terminated)
- * SSlice
- * String
- * data
- * Slice
- *   - UTF-8
- *   - Local
- * Buffer
- *   - UTF-8
- *   - Local
- */
 
 static inline
 void string_assign_cstr_full_fast(String *string, const char *cs,
@@ -367,6 +349,29 @@ void string_init_from_local_buffer(String *string, Buffer *buffer,
 }
 
 static inline
+void string_init_printf(String *string, Status *status, const char *fmt, ...) {
+    bool res;
+    va_list args;
+
+    va_start(args, fmt);
+    res = string_init_vprintf(string, status, fmt, args);
+    va_end(args);
+
+    if (!res) {
+        return false;
+    }
+
+    return status_ok(status);
+}
+
+static inline
+void string_init_vprintf(String *string, Status *status, const char *fmt,
+                                                         va_list args) {
+    string_init(string);
+    return string_vprintf(string, status, fmt, args);
+}
+
+static inline
 bool string_new(String **string, Status *status) {
     *string = cbmalloc(1, sizeof(String));
 
@@ -520,6 +525,34 @@ void string_new_from_local_buffer(String *string, Buffer *buffer,
     }
 
     return string_init_from_local_buffer(*string, buffer, status);
+}
+
+static inline
+bool string_new_vprintf(String *string, Status *status, const char *fmt,
+                                                        va_list args) {
+    *string = cbmalloc(1, sizeof(String));
+
+    if (!*string) {
+        return alloc_failure(status);
+    }
+
+    return string_init_vprintf(*string, status, fmt, args);
+}
+
+static inline
+bool string_new_printf(String *string, Status *status, const char *fmt, ...) {
+    va_list args;
+    bool res;
+
+    va_start(args, fmt);
+    res = string_new_vprintf(string, status, fmt, args);
+    va_end(args);
+
+    if (!res) {
+        return false;
+    }
+
+    return status_ok(status);
 }
 
 static inline
@@ -834,6 +867,28 @@ bool string_insert_local_data(String *string, size_t index, const char *data,
                                                              status);
 }
 
+bool string_insert_vprintf(String *string, size_t index, Status *status,
+                                                         const char *fmt,
+                                                         va_list args);
+
+static inline
+bool string_insert_printf(String *string, size_t index, Status *status,
+                                                        const char *fmt,
+                                                        ...) {
+    va_list args;
+    bool res;
+
+    va_start(args, fmt);
+    res = string_insert_vprintf(string, index, status, fmt, args);
+    va_end(args);
+
+    if (!res) {
+        return false;
+    }
+
+    return status_ok(status);
+}
+
 static inline
 void string_prepend_cstr_full_fast(String *string, const char *cs,
                                                    size_t len,
@@ -999,6 +1054,29 @@ bool string_prepend_local_data(String *string, const char *data,
                                                size_t byte_len,
                                                Status *status) {
     return string_insert_local_data(string, 0, data, byte_len, status);
+}
+
+static inline
+bool string_prepend_vprintf(String *string, Status *status, const char *fmt,
+                                                            va_list args) {
+    return string_insert_vprintf(string, 0, status, fmt, args);
+}
+
+static inline
+bool string_prepend_printf(String *string, Status *status, const char *fmt,
+                                                           ...) {
+    va_list args;
+    bool res;
+
+    va_start(args, fmt);
+    res = string_prepend_vprintf(string, status, fmt, args);
+    va_end(args);
+
+    if (!res) {
+        return false;
+    }
+
+    return status_ok(status);
 }
 
 static inline
@@ -1169,6 +1247,52 @@ bool string_append_local_data(String *string, const char *data,
 }
 
 static inline
+bool string_append_vprintf(String *string, Status *status, const char *fmt,
+                                                           va_list args) {
+    return string_insert_vprintf(string, string->len, status, fmt, args);
+}
+
+static inline
+bool string_append_printf(String *string, Status *status, const char *fmt,
+                                                          ...) {
+    va_list args;
+    bool res;
+
+    va_start(args, fmt);
+    res = string_append_vprintf(string, status, fmt, args);
+    va_end(args);
+
+    if (!res) {
+        return false;
+    }
+
+    return status_ok(status);
+}
+
+static inline
+bool string_vprintf(String *string, Status *status, const char *fmt,
+                                                    va_list args) {
+    string_clear(string);
+    return string_insert_vprintf(string, 0, status, fmt, args);
+}
+
+static inline
+bool string_printf(String *s, Status *status, const char *fmt, ...) {
+    va_list args;
+    bool res;
+
+    va_start(args, fmt);
+    res = string_vprintf(string, status, fmt, args);
+    va_end(args);
+
+    if (!res) {
+        return false;
+    }
+
+    return status_ok(status);
+}
+
+static inline
 bool string_slice_fast(String *string, size_t index, size_t len,
                                                      SSlice *sslice,
                                                      ssize_t *error) {
@@ -1205,55 +1329,11 @@ void string_slice_full(String *string, SSlice *sslice) {
     sslice->byte_len = s->byte_len;
 }
 
-bool  string_printf(String *string, Status *status, const char *fmt, ...);
-bool  string_vprintf(String *string, Status *status, const char *fmt,
-                                                     va_list args);
-bool  string_append_printf(String *string, Status *status, const char *fmt,
-                                                           ...);
-bool  string_append_vprintf(String *string, Status *status, const char *fmt,
-                                                            va_list args);
-
-static inline
-bool string_delete_fast(String *string, size_t index, size_t len,
-                                                      ssize_t *error) {
-    char *start = NULL;
-    char *end = NULL;
-
-    size_t byte_index = 0;
-    size_t byte_len = 0;
-
-    if (!len) {
-        return status_ok(status);
-    }
-
-    if (index) {
-        if (!utf8_index_fast(string->buffer.array.data, index, &start,
-                                                               error)) {
-            return false;
-        }
-
-        byte_index = start - string->buffer.array.data;
-    }
-
-    if (!utf8_skip_fast(start, len, &end, error)) {
-        return false;
-    }
-
-    byte_len = end - start;
-
-    buffer_delete_fast(&string->buffer, byte_index, byte_len);
-
-    string->len -= len;
-    string->byte_len -= byte_len;
-
-    return status_ok(status);
-}
-
 static inline
 bool string_delete(String *s, size_t index, size_t len, Status *status) {
     ssize_t error;
 
-    if ((index + len) > (string->len + 1)) {
+    if ((index + len) > string->len) {
         return index_out_of_bounds(status);
     }
 
@@ -1264,110 +1344,105 @@ bool string_delete(String *s, size_t index, size_t len, Status *status) {
     return status_ok(status);
 }
 
-static inline
-bool string_get_first_rune(String *s, rune *r, Status *status) {
-    if (string_empty(s)) {
-        return empty(status);
-    }
+bool string_encode(String *string, const char *encoding, Buffer *out,
+                                                         Status *status);
 
-    return utf8_get_first_rune(s->data, r, status);
+static inline
+void string_clear(String *string) {
+    buffer_clear(&string->buffer);
+    strbase_clear(&string->len, &string->byte_len);
 }
 
-bool  string_encode(String *string, const char *encoding, Buffer *out,
-                                                          Status *status);
-
-void  string_free(String *string);
+static inline
+void string_free(String *string) {
+    buffer_free(&string->buffer);
+    strbase_clear(&string->len, &string->byte_len);
+}
 
 static inline
 bool string_get_first_rune(String *string, rune *r, Status *status) {
-    return sbuffer_get_first_rune(s->data, r, status);
-}
-
-static inline
-void string_copy_fast(String *dst, String *src) {
-    dst->len = src->len;
-    dst->byte_len = src->byte_len;
-
-    if (src->byte_len) {
-        cbmemmove(dst->data, src->data, src->byte_len + 1);
-    }
+    return strbase_get_first_rune(string->buffer.array.data,
+                                  string->len,
+                                  string->byte_len,
+                                  r,
+                                  status);
 }
 
 static inline
 bool string_skip_runes(String *string, size_t rune_count, Status *status) {
-    SSlice sslice;
-
-    string_slice_full(string, &sslice);
-
-    return (
-        sslice_skip_runes(string, rune_count, status) &&
-        string_assign_sslice(string, &sslice)
-    );
+    return string_delete(string, 0, rune_count, status);
 }
 
 static inline
 bool string_skip_rune_if_equals(String *string, rune r, Status *status) {
-    SSlice sslice;
+    rune r2;
 
-    string_slice_full(string, &sslice);
+    if (!string_get_first_rune(string, &r2, status)) {
+        return false;
+    }
 
-    return (
-        sslice_skip_rune_if_equals(string, r, status) &&
-        string_assign_sslice(string, &sslice)
-    );
+    if (r2 != r) {
+        return not_equal(status);
+    }
+
+    return string_skip_runes(string, 1, status);
 }
 
 static inline
 bool string_pop_rune(String *string, rune *r, Status *status) {
-    SSlice sslice;
-
-    string_slice_full(string, &sslice);
-
     return (
-        sslice_pop_rune(string, r, status) &&
-        string_assign_sslice(string, &sslice)
+        string_get_first_rune(string, r, status) &&
+        string_delete(string, 0, 1, status)
     );
 }
 
 static inline
 bool string_seek_to(String *string, rune r, Status *status) {
-    SSlice sslice;
+    for (size_t i = 0; i < string->len; i++) {
+        char *substring = NULL;
+        rune r2;
 
-    string_slice_full(string, &sslice);
+        if (!utf8_index(string->buffer.array.data, i, &substring, status)) {
+            return false;
+        }
 
-    return (
-        sslice_seek_to(string, r, status) &&
-        string_assign_sslice(string, &sslice)
-    );
+        if (!utf8_get_first_rune(substring, &r2, status)) {
+            return false;
+        }
+
+        if (r2 == r) {
+            return string_delete(string, 0, i, status);
+        }
+    }
+
+    return not_found(status);
 }
 
 static inline
 bool string_seek_to_cstr(String *string, const char *cs, Status *status) {
-    SSlice sslice;
+    for (size_t i = 0; i < string->len; i++) {
+        char *substring = NULL;
 
-    string_slice_full(string, &sslice);
+        if (!utf8_index(string->buffer.array.data, i, &substring, status)) {
+            return false;
+        }
 
-    return (
-        sslice_seek_to_cstr(string, cs, status) &&
-        string_assign_sslice(string, &sslice)
-    );
+        if (utf8cmp(substring, cs)) {
+            return string_delete(string, 0, i, status);
+        }
+    }
+
+    return not_found(status);
 }
 
 static inline
 bool string_truncate_runes(String *string, size_t rune_count, Status *status) {
-    SSlice sslice;
-
-    string_slice_full(string, &sslice);
-
-    return (
-        sslice_truncate_runes(string, rune_count, status) &&
-        string_assign_sslice(string, &sslice)
-    );
+    return string_delete(string, string->len - rune_count, rune_count, status);
 }
 
 static inline
 bool string_empty(String *string) {
-    return sbuffer_empty(string->len, string->byte_len);
+    return strbase_empty(string->len, string->byte_len);
 }
 
 static inline
@@ -1388,6 +1463,19 @@ bool string_equals_cstr_len(String *string, const char *cs, size_t byte_len) {
 static inline
 bool string_equals_cstr(String *string, const char *cs) {
     return buffer_equals_data(&string->buffer, cs, strlen(cs) + 1);
+}
+
+static inline
+bool string_starts_with_rune(String *s, rune r, bool *equals, Status *status) {
+    rune r2;
+
+    if (!string_get_first_rune(s, &r2, status)) {
+        return false;
+    }
+
+    *equals = (r2 == r);
+
+    return status_ok(status);
 }
 
 static inline
@@ -1437,15 +1525,6 @@ bool string_ends_with_cstr(String *string, const char *cs, bool *ends_with,
 static inline
 bool string_localize(String *string, Buffer *out, Status *status) {
     return string_encode(string, "wchar_t", out, status);
-}
-
-static inline
-void string_clear(String *string) {
-    buffer_clear_no_zero(&string->buffer);
-    sbuffer_clear(&string->len, &string->byte_len);
-    if (s->data) {
-        *s->data = '\0';
-    }
 }
 
 #endif

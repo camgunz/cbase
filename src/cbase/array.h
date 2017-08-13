@@ -172,8 +172,60 @@ bool array_insert_many(Array *array, size_t index, void *elements,
 }
 
 static inline
-void array_insert_array_same_fast(Array *dst, size_t index, Array *src) {
-    array_insert_many_fast(dst, index, src->elements, src->len);
+void array_shift_elements_down_fast_no_zero(Array *array,
+                                            size_t index,
+                                            size_t element_count) {
+    if (index < array->len) {
+        cbmemmove(array_index_fast(array, index + element_count),
+                  array_index_fast(array, index),
+                  array->len - index,
+                  array->element_size);
+    }
+
+    array->len += element_count;
+}
+
+static inline
+void array_shift_elements_down_fast(Array *array, size_t index,
+                                                  size_t element_count) {
+    array_shift_elements_down_fast_no_zero(array, index, element_count);
+
+    memset(array_index_fast(array, index),
+           0,
+           element_count * array->element_size);
+}
+
+static inline
+bool array_shift_elements_down_no_zero(Array *array, size_t index,
+                                                     size_t element_count,
+                                                     Status *status) {
+    if (index >= array->len) {
+        return index_out_of_bounds(status);
+    }
+
+    if (!array_ensure_capacity(array, array->len + element_count, status)) {
+        return false;
+    }
+
+    array_shift_elements_down_fast_no_zero(array, index, element_count);
+
+    return status_ok(status);
+}
+
+static inline
+bool array_shift_elements_down(Array *array, size_t index, size_t element_count,
+                                                           Status *status) {
+    if (index >= array->len) {
+        return index_out_of_bounds(status);
+    }
+
+    if (!array_ensure_capacity(array, array->len + element_count, status)) {
+        return false;
+    }
+
+    array_shift_elements_down_fast(array, index, element_count);
+
+    return status_ok(status);
 }
 
 static inline

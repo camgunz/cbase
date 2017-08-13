@@ -115,8 +115,32 @@ bool buffer_insert(Buffer *buffer, size_t index, char *bytes, size_t count,
     return array_insert_many(&buffer->array, index, bytes, count, status);
 }
 
-static inline void buffer_insert_slice_fast(Buffer *buffer, size_t index,
-                                                            Slice *slice) {
+static inline
+void buffer_insert_blank_fast_no_zero(Buffer *buffer, size_t index,
+                                                      size_t count) {
+    array_shift_elements_down_fast_no_zero(&buffer->array, index, count);
+}
+
+static inline
+void buffer_insert_blank_fast(Buffer *buffer, size_t index, size_t count) {
+    array_shift_elements_down_fast(&buffer->array, index, count);
+}
+
+static inline
+bool buffer_insert_blank_no_zero(Buffer *buffer, size_t index,
+                                                 size_t count,
+                                                 Status *status) {
+    array_shift_elements_down_no_zero(&buffer->array, index, count);
+}
+
+static inline
+bool buffer_insert_blank(Buffer *buffer, size_t index, size_t count,
+                                                       Status *status) {
+    array_shift_elements_down(&buffer->array, index, count);
+}
+
+static inline
+void buffer_insert_slice_fast(Buffer *buffer, size_t index, Slice *slice) {
     array_insert_many_fast(&buffer->array, index, slice->data, slice->len);
 }
 

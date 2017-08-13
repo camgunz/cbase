@@ -2,20 +2,22 @@
 
 #define empty(status) status_failure( \
     status,                           \
-    "sbuffer",                        \
-    SBUFFER_EMPTY,                    \
-    "SBuffer is empty"                \
+    "strbase",                        \
+    STRBASE_EMPTY,                    \
+    "String data is empty"            \
 )
 
-bool sbuffer_get_first_rune(char *data, rune *r, Status *status) {
-    if (sbuffer_empty(s)) {
+bool strbase_get_first_rune(char *data, size_t len, size_t byte_len,
+                                                    rune *r,
+                                                    Status *status) {
+    if (strbase_empty(s)) {
         return empty(status);
     }
 
     return utf8_get_first_rune(data, r, status);
 }
 
-bool sbuffer_skip_runes(char **data, size_t *len, size_t *byte_len,
+bool strbase_skip_runes(char **data, size_t *len, size_t *byte_len,
                                                   size_t rune_count,
                                                   Status *status) {
     char *data_value = *data;
@@ -24,7 +26,7 @@ bool sbuffer_skip_runes(char **data, size_t *len, size_t *byte_len,
     char *cursor = NULL;
     ptrdiff_t bytes_read = 0;
 
-    if (sbuffer_empty(len_value, byte_len_value)) {
+    if (strbase_empty(len_value, byte_len_value)) {
         return empty(status);
     }
 
@@ -41,13 +43,13 @@ bool sbuffer_skip_runes(char **data, size_t *len, size_t *byte_len,
     return status_ok(status);
 }
 
-bool sbuffer_truncate_runes(char *data, size_t *len, size_t *byte_len,
+bool strbase_truncate_runes(char *data, size_t *len, size_t *byte_len,
                                                      size_t rune_count,
                                                      Status *status) {
     size_t offset;
 
     if (rune_count >= (*len)) {
-        sbuffer_clear(len, byte_len);
+        strbase_clear(len, byte_len);
         return status_ok(status);
     }
 
@@ -61,7 +63,7 @@ bool sbuffer_truncate_runes(char *data, size_t *len, size_t *byte_len,
     return status_ok(status);
 }
 
-bool sbuffer_skip_rune_if_equals(char **data, size_t *len, size_t *byte_len,
+bool strbase_skip_rune_if_equals(char **data, size_t *len, size_t *byte_len,
                                                            rune r,
                                                            Status *status) {
     rune r2;
@@ -82,7 +84,7 @@ bool sbuffer_skip_rune_if_equals(char **data, size_t *len, size_t *byte_len,
     return status_ok(status);
 }
 
-bool sbuffer_pop_rune(char **data, size_t *len, size_t *byte_len,
+bool strbase_pop_rune(char **data, size_t *len, size_t *byte_len,
                                                rune *r,
                                                Status *status) {
     size_t bytes_read;
@@ -98,7 +100,7 @@ bool sbuffer_pop_rune(char **data, size_t *len, size_t *byte_len,
     return status_ok(status);
 }
 
-bool sbuffer_pop_rune_if_matches(char **data, size_t *len,
+bool strbase_pop_rune_if_matches(char **data, size_t *len,
                                               size_t *byte_len,
                                               RuneMatchFunc *matches,
                                               rune *r,
@@ -123,7 +125,7 @@ bool sbuffer_pop_rune_if_matches(char **data, size_t *len,
     return status_ok(status);
 }
 
-bool sbuffer_seek_to(char **data, size_t *len, size_t *byte_len,
+bool strbase_seek_to(char **data, size_t *len, size_t *byte_len,
                                                rune r,
                                                Status *status) {
     rune r2;
@@ -136,7 +138,7 @@ bool sbuffer_seek_to(char **data, size_t *len, size_t *byte_len,
         return empty(status);
     }
 
-    sbuffer_copy(
+    strbase_copy(
         &data_copy, &len_copy, &byte_len_copy,
         *data, *len, *byte_len
     );
@@ -151,7 +153,7 @@ bool sbuffer_seek_to(char **data, size_t *len, size_t *byte_len,
         }
 
         if (r2 == r) {
-            sbuffer_copy(
+            strbase_copy(
                 data, len, byte_len,
                 data_copy, len_copy, byte_len_copy
             );
@@ -168,7 +170,7 @@ bool sbuffer_seek_to(char **data, size_t *len, size_t *byte_len,
     return not_found(status);
 }
 
-bool sbuffer_seek_to_cstr(char **data, size_t len, size_t byte_len,
+bool strbase_seek_to_cstr(char **data, size_t len, size_t byte_len,
                                                    const char *cs,
                                                    Status *status) {
     size_t cslen = strlen(cs);
@@ -176,14 +178,14 @@ bool sbuffer_seek_to_cstr(char **data, size_t len, size_t byte_len,
     size_t len_copy = 0;
     size_t byte_len_copy = 0;
 
-    sbuffer_copy(
+    strbase_copy(
         &data_copy, &len_copy, &byte_len_copy,
         *data, *len, *byte_len
     );
 
     while (byte_len_copy >= cslen) {
         if (utf8ncmp(data_copy, cs, cslen)) {
-            sbuffer_copy(
+            strbase_copy(
                 data, len, byte_len,
                 data_copy, len_copy, byte_len_copy
             );
@@ -191,7 +193,7 @@ bool sbuffer_seek_to_cstr(char **data, size_t len, size_t byte_len,
             return status_ok(status);
         }
 
-        if (!sbuffer_skip_rune(&data_copy, &len_copy, &byte_len_copy,
+        if (!strbase_skip_rune(&data_copy, &len_copy, &byte_len_copy,
                                                       status)) {
             return false;
         }
