@@ -10,7 +10,7 @@
 bool strbase_get_first_rune(char *data, size_t len, size_t byte_len,
                                                     rune *r,
                                                     Status *status) {
-    if (strbase_empty(s)) {
+    if (strbase_empty(len, byte_len)) {
         return empty(status);
     }
 
