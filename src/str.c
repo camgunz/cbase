@@ -81,7 +81,7 @@ bool string_delete_fast(String *string, size_t index, size_t len,
 
     string->len -= len;
     string->byte_len -= byte_len;
-  
+
     return true;
 }
 
