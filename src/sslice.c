@@ -14,16 +14,6 @@
     "SSlice is not a subslice"               \
 )
 
-bool sslice_init_from_cstr(SSlice *s, char *cs, Status *status) {
-    if (!utf8_len_and_byte_len(cs, &s->len, &s->byte_len, status)) {
-        return false;
-    }
-
-    s->data = cs;
-
-    return status_ok(status);
-}
-
 bool sslice_get_first_rune(SSlice *s, rune *r, Status *status) {
     if (sslice_empty(s)) {
         return empty(status);

@@ -12,7 +12,7 @@ void buffer_assign_data_fast(Buffer *buffer, char *bytes, size_t len) {
 
 static inline
 bool buffer_assign_data(Buffer *buffer, char *bytes, size_t len,
-                                                Status *status) {
+                                                     Status *status) {
     return array_assign(&buffer->array, bytes, len, status);
 }
 
@@ -101,6 +101,143 @@ bool buffer_new_from_data(Buffer **new_buffer, const char *data,
 static inline
 bool buffer_compact(Buffer *buffer, Status *status) {
     return array_compact(&buffer->array, status);
+}
+
+static inline
+bool buffer_equals_data_at_fast(Buffer *buffer, size_t index,
+                                                const void *data,
+                                                size_t len) {
+    return memcmp(buffer->data + index, data, len) == 0;
+}
+
+static inline
+bool buffer_equals_data_at(Buffer *buffer, size_t index, const void *data,
+                                                         size_t len,
+                                                         bool *equal,
+                                                         Status *status) {
+    if ((index + len) > buffer->len) {
+        return index_out_of_bounds(status);
+    }
+
+    *equal = buffer_equals_data_at_fast(buffer, index, data, len);
+
+    return true;
+}
+
+static inline
+bool buffer_equals_data(Buffer *buffer, const char *data) {
+    return buffer_equals_data_at_fast(buffer, 0, data, buffer->array.len);
+}
+
+static inline
+bool buffer_equals(Buffer *b1, Buffer *b2) {
+    return buffer_equals_data(b1, b2->data, b2->len);
+}
+
+static inline
+bool buffer_starts_with_data_fast(Buffer *buffer, const void *data,
+                                                  size_t len) {
+    return buffer_equals_data_at_fast(buffer, 0, data, len);
+}
+
+static inline
+bool buffer_starts_with_data(Buffer *buffer, const void *data,
+                                             size_t len,
+                                             bool *equal,
+                                             Status *status) {
+    return buffer_equals_data_at(buffer, 0, data, len, equal, status);
+}
+
+static inline
+bool buffer_ends_with_data_fast(Buffer *buffer, const void *data, size_t len) {
+    return buffer_equals_data_at_fast(buffer, buffer->len - len, data, len);
+}
+
+static inline
+bool buffer_ends_with_data(Buffer *buffer, const void *data, size_t len,
+                                                             bool *equal,
+                                                             Status *status) {
+    if (len > buffer->len) {
+        return index_out_of_bounds(status);
+    }
+
+    *equal = buffer_ends_with_data_fast(buffer, data, len);
+
+    return status_ok(status);
+}
+
+static inline
+void buffer_read_fast(Buffer *buffer, size_t index, size_t len, void *out) {
+    array_copy_elements_fast(&buffer->array, index, len, out);
+}
+
+static inline
+bool buffer_read(Buffer *buffer, size_t index, size_t len, void *out,
+                                                              Status *status) {
+    return array_copy_elements(&buffer->array, index, len, out, status);
+}
+
+static inline
+void buffer_slice_fast(Buffer *buffer, size_t index, size_t len,
+                                                     Slice *slice) {
+    slice->data = buffer->data + index;
+    slice->len = len;
+}
+
+static inline
+bool buffer_slice(Buffer *buffer, size_t index, size_t len,
+                                                Slice *slice,
+                                                Status *status) {
+    if ((index + len) > buffer->len) {
+        return index_out_of_bounds(status);
+    }
+
+    buffer_slice_fast(buffer, index, len, slice);
+
+    return status_ok(status);
+}
+
+static inline
+void buffer_slice_full(Buffer *buffer, Slice *slice) {
+    slice->data = buffer->array.data;
+    slice->len = buffer->array.len;
+}
+
+static inline
+void buffer_delete_fast(Buffer *buffer, size_t index, size_t len) {
+    return array_delete_fast(&buffer->array, index, len);
+}
+
+static inline
+bool buffer_delete(Buffer *buffer, size_t index, size_t len,
+                                                 Status *status) {
+    return array_delete(&buffer->array, index, len, status);
+}
+
+static inline
+bool buffer_delete_no_zero(Buffer *buffer, size_t index, size_t len,
+                                                         Status *status) {
+    return array_delete_no_zero(&buffer->array, index, len, status);
+}
+
+static inline
+void buffer_clear_no_zero(Buffer *buffer) {
+    array_clear_no_zero(&buffer->array);
+}
+
+static inline
+bool buffer_clear(Buffer *buffer, Status *status) {
+    return array_clear(&buffer->array, status);
+}
+
+static inline
+void buffer_free(Buffer *buffer) {
+    array_free(&buffer->array);
+}
+
+static inline
+void buffer_copy_fast(Buffer *dst, Buffer *src) {
+    return array_copy_fast(&dst->array, &src->array);
 }
 
 static inline
@@ -230,114 +367,6 @@ static inline
 bool buffer_zero_section(Buffer *buffer, size_t index, size_t len,
                                                        Status *status) {
     return array_zero_elements(&buffer->array, index, len, status);
-}
-
-static inline
-void buffer_read_fast(Buffer *buffer, size_t index, size_t len, void *out) {
-    array_copy_elements_fast(&buffer->array, index, len, out);
-}
-
-static inline
-bool buffer_read(Buffer *buffer, size_t index, size_t len, void *out,
-                                                              Status *status) {
-    return array_copy_elements(&buffer->array, index, len, out, status);
-}
-
-static inline
-void buffer_slice_fast(Buffer *buffer, size_t index, size_t len,
-                                                     Slice *slice) {
-    slice->data = buffer->data + index;
-    slice->len = len;
-}
-
-static inline
-bool buffer_slice(Buffer *buffer, size_t index, size_t len,
-                                                Slice *slice,
-                                                Status *status) {
-    if ((index + len) > buffer->len) {
-        return index_out_of_bounds(status);
-    }
-
-    buffer_slice_fast(buffer, index, len, slice);
-
-    return status_ok(status);
-}
-
-static inline
-void buffer_slice_full(Buffer *buffer, Slice *slice) {
-    slice->data = buffer->array.data;
-    slice->len = buffer->array.len;
-}
-
-static inline
-void buffer_delete_fast(Buffer *buffer, size_t index, size_t len) {
-    return array_delete_fast(&buffer->array, index, len);
-}
-
-static inline
-bool buffer_delete(Buffer *buffer, size_t index, size_t len,
-                                                 Status *status) {
-    return array_delete(&buffer->array, index, len, status);
-}
-
-static inline
-bool buffer_delete_no_zero(Buffer *buffer, size_t index, size_t len,
-                                                         Status *status) {
-    return array_delete_no_zero(&buffer->array, index, len, status);
-}
-
-static inline
-void buffer_clear_no_zero(Buffer *buffer) {
-    array_clear_no_zero(&buffer->array);
-}
-
-static inline
-bool buffer_clear(Buffer *buffer, Status *status) {
-    return array_clear(&buffer->array, status);
-}
-
-static inline
-void buffer_free(Buffer *buffer) {
-    array_free(&buffer->array);
-}
-
-static inline
-bool buffer_equals_data_at_fast(Buffer *buffer, size_t index, const void *data,
-                                                              size_t len) {
-    return memcmp(buffer->data + index, data, len) == 0;
-}
-
-static inline
-bool buffer_equals_data(Buffer *buffer, const char *data, size_t len) {
-    if (buffer->len != len) {
-        return false;
-    }
-
-    return buffer_equals_data_at_fast(buffer, 0, data, len);
-}
-
-static inline
-bool buffer_equals_data_at(Buffer *buffer, size_t index, const void *data,
-                                                         size_t len,
-                                                         bool *equal,
-                                                         Status *status) {
-    if ((index + len) >= buffer->len) {
-        return index_out_of_bounds(status);
-    }
-
-    *equal = buffer_equals_data_at_fast(buffer, index, data, len);
-
-    return true;
-}
-
-static inline
-bool buffer_equals(Buffer *b1, Buffer *b2) {
-    return buffer_equals_data(b1, b2->data, b2->len);
-}
-
-static inline
-void buffer_copy_fast(Buffer *dst, Buffer *src) {
-    return array_copy_fast(&dst->array, &src->array);
 }
 
 static inline

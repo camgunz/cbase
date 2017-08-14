@@ -561,6 +561,283 @@ bool string_compact(String *string, Status *status) {
 }
 
 static inline
+bool string_equals_cstr(String *string, const char *cs) {
+    return buffer_equals_data(&string->buffer, cs);
+}
+
+static inline
+bool string_equals_utf8_data(String *string, const char *data) {
+    return buffer_equals_data(&string->buffer, data);
+}
+
+static inline
+bool string_equals_sslice(String *string, SSlice *sslice) {
+    return buffer_equals_data(&string->buffer, sslice->data);
+}
+
+static inline
+bool string_equals_string(String *s1, String *s2) {
+    return buffer_equals_buffer(&s1->buffer, &s2->buffer);
+}
+
+static inline
+bool string_equals_utf8_slice(String *string, Slice *slice) {
+    return buffer_equals_data(&string->buffer, slice->data);
+}
+
+static inline
+bool string_equals_utf8_buffer(String *string, Buffer *buffer) {
+    return buffer_equals_buffer(&string->buffer, buffer);
+}
+
+static inline
+bool string_starts_with_rune(String *s, rune r, bool *equals, Status *status) {
+    rune r2;
+
+    if (!string_get_first_rune(s, &r2, status)) {
+        return false;
+    }
+
+    *equals = (r2 == r);
+
+    return status_ok(status);
+}
+
+static inline
+bool string_starts_with_cstr_len(String *string, const char *cs,
+                                                 size_t byte_len,
+                                                 bool *starts_with,
+                                                 Status *status) {
+    if (!buffer_equals_data_at(&string->buffer, 0, cs, byte_len, starts_with,
+                                                                 status)) {
+        if (status_match(status, "base", ERROR_OUT_OF_BOUNDS)) {
+            status_clear(&status);
+            *starts_with = false;
+        }
+        else {
+            return false;
+        }
+    }
+
+    return status_ok(status);
+}
+
+static inline
+bool string_starts_with_cstr(String *string, const char *cs, bool *starts_with,
+                                                             Status *status) {
+    return string_starts_with_cstr_len(string, cs, strlen(cs), starts_with,
+                                                               status);
+}
+
+static inline
+bool string_ends_with_rune(String *string, rune r, bool *ends_with,
+                                                   Status *status) {
+    rune r2 = 0;
+
+    if (!utf8_get_end_rune(string->buffer.array.data, string->byte_len,
+                                                      &r2,
+                                                      status)) {
+        return false;
+    }
+
+    *ends_with = (r2 == r);
+
+    return status_ok(status);
+}
+
+static inline
+bool string_ends_with_utf8_data(String *string, const char *cs,
+                                                size_t byte_len,
+                                                bool *ends_with,
+                                                Status *status) {
+    size_t index = string->buffer.len - byte_len;
+
+    return buffer_equals_data_at(&string->buffer, index, byte_len, ends_with,
+                                                                   status);
+}
+
+static inline
+bool string_ends_with_cstr(String *string, const char *cs, bool *ends_with,
+                                                           Status *status) {
+    return string_ends_with_cstr_len(string, cs, strlen(cs) + 1, ends_with,
+                                                                 status);
+}
+
+static inline
+bool string_slice_fast(String *string, size_t index, size_t len,
+                                                     SSlice *sslice,
+                                                     ssize_t *error) {
+    char *start = NULL;
+    char *end = NULL;
+
+    if (!utf8_slice_fast(s->data, index, len, &start, &end, error)) {
+        return false;
+    }
+
+    sslice->len = len;
+    sslice->byte_len = end - start;
+    sslice->data = start;
+
+    return true;
+}
+
+static inline
+bool string_slice(String *s, size_t index, size_t len, SSlice *sslice,
+                                                       Status *status) {
+    ssize_t error;
+
+    if (!string_slice_fast(s, index, len, sslice, &error)) {
+        return utf8_handle_error_code(error, status);
+    }
+
+    return status_ok(status);
+}
+
+static inline
+void string_slice_full(String *string, SSlice *sslice) {
+    sslice->data = s->data;
+    sslice->len = s->len;
+    sslice->byte_len = s->byte_len;
+}
+
+static inline
+bool string_index_rune(String *string, size_t index, rune *r, Status *status) {
+    if (index >= string->len) {
+        return index_out_of_bounds(status);
+    }
+
+    return utf8_index_rune(string->buffer.array.data, index, rune, status);
+}
+
+static inline
+bool string_get_first_rune(String *string, rune *r, Status *status) {
+    return string_get_rune(string, 0, r, status);
+}
+
+static inline
+bool string_get_last_rune(String *string, rune *r, Status *status) {
+    return utf8_get_end_rune(string->buffer.array.data, string->byte_len,
+                                                        r,
+                                                        status) {
+}
+
+static inline
+bool string_skip_rune(String *string, Status *status) {
+    return string_delete(string, 0, 1, status);
+}
+
+static inline
+bool string_skip_rune_if_equals(String *string, rune r, Status *status) {
+    rune r2;
+
+    if (!string_get_first_rune(string, &r2, status)) {
+        return false;
+    }
+
+    if (r2 != r) {
+        return not_equal(status);
+    }
+
+    return string_skip_runes(string, 1, status);
+}
+
+static inline
+bool string_skip_rune_if_matches(String *string, RuneMatchFunc *matches,
+                                                 Status *status) {
+    rune r = 0;
+
+    return string_pop_rune_if_matches(string, matches, &r, status);
+}
+
+static inline
+bool string_skip_runes(String *string, size_t rune_count, Status *status) {
+    return string_delete(string, 0, rune_count, status);
+}
+
+static inline
+bool string_pop_rune(String *string, rune *r, Status *status) {
+    return (
+        string_get_first_rune(string, r, status) &&
+        string_delete(string, 0, 1, status)
+    );
+}
+
+static inline
+bool string_pop_rune_if_matches(String *string, RuneMatchFunc *matches,
+                                                rune *r,
+                                                Status *status) {
+    rune r2 = 0;
+    size_t bytes_read = 0;
+
+    if (!utf8_get_first_rune_len(string->buffer.array.data, &r2, &bytes_read,
+                                                                 status)) {
+        return false;
+    }
+
+    if (!matches(r2)) {
+        return not_found(status);
+    }
+
+    *r = r2;
+
+    return string_delete(string, 0, 1, status);
+}
+
+static inline
+bool string_seek_to_rune(String *string, rune r, Status *status) {
+    for (size_t i = 0; i < string->len; i++) {
+        char *substring = NULL;
+        rune r2;
+
+        if (!utf8_index(string->buffer.array.data, i, &substring, status)) {
+            return false;
+        }
+
+        if (!utf8_get_first_rune(substring, &r2, status)) {
+            return false;
+        }
+
+        if (r2 == r) {
+            return string_delete(string, 0, i, status);
+        }
+    }
+
+    return not_found(status);
+}
+
+static inline
+bool string_seek_to_cstr(String *string, const char *cs, Status *status) {
+    for (size_t i = 0; i < string->len; i++) {
+        char *substring = NULL;
+
+        if (!utf8_index(string->buffer.array.data, i, &substring, status)) {
+            return false;
+        }
+
+        if (utf8cmp(substring, cs)) {
+            return string_delete(string, 0, i, status);
+        }
+    }
+
+    return not_found(status);
+}
+
+static inline
+bool string_truncate_runes(String *string, size_t rune_count, Status *status) {
+    return string_delete(string, string->len - rune_count, rune_count, status);
+}
+
+static inline
+bool string_truncate_rune(String *string, Status *status) {
+    return string_truncate_runes(string, 1, status);
+}
+
+static inline
+char* string_to_cstr(String *string) {
+    return cbstrdup(s->data);
+}
+
+static inline
 void string_insert_cstr_full_fast(String *string, size_t index,
                                                   const char *cs,
                                                   size_t len,
@@ -1293,43 +1570,6 @@ bool string_printf(String *s, Status *status, const char *fmt, ...) {
 }
 
 static inline
-bool string_slice_fast(String *string, size_t index, size_t len,
-                                                     SSlice *sslice,
-                                                     ssize_t *error) {
-    char *start = NULL;
-    char *end = NULL;
-
-    if (!utf8_slice_fast(s->data, index, len, &start, &end, error)) {
-        return false;
-    }
-
-    sslice->len = len;
-    sslice->byte_len = end - start;
-    sslice->data = start;
-
-    return true;
-}
-
-static inline
-bool string_slice(String *s, size_t index, size_t len, SSlice *sslice,
-                                                       Status *status) {
-    ssize_t error;
-
-    if (!string_slice_fast(s, index, len, sslice, &error)) {
-        return utf8_handle_error_code(error, status);
-    }
-
-    return status_ok(status);
-}
-
-static inline
-void string_slice_full(String *string, SSlice *sslice) {
-    sslice->data = s->data;
-    sslice->len = s->len;
-    sslice->byte_len = s->byte_len;
-}
-
-static inline
 bool string_delete(String *s, size_t index, size_t len, Status *status) {
     ssize_t error;
 
@@ -1348,6 +1588,11 @@ bool string_encode(String *string, const char *encoding, Buffer *out,
                                                          Status *status);
 
 static inline
+bool string_localize(String *string, Buffer *out, Status *status) {
+    return string_encode(string, "wchar_t", out, status);
+}
+
+static inline
 void string_clear(String *string) {
     buffer_clear(&string->buffer);
     strbase_clear(&string->len, &string->byte_len);
@@ -1357,174 +1602,6 @@ static inline
 void string_free(String *string) {
     buffer_free(&string->buffer);
     strbase_clear(&string->len, &string->byte_len);
-}
-
-static inline
-bool string_get_first_rune(String *string, rune *r, Status *status) {
-    return strbase_get_first_rune(string->buffer.array.data,
-                                  string->len,
-                                  string->byte_len,
-                                  r,
-                                  status);
-}
-
-static inline
-bool string_skip_runes(String *string, size_t rune_count, Status *status) {
-    return string_delete(string, 0, rune_count, status);
-}
-
-static inline
-bool string_skip_rune_if_equals(String *string, rune r, Status *status) {
-    rune r2;
-
-    if (!string_get_first_rune(string, &r2, status)) {
-        return false;
-    }
-
-    if (r2 != r) {
-        return not_equal(status);
-    }
-
-    return string_skip_runes(string, 1, status);
-}
-
-static inline
-bool string_pop_rune(String *string, rune *r, Status *status) {
-    return (
-        string_get_first_rune(string, r, status) &&
-        string_delete(string, 0, 1, status)
-    );
-}
-
-static inline
-bool string_seek_to(String *string, rune r, Status *status) {
-    for (size_t i = 0; i < string->len; i++) {
-        char *substring = NULL;
-        rune r2;
-
-        if (!utf8_index(string->buffer.array.data, i, &substring, status)) {
-            return false;
-        }
-
-        if (!utf8_get_first_rune(substring, &r2, status)) {
-            return false;
-        }
-
-        if (r2 == r) {
-            return string_delete(string, 0, i, status);
-        }
-    }
-
-    return not_found(status);
-}
-
-static inline
-bool string_seek_to_cstr(String *string, const char *cs, Status *status) {
-    for (size_t i = 0; i < string->len; i++) {
-        char *substring = NULL;
-
-        if (!utf8_index(string->buffer.array.data, i, &substring, status)) {
-            return false;
-        }
-
-        if (utf8cmp(substring, cs)) {
-            return string_delete(string, 0, i, status);
-        }
-    }
-
-    return not_found(status);
-}
-
-static inline
-bool string_truncate_runes(String *string, size_t rune_count, Status *status) {
-    return string_delete(string, string->len - rune_count, rune_count, status);
-}
-
-static inline
-bool string_empty(String *string) {
-    return strbase_empty(string->len, string->byte_len);
-}
-
-static inline
-char* string_to_cstr(String *string) {
-    return cbstrdup(s->data);
-}
-
-static inline
-bool string_contents_equal(String *s1, String *s2) {
-    return buffer_equals(&s1->buffer, &s2->buffer);
-}
-
-static inline
-bool string_equals_cstr_len(String *string, const char *cs, size_t byte_len) {
-    return buffer_equals_data(&string->buffer, cs, byte_len);
-}
-
-static inline
-bool string_equals_cstr(String *string, const char *cs) {
-    return buffer_equals_data(&string->buffer, cs, strlen(cs) + 1);
-}
-
-static inline
-bool string_starts_with_rune(String *s, rune r, bool *equals, Status *status) {
-    rune r2;
-
-    if (!string_get_first_rune(s, &r2, status)) {
-        return false;
-    }
-
-    *equals = (r2 == r);
-
-    return status_ok(status);
-}
-
-static inline
-bool string_starts_with_cstr_len(String *string, const char *cs,
-                                                 size_t byte_len,
-                                                 bool *starts_with,
-                                                 Status *status) {
-    if (!buffer_equals_data_at(&string->buffer, 0, cs, byte_len, starts_with,
-                                                                 status)) {
-        if (status_match(status, "base", ERROR_OUT_OF_BOUNDS)) {
-            status_clear(&status);
-            *starts_with = false;
-        }
-        else {
-            return false;
-        }
-    }
-
-    return status_ok(status);
-}
-
-static inline
-bool string_starts_with_cstr(String *string, const char *cs, bool *starts_with,
-                                                             Status *status) {
-    return string_starts_with_cstr_len(string, cs, strlen(cs), starts_with,
-                                                               status);
-}
-
-static inline
-bool string_ends_with_cstr_len(String *string, const char *cs,
-                                               size_t byte_len,
-                                               bool *ends_with,
-                                               Status *status) {
-    size_t index = string->buffer.len - byte_len;
-
-    return buffer_equals_data_at(&string->buffer, index, byte_len, ends_with,
-                                                                   status);
-}
-
-static inline
-bool string_ends_with_cstr(String *string, const char *cs, bool *ends_with,
-                                                           Status *status) {
-    return string_ends_with_cstr_len(string, cs, strlen(cs) + 1, ends_with,
-                                                                 status);
-}
-
-static inline
-bool string_localize(String *string, Buffer *out, Status *status) {
-    return string_encode(string, "wchar_t", out, status);
 }
 
 #endif

@@ -63,27 +63,6 @@ bool utf8_handle_error_code(ssize_t error_code, Status *status) {
     return status_ok(status);
 }
 
-bool utf8len(const char *data, size_t *len, Status *status) {
-    ssize_t error;
-
-    if (!utf8len_fast(data, len, &error)) {
-        return utf8_handle_error_code(error, status);
-    }
-
-    return status_ok(status);
-}
-
-bool utf8_len_and_byte_len(const char *data, size_t *len, size_t *byte_len,
-                                                          Status *status) {
-    ssize_t error;
-
-    if (!utf8_len_and_byte_len_fast(data, len, byte_len, &error)) {
-        return utf8_handle_error_code(error, status);
-    }
-
-    return status_ok(status);
-}
-
 bool utf8len_fast(const char *data, size_t *len, ssize_t *error) {
     size_t local_len = 0;
 
@@ -134,16 +113,6 @@ bool utf8_len_and_byte_len_fast(const char *data, size_t *len,
     return status_ok(status);
 }
 
-bool utf8nlen(const char *data, size_t n, size_t *len, Status *status) {
-    ssize_t error;
-
-    if (!utf8nlen_fast(data, n, len, &error)) {
-        return utf8_handle_error_code(error, status);
-    }
-
-    return status_ok(status);
-}
-
 bool utf8nlen_fast(const char *data, size_t n, size_t *len, ssize_t *error) {
     size_t local_len = 0;
     size_t local_byte_len = 0;
@@ -165,17 +134,6 @@ bool utf8nlen_fast(const char *data, size_t n, size_t *len, ssize_t *error) {
     }
 
     *len = local_len;
-
-    return status_ok(status);
-}
-
-bool utf8_index(const char *data, size_t index, char **cursor,
-                                                Status *status) {
-    ssize_t error = 0;
-
-    if (!utf8_index_fast(data, index, cursor, &error)) {
-        return utf8_handle_error_code(error, status);
-    }
 
     return status_ok(status);
 }
@@ -203,13 +161,25 @@ bool utf8_index_fast(const char *data, size_t index, char **cursor,
     return status_ok(status);
 }
 
-bool utf8_skip(const char *data, size_t len, char **cursor,
-                                             Status *status) {
-    ssize_t error = 0;
+bool utf8_index_rune_fast(const char *data, size_t index, rune *r,
+                                                          ssize_t *error) {
+    rune r2;
+    char *local_cursor = (char *)data;
 
-    if (!utf8_skip_fast(data, len, cursor, &error)) {
-        return utf8_handle_error_code(error, status);
+    for (size_t i = 0; i < (index - 1); i++) {
+        ssize_t bytes_read = utf8proc_iterate(
+            (const unsigned char *)local-cursor, -1, &r2
+        );
+
+        if (bytes_read < 1) {
+            *error = bytes_read;
+            return false;
+        }
+
+        local_cursor += bytes_read;
     }
+
+    *r = r2;
 
     return status_ok(status);
 }
@@ -237,18 +207,6 @@ bool utf8_skip_fast(const char *data, size_t len, char **cursor,
     return status_ok(status);
 }
 
-bool utf8_slice(const char *data, size_t index, size_t len, char **start,
-                                                            char **end,
-                                                            Status *status) {
-    ssize_t error = 0;
-
-    if (!utf8_slice_fast(data, index, len, start, end, &error)) {
-        return utf8_handle_error_code(error, status);
-    }
-
-    return status_ok(status);
-}
-
 bool utf8_slice_fast(const char *data, size_t index, size_t len,
                                                      char **start,
                                                      char **end,
@@ -266,33 +224,6 @@ bool utf8_slice_fast(const char *data, size_t index, size_t len,
 
     *start = local_start;
     *end = local_end;
-
-    return status_ok(status);
-}
-
-bool utf8_get_first_rune(const char *data, rune *r, Status *status) {
-    ssize_t bytes_read;
-
-    if (!utf8_get_first_rune_fast(data, r, &bytes_read)) {
-        return utf8_handle_error_code(bytes_read, status);
-    }
-
-    return status_ok(status);
-}
-
-bool utf8_get_first_rune_fast(const char *data, rune *r, ssize_t *error) {
-    *error = utf8proc_iterate((const unsigned char *)data, -1, r);
-
-    return (*error >= 1);
-}
-
-bool utf8_get_first_rune_len(const char *data, rune *r, size_t *len,
-                                                        Status *status) {
-    ssize_t error = 0;
-
-    if (!utf8_get_first_rune_len_fast(data, r, len, &error)) {
-        return utf8_handle_error_code(error, status);
-    }
 
     return status_ok(status);
 }

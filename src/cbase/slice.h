@@ -7,30 +7,20 @@ typedef struct {
 } Slice;
 
 static inline
-void slice_assign(Slice *slice, char *data, size_t len) {
+void slice_assign_data(Slice *slice, char *data, size_t len) {
     slice->data = data;
     slice->len = len;
 }
 
 static inline
-void slice_clear(Slice *slice) {
-    slice->len = 0;
-}
-
-static inline
-bool slice_empty(Slice *slice) {
-    return ((!slice->data) || (slice->len == 0));
-}
-
-static inline
-bool slice_equals_data_at_fast(Slice *slice, size_t index, const void *data,
-                                                           size_t len) {
+bool slice_equals_data_at_fast(Slice *slice, size_t index, size_t len,
+                                                           const void *data) {
     return memcmp(slice->data + index, data, len) == 0;
 }
 
 static inline
-bool slice_equals_data_at(Slice *slice, size_t index, const void *data,
-                                                      size_t len,
+bool slice_equals_data_at(Slice *slice, size_t index, size_t len,
+                                                      const void *data,
                                                       bool *equal,
                                                       Status *status) {
     if ((index + len) > slice->len) {
@@ -43,12 +33,13 @@ bool slice_equals_data_at(Slice *slice, size_t index, const void *data,
 }
 
 static inline
-bool slice_equals_data_fast(Slice *slice, const char *data, size_t len) {
-    if (slice->len != len) {
-        return false;
-    }
+bool slice_equals_data(Slice *slice, const char *data) {
+    return slice_equals_data_at_fast(slice, 0, slice->len, data);
+}
 
-    return slice_equals_data_at_fast(slice, 0, data, len);
+static inline
+bool slice_equals(Slice *s1, Slice *s2) {
+    return slice_equals_data(s1, s2->data, s2->len);
 }
 
 static inline
@@ -70,14 +61,21 @@ bool slice_starts_with_data(Slice *slice, const void *data, size_t len,
 }
 
 static inline
-bool slice_equals(Slice *s1, Slice *s2) {
-    return slice_equals_data(s1, s2->data, s2->len);
+bool slice_ends_with_data_fast(Slice *slice, const void *data, size_t len) {
+    return slice_equals_data_at_fast(slice, slice->len - len, data, len);
 }
 
 static inline
-void slice_shallow_copy(Slice *dst, Slice *src) {
-    dst->data = src->data;
-    dst->len = src->len;
+bool slice_ends_with_data(Slice *slice, const void *data, size_t len,
+                                                          bool *equal,
+                                                          Status *status) {
+    if (len > slice->len) {
+        return index_out_of_bounds(status);
+    }
+
+    *equal = slice_ends_with_data_fast(slice, data, len);
+
+    return status_ok(status);
 }
 
 static inline
@@ -99,6 +97,12 @@ bool slice_read(Slice *slice, size_t index, size_t len, void *out,
     slice_read_fast(slice, index, len, out);
 
     return status_ok(status);
+}
+
+static inline
+void slice_copy(Slice *dst, Slice *src) {
+    dst->data = src->data;
+    dst->len = src->len;
 }
 
 static inline
@@ -129,6 +133,12 @@ bool slice_encode(Slice *src, const char *src_encoding,
     }
 
     return status_ok(status);
+}
+
+static inline
+void slice_clear(Slice *slice) {
+    slice->data = NULL;
+    slice->len = 0;
 }
 
 #endif
