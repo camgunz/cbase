@@ -6,7 +6,7 @@ static inline bool check_overflow(size_t a, size_t b) {
 }
 
 static inline bool zero_buf(void *buf, size_t count, size_t size) {
-    if (!check_overflow(count, size) {
+    if (!check_overflow(count, size)) {
         return false;
     }
 

@@ -233,7 +233,6 @@ ADD_EXECUTABLE(cbase_test ${LIBCBASE_SOURCE_FILES}
   ${CMAKE_SOURCE_DIR}/test/sslice.c
   ${CMAKE_SOURCE_DIR}/test/status.c
   ${CMAKE_SOURCE_DIR}/test/str.c
-  ${CMAKE_SOURCE_DIR}/test/strutil.c
   ${CMAKE_SOURCE_DIR}/test/table.c
   ${CMAKE_SOURCE_DIR}/test/utf8.c
 )
