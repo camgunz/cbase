@@ -93,33 +93,25 @@ bool list_init_alloc(List *list, size_t element_size, size_t length,
     return list_ensure_capacity(list, length, status);
 }
 
-bool list_new(List **new_list, size_t element_size, Status *status) {
-    List *list = cbmalloc(1, sizeof(List));
-
-    if (!list) {
-        return alloc_failure(status);
+bool list_new(List **list, size_t element_size, Status *status) {
+    if (!cbmalloc(1, sizeof(List), (void **)list, status)) {
+        return false;
     }
 
     list_init(list, element_size);
 
-    *new_list = list;
-
     return status_ok(status);
 }
 
-bool list_new_alloc(List **new_list, size_t element_size, size_t length,
-                                                          Status *status) {
-    List *list = cbmalloc(1, sizeof(List));
-
-    if (!list) {
-        return alloc_failure(status);
+bool list_new_alloc(List **list, size_t element_size, size_t length,
+                                                      Status *status) {
+    if (!cbmalloc(1, sizeof(List), (void **)list, status)) {
+        return false;
     }
 
     if (!list_init_alloc(list, element_size, length, status)) {
         return false;
     }
-
-    *new_list = list;
 
     return status_ok(status);
 }
@@ -216,33 +208,25 @@ bool dlist_init_alloc(DList *dlist, size_t element_size, size_t length,
     return dlist_ensure_capacity(dlist, length, status);
 }
 
-bool dlist_new(DList **new_dlist, size_t element_size, Status *status) {
-    DList *dlist = cbmalloc(1, sizeof(DList));
-
-    if (!dlist) {
-        return alloc_failure(status);
+bool dlist_new(DList **dlist, size_t element_size, Status *status) {
+    if (!cbmalloc(1, sizeof(DList), (void **)dlist, status)) {
+        return false;
     }
 
     dlist_init(dlist, element_size);
 
-    *new_dlist = dlist;
-
     return status_ok(status);
 }
 
-bool dlist_new_alloc(DList **new_dlist, size_t element_size, size_t length,
-                                                             Status *status) {
-    DList *dlist = cbmalloc(1, sizeof(DList));
-
-    if (!dlist) {
-        return alloc_failure(status);
+bool dlist_new_alloc(DList **dlist, size_t element_size, size_t length,
+                                                         Status *status) {
+    if (!cbmalloc(1, sizeof(DList), (void **)dlist, status)) {
+        return false;
     }
 
     if (!dlist_init_alloc(dlist, element_size, length, status)) {
         return false;
     }
-
-    *new_dlist = dlist;
 
     return status_ok(status);
 }

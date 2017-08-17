@@ -60,15 +60,9 @@ bool status_set_handler(const char *domain, int code,
                                             StatusHandlerFunc handler,
                                             Status *status) {
     if (!status_handlers) {
-        bool res = false;
-
-        res = array_new_alloc(
-            &status_handlers,
-            sizeof(StatusHandler),
-            1,
-            status
-        );
-        if (!res) {
+        if (!array_new_alloc(&status_handlers, sizeof(StatusHandler),
+                                               1,
+                                               status)) {
             return false;
         }
     }
@@ -104,10 +98,8 @@ bool _status_new(StatusLevel level, const char *domain, int code,
                                                         int line,
                                                         Status **new_status,
                                                         Status *status) {
-    *new_status = cbmalloc(1, sizeof(Status));
-
-    if (!(*new_status)) {
-        return alloc_failure(status);
+    if (!cbmalloc(1, sizeof(Status), (void **)new_status, status)) {
+        return false;
     }
 
     _status_set((*new_status), level, domain, code, message, file, line);

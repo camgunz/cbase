@@ -42,8 +42,8 @@ typedef struct DListNodeStruct {
 void list_init(List *list, size_t element_size);
 bool list_init_alloc(List *list, size_t element_size, size_t length,
                                                       Status *status);
-bool list_new(List **new_list, size_t element_size, Status *status);
-bool list_new_alloc(List **new_list, size_t element_size, size_t length,
+bool list_new(List **list, size_t element_size, Status *status);
+bool list_new_alloc(List **list, size_t element_size, size_t length,
                                                           Status *status);
 bool list_ensure_capacity(List *list, size_t length, Status *status);
 bool list_push(List *list, void **obj, Status *status);
@@ -55,8 +55,8 @@ void list_free(List *list);
 void dlist_init(DList *dlist, size_t element_size);
 bool dlist_init_alloc(DList *dlist, size_t element_size, size_t length,
                                                          Status *status);
-bool dlist_new(DList **new_dlist, size_t element_size, Status *status);
-bool dlist_new_alloc(DList **new_dlist, size_t element_size, size_t length,
+bool dlist_new(DList **dlist, size_t element_size, Status *status);
+bool dlist_new_alloc(DList **dlist, size_t element_size, size_t length,
                                                              Status *status);
 bool dlist_ensure_capacity(DList *dlist, size_t length, Status *status);
 bool dlist_push_head(DList *dlist, void **obj, Status *status);

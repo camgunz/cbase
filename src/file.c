@@ -518,10 +518,8 @@ bool path_init_and_set_local(Path *path, Slice *input, Status *status) {
 }
 
 bool path_new(Path **path, Status *status) {
-    Path *new_path = cbmalloc(1, sizeof(Path));
-
-    if (!new_path) {
-        return alloc_failure(status);
+    if (!cbmalloc(1, sizeof(Path), (void **)path, status)) {
+        return false;
     }
 
     if (!path_init(new_path, status)) {
@@ -535,10 +533,8 @@ bool path_new(Path **path, Status *status) {
 }
 
 bool path_new_and_set(Path **path, SSlice *input, Status *status) {
-    Path *new_path = cbmalloc(1, sizeof(Path));
-
-    if (!new_path) {
-        return alloc_failure(status);
+    if (!cbmalloc(1, sizeof(Path), (void **)path, status)) {
+        return false;
     }
 
     if (!path_init_and_set(new_path, input, status)) {
@@ -552,10 +548,8 @@ bool path_new_and_set(Path **path, SSlice *input, Status *status) {
 }
 
 bool path_new_and_set_local(Path **path, Slice *input, Status *status) {
-    Path *new_path = cbmalloc(1, sizeof(Path));
-
-    if (!new_path) {
-        return alloc_failure(status);
+    if (!cbmalloc(1, sizeof(Path), (void **)path, status)) {
+        return false;
     }
 
     if (!path_init_and_set_local(new_path, input, status)) {
@@ -569,10 +563,8 @@ bool path_new_and_set_local(Path **path, Slice *input, Status *status) {
 }
 
 bool path_new_and_set_cstr(Path **path, const char *input, Status *status) {
-    Path *new_path = cbmalloc(1, sizeof(Path));
-
-    if (!new_path) {
-        return alloc_failure(status);
+    if (!cbmalloc(1, sizeof(Path), (void **)path, status)) {
+        return false;
     }
 
     if (!path_init_and_set_cstr(new_path, input, status)) {

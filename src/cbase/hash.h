@@ -1,6 +1,8 @@
 #ifndef HASH_H__
 #define HASH_H__
 
+#include "xxhash.h"
+
 enum {
     HASHER_ERROR = 1,
 };
@@ -18,11 +20,13 @@ static inline uint32_t hash32(const void *input, size_t length, uint32_t seed) {
 }
 
 static inline bool hash32_new(Hasher32 **hasher, Status *status) {
-    *hasher = XXH32_createState();
+    Hasher32 *new_hasher = XXH32_createState();
 
-    if (!hasher) {
+    if (!new_hasher) {
         return alloc_failure(status);
     }
+
+    *hasher = new_hasher;
 
     return status_ok(status);
 }
@@ -89,11 +93,13 @@ static inline uint64_t hash64(const void *input, size_t length, uint64_t seed) {
 }
 
 static inline bool hash64_new(Hasher64 **hasher, Status *status) {
-    *hasher = XXH64_createState();
+    Hasher64 *new_hasher = XXH64_createState();
 
-    if (!hasher) {
+    if (!new_hasher) {
         return alloc_failure(status);
     }
+
+    *hasher = new_hasher;
 
     return status_ok(status);
 }

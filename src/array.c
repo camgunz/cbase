@@ -9,79 +9,51 @@
     "Array element sizes do not match"                      \
 )
 
-bool array_ensure_capacity(Array *array, size_t length, Status *status) {
-    if (array->alloc < length) {
-        void *new_elements = cbrealloc(array->elements, array->element_size,
-                                                        length);
-
-        if (!new_elements) {
-            return alloc_failure(status);
+bool array_ensure_capacity(Array *array, size_t len, Status *status) {
+    if (array->alloc < len) {
+        if (!cbrealloc(len, array->element_size, &array->elements, status)) {
+            return false;
         }
 
-        array->elements = new_elements;
-
-        array->alloc = length;
+        array->alloc = len;
     }
 
     return status_ok(status);
 }
 
-bool array_ensure_capacity_zero(Array *array, size_t length, Status *status) {
-    if (array->alloc < length) {
-        void *new_elements = NULL;
-
+bool array_ensure_capacity_zero(Array *array, size_t len, Status *status) {
+    if (array->alloc < len) {
         if (!array->elements) {
-            new_elements = calloc(array->element_size, length);
-
-            if (!new_elements) {
-                return alloc_failure(status);
-            }
-
-            array->elements = new_elements;
-            array->alloc = length;
-        }
-        else {
-            new_elements = cbrealloc(array->elements, array->element_size,
-                                                      length);
-
-            if (!new_elements) {
-                return alloc_failure(status);
-            }
-
-            array->elements = new_elements;
-
-            if (!array_zero_elements_fast(array, array->alloc,
-                                                 length - array->alloc)) {
+            if (!cbcalloc(len, array->element_size, &array->elements,
+                                                    status)) {
                 return false;
             }
 
-            array->alloc = length;
         }
+        else if (!cbrealloc(len, array->element_size, &array->elements,
+                                                      status)) {
+            return false;
+        }
+
+        array->alloc = len;
     }
 
     return status_ok(status);
 }
 
-bool array_set_size(Array *array, size_t length, Status *status) {
-    void *new_elements = NULL;
-
-    if (array->alloc < length) {
-        return array_ensure_capacity(array, length, status);
+bool array_set_size(Array *array, size_t len, Status *status) {
+    if (array->alloc < len) {
+        return array_ensure_capacity(array, len, status);
     }
 
-    if (array->alloc == length) {
-        return status_ok(status);
+    if (array->alloc > len) {
+        if (!cbrealloc(len, array->element_size, &array->elements, status)) {
+            return false;
+        }
+
+        array->alloc = len;
+        array->len = array->alloc;
     }
-
-    new_elements = cbrealloc(array->elements, array->element_size, length);
-
-    if (!new_elements) {
-        return alloc_failure(status);
-    }
-
-    array->elements = new_elements;
-    array->alloc = length;
-    array->len = array->alloc;
 
     return status_ok(status);
 }

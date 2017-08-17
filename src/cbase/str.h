@@ -373,10 +373,8 @@ void string_init_vprintf(String *string, Status *status, const char *fmt,
 
 static inline
 bool string_new(String **string, Status *status) {
-    *string = cbmalloc(1, sizeof(String));
-
-    if (!*string) {
-        return alloc_failure(status);
+    if (!cbmalloc(1, sizeof(String), (void **)string, status)) {
+        return false;
     }
 
     string_init(*string);
@@ -386,161 +384,121 @@ bool string_new(String **string, Status *status) {
 
 static inline
 bool string_new_alloc(String **string, size_t alloc, Status *status) {
-    *string = cbmalloc(1, sizeof(String));
-
-    if (!*string) {
-        return alloc_failure(status);
-    }
-
-    return string_init_alloc(*string);
+    return (
+        string_new(string, status) &&
+        string_init_alloc(*string, alloc)
+    );
 }
 
 static inline
 bool string_new_from_cstr(String **string, const char *cs, Status *status) {
-    *string = cbmalloc(1, sizeof(String));
-
-    if (!*string) {
-        return alloc_failure(status);
-    }
-
-    return string_init_from_cstr(*string, cs, status);
+    return (
+        string_new(string, status) &&
+        string_init_from_cstr(*string, cs, status)
+    );
 }
 
-bool string_new_from_cstr_full(String *string, const char *cs,
-                                               size_t len,
-                                               size_t byte_len,
-                                               Status *status) {
-    *string = cbmalloc(1, sizeof(String));
-
-    if (!*string) {
-        return alloc_failure(status);
-    }
-
-    return string_init_from_cstr_full(*string, cs, len, byte_len, status);
+bool string_new_from_cstr_full(String **string, const char *cs,
+                                                size_t len,
+                                                size_t byte_len,
+                                                Status *status) {
+    return (
+        string_new(string, status) &&
+        string_init_from_cstr_full(*string, cs, len, byte_len, status)
+    );
 }
 
 static inline
-bool string_new_from_utf8_data_full(String *string, const char *data,
+bool string_new_from_utf8_data_full(String **string, const char *data,
                                                      size_t len,
                                                      size_t byte_len,
                                                      Status *status) {
-    *string = cbmalloc(1, sizeof(String));
-
-    if (!*string) {
-        return alloc_failure(status);
-    }
-
-    return string_init_from_utf8_data_full(*string, data, len, byte_len,
-                                                               status);
+    return (
+        string_new(string, status) &&
+        string_init_from_utf8_data_full(*string, data, len, byte_len, status)
+    );
 }
 
 static inline
-bool string_new_from_sslice(String *string, SSlice *sslice, Status *status) {
-    *string = cbmalloc(1, sizeof(String));
-
-    if (!*string) {
-        return alloc_failure(status);
-    }
-
-    return string_init_from_sslice(*string, sslice, status);
+bool string_new_from_sslice(String **string, SSlice *sslice, Status *status) {
+    return (
+        string_new(string, status) &&
+        string_init_from_sslice(*string, sslice, status)
+    );
 }
 
 static inline
-bool string_new_from_string(String *string, String *input, Status *status) {
-    *string = cbmalloc(1, sizeof(String));
-
-    if (!*string) {
-        return alloc_failure(status);
-    }
-
-    return string_init_from_string(*string, input, status);
+bool string_new_from_string(String **string, String *input, Status *status) {
+    return (
+        string_new(string, status) &&
+        string_init_from_string(*string, input, status)
+    );
 }
 
 static inline
-bool string_new_from_slice(String *string, Slice *slice, const char *encoding,
+bool string_new_from_slice(String **string, Slice *slice, const char *encoding,
                                                           Status *status) {
-    *string = cbmalloc(1, sizeof(String));
-
-    if (!*string) {
-        return alloc_failure(status);
-    }
-
-    return string_init_from_slice(*string, slice, encoding, status);
+    return (
+        string_new(string, status) &&
+        string_init_from_slice(*string, slice, encoding, status)
+    );
 }
 
 static inline
-bool string_new_from_utf8_slice(String *string, Slice *slice,
+bool string_new_from_utf8_slice(String **string, Slice *slice,
                                                  Status *status) {
-    *string = cbmalloc(1, sizeof(String));
-
-    if (!*string) {
-        return alloc_failure(status);
-    }
-
-    return string_init_from_utf8_slice(*string, slice, status);
+    return (
+        string_new(string, status) &&
+        string_init_from_utf8_slice(*string, slice, status)
+    );
 }
 
 static inline
-bool string_new_from_local_slice(String *string, Slice *slice, 
+bool string_new_from_local_slice(String **string, Slice *slice, 
                                                   Status *status) {
-    *string = cbmalloc(1, sizeof(String));
-
-    if (!*string) {
-        return alloc_failure(status);
-    }
-
-    return string_init_from_local_slice(*string, slice, status);
+    return (
+        string_new(string, status) &&
+        string_init_from_local_slice(*string, slice, status)
+    );
 }
 
 static inline
-bool string_new_from_buffer(String *string, Buffer *buffer, Status *status) {
-    *string = cbmalloc(1, sizeof(String));
-
-    if (!*string) {
-        return alloc_failure(status);
-    }
-
-    return string_init_from_buffer(*string, buffer, status);
+bool string_new_from_buffer(String **string, Buffer *buffer, Status *status) {
+    return (
+        string_new(string, status) &&
+        string_init_from_buffer(*string, buffer, status)
+    );
 }
 
 static inline
-bool string_new_from_utf8_buffer(String *string, Buffer *buffer,
+bool string_new_from_utf8_buffer(String **string, Buffer *buffer,
                                                   Status *status) {
-    *string = cbmalloc(1, sizeof(String));
-
-    if (!*string) {
-        return alloc_failure(status);
-    }
-
-    return string_init_from_utf8_buffer(*string, buffer, status);
+    return (
+        string_new(string, status) &&
+        string_init_from_utf8_buffer(*string, buffer, status)
+    );
 }
 
 static inline
-void string_new_from_local_buffer(String *string, Buffer *buffer,
+void string_new_from_local_buffer(String **string, Buffer *buffer,
                                                    Status *status) {
-    *string = cbmalloc(1, sizeof(String));
-
-    if (!*string) {
-        return alloc_failure(status);
-    }
-
-    return string_init_from_local_buffer(*string, buffer, status);
+    return (
+        string_new(string, status) &&
+        string_init_from_local_buffer(*string, buffer, status)
+    );
 }
 
 static inline
-bool string_new_vprintf(String *string, Status *status, const char *fmt,
-                                                        va_list args) {
-    *string = cbmalloc(1, sizeof(String));
-
-    if (!*string) {
-        return alloc_failure(status);
-    }
-
-    return string_init_vprintf(*string, status, fmt, args);
+bool string_new_vprintf(String **string, Status *status, const char *fmt,
+                                                         va_list args) {
+    return (
+        string_new(string, status) &&
+        string_init_vprintf(*string, status, fmt, args)
+    );
 }
 
 static inline
-bool string_new_printf(String *string, Status *status, const char *fmt, ...) {
+bool string_new_printf(String **string, Status *status, const char *fmt, ...) {
     va_list args;
     bool res;
 

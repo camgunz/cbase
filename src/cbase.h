@@ -15,19 +15,19 @@
 #include <string.h>
 
 #include "cbase/util.h"
-
-#include "cbase/alloc.h"
 #include "cbase/types.h"
 #include "cbase/swap.h"
-#include "cbase/log.h"
 #include "cbase/status.h"
 #include "cbase/errors.h"
+#include "cbase/log.h"
 #include "cbase/rune.h"
-#include "cbase/utf8.h"
-#include "cbase/xxhash.h"
+#include "cbase/charset.h"
 
-#include "cbase/array.h"
+#include "cbase/utf8.h"
 #include "cbase/decimal.h"
+
+#include "cbase/alloc.h"
+#include "cbase/array.h"
 #include "cbase/hash.h"
 #include "cbase/list.h"
 #include "cbase/parray.h"
@@ -37,7 +37,6 @@
 #include "cbase/str.h"
 #include "cbase/table.h"
 
-#include "cbase/charset.h"
 #include "cbase/file.h"
 
 #endif

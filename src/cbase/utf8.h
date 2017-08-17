@@ -142,12 +142,7 @@ bool utf8_get_first_rune_len(const char *data, rune *r, size_t *len,
     return status_ok(status);
 }
 
-static inline
-bool utf8_get_first_rune_fast(const char *data, rune *r, ssize_t *error) {
-    *error = utf8proc_iterate((const unsigned char *)data, -1, r);
-
-    return (*error >= 1);
-}
+bool utf8_get_first_rune_fast(const char *data, rune *r, ssize_t *error);
 
 static inline
 bool utf8_get_first_rune(const char *data, rune *r, Status *status) {
@@ -160,14 +155,6 @@ bool utf8_get_first_rune(const char *data, rune *r, Status *status) {
     return status_ok(status);
 }
 
-static inline
-bool utf8_get_end_rune(const char *data, size_t byte_len, rune *r,
-                                                          Status *status) {
-    size_t offset = 0;
-
-    return utf8_get_end_rune_offset(data, byte_len, r, &offset, status);
-}
-
 bool utf8_get_end_offset(const char *data, size_t rune_count, size_t byte_len,
                                                               size_t *offset,
                                                               Status *status);
@@ -176,6 +163,14 @@ bool utf8_get_end_rune_offset(const char *data, size_t byte_len,
                                                 rune *r,
                                                 size_t *offset,
                                                 Status *status);
+
+static inline
+bool utf8_get_end_rune(const char *data, size_t byte_len, rune *r,
+                                                          Status *status) {
+    size_t offset = 0;
+
+    return utf8_get_end_rune_offset(data, byte_len, r, &offset, status);
+}
 
 bool rune_to_string(rune r, char **out, Status *status);
 

@@ -1,19 +1,14 @@
 #ifndef UTIL_H__
 #define UTIL_H__
 
-static inline bool check_overflow(size_t a, size_t b) {
+static inline
+bool check_overflow(size_t a, size_t b) {
     return !((a > 1) && (b > 1) && ((SIZE_MAX / a) < b));
 }
 
-static inline bool zero_buf(void *buf, size_t count, size_t size) {
-    if (!check_overflow(count, size)) {
-        return false;
-    }
+void zero_buf_fast(void *buf, size_t byte_count);
 
-    (void)memset(buf, 0, byte_count);
-
-    return true;
-}
+bool zero_buf(void *buf, size_t count, size_t size);
 
 #endif
 

@@ -67,15 +67,11 @@ bool buffer_init_from_data(Buffer *buffer, const char *data, size_t len,
 
 static inline
 bool buffer_new(Buffer **new_buffer, Status *status) {
-    Buffer *buffer = cbmalloc(1, sizeof(Buffer));
-
-    if (!buffer) {
-        return alloc_failure(status);
+    if (!cbmalloc(1, sizeof(Buffer), (void **)buffer, status)) {
+        return false;
     }
 
     buffer_init(buffer);
-
-    *new_buffer = buffer;
 
     return status_ok(status);
 }

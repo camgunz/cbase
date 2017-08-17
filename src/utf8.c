@@ -246,6 +246,12 @@ bool utf8_get_first_rune_len_fast(const char *data, rune *r, size_t *len,
     return status_ok(status);
 }
 
+bool utf8_get_first_rune_fast(const char *data, rune *r, ssize_t *error) {
+    *error = utf8proc_iterate((const unsigned char *)data, -1, r);
+
+    return (*error >= 1);
+}
+
 bool utf8_get_end_offset(const char *data, size_t rune_count, size_t byte_len,
                                                               size_t *offset,
                                                               Status *status) {
@@ -334,15 +340,15 @@ bool rune_to_string(rune r, char **out, Status *status) {
         return utf8_handle_error_code(bytes_written, status);
     }
 
-    s = cbmalloc(bytes_written + 1, sizeof(byte));
-
-    if (!s) {
-        return alloc_failure(status);
+    if (!cbmalloc(bytes_written + 1, sizeof(char), (void **)&s, status)) {
+        return false;
     }
 
     buf[bytes_written] = '\0';
 
-    cbmemmove(s, &buf[0], (bytes_written + 1) * sizeof(byte));
+    if (!cbmemmove(s, &buf[0], (bytes_written + 1), sizeof(byte))) {
+        return false;
+    }
 
     *out = s;
 

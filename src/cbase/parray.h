@@ -32,15 +32,11 @@ void parray_init_alloc(PArray *parray, size_t alloc, Status *status) {
 
 static inline
 bool parray_new(PArray **parray, Status *status) {
-    PArray *new_parray = cbmalloc(1, sizeof(PArray));
-
-    if (!new_parray) {
-        return alloc_failure(status);
+    if (!cbmalloc(1, sizeof(PArray), (void **)parray, status)) {
+        return false;
     }
 
     parray_init(new_parray);
-
-    *parray = new_parray;
 
     return status_ok(status);
 }

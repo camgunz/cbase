@@ -1,0 +1,2 @@
+#cmakedefine HAVE_MEMSET_S
+#cmakedefine HAVE_EXPLICIT_BZERO

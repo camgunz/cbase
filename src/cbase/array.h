@@ -47,15 +47,11 @@ bool array_init_alloc_zero(Array *array, size_t element_size, size_t alloc,
 
 static inline
 bool array_new(Array **array, size_t element_size, Status *status) {
-    Array *new_array = cbmalloc(1, sizeof(Array));
-
-    if (!new_array) {
-        return alloc_failure(status);
+    if (!cbmalloc(1, sizeof(Array), (void **)array, status)) {
+        return false;
     }
 
-    array_init(new_array, element_size);
-
-    *array = new_array;
+    array_init(*array, element_size);
 
     return status_ok(status);
 }
@@ -64,16 +60,20 @@ static inline
 bool array_new_alloc(Array **array, size_t element_size,
                                     size_t alloc,
                                     Status *status) {
-    return array_new(array, element_size, status) &&
-           array_ensure_capacity(*array, alloc, status);
+    return (
+        array_new(array, element_size, status) &&
+        array_ensure_capacity(*array, alloc, status)
+    );
 }
 
 static inline
 bool array_new_alloc_zero(Array **array, size_t element_size,
                                          size_t alloc,
                                          Status *status) {
-    return array_new(array, element_size, status) &&
-           array_ensure_capacity_zero(*array, alloc, status);
+    return (
+        array_new(array, element_size, status) &&
+        array_ensure_capacity_zero(*array, alloc, status)
+    );
 }
 
 static inline
@@ -95,10 +95,9 @@ bool array_index(Array *array, size_t index, void **element, Status *status) {
 static inline
 void* array_insert_fast(Array *array, size_t index) {
     if (index < array->len) {
-        cbmemmove(array_index_fast(array, index + 1),
-                  array_index_fast(array, index),
-                  array->len - index,
-                  array->element_size);
+        cbbase_memmove(array_index_fast(array, index + 1),
+                       array_index_fast(array, index),
+                       array->len - index * array->element_size);
     }
 
     array->len++;
@@ -142,14 +141,14 @@ static inline
 void array_insert_many_fast(Array *array, size_t index, void *elements,
                                                         size_t element_count) {
     if (index < array->len) {
-        cbmemmove(array_index_fast(array, index + element_count),
-                  array_index_fast(array, index),
-                  array->len - index,
-                  array->element_size);
+        cbbase_memmove(array_index_fast(array, index + element_count),
+                       array_index_fast(array, index),
+                       array->len - index * array->element_size);
     }
 
-    cbmemmove(array_index_fast(array, index), elements, element_count,
-                                                        array->element_size);
+    cbbase_memmove(array_index_fast(array, index),
+                   elements,
+                   element_count * array->element_size);
 
     array->len += element_count;
 }
@@ -176,10 +175,9 @@ void array_shift_elements_down_fast_no_zero(Array *array,
                                             size_t index,
                                             size_t element_count) {
     if (index < array->len) {
-        cbmemmove(array_index_fast(array, index + element_count),
-                  array_index_fast(array, index),
-                  array->len - index,
-                  array->element_size);
+        cbbase_memmove(array_index_fast(array, index + element_count),
+                       array_index_fast(array, index),
+                       array->len - index * array->element_size);
     }
 
     array->len += element_count;
@@ -190,9 +188,8 @@ void array_shift_elements_down_fast(Array *array, size_t index,
                                                   size_t element_count) {
     array_shift_elements_down_fast_no_zero(array, index, element_count);
 
-    memset(array_index_fast(array, index),
-           0,
-           element_count * array->element_size);
+    zero_buf_fast(array_index_fast(array, index),
+                  element_count * array->element_size);
 }
 
 static inline
@@ -231,7 +228,7 @@ bool array_shift_elements_down(Array *array, size_t index, size_t element_count,
 static inline
 bool array_insert_array_same(Array *dst, size_t index, Array *src,
                                                        Status *status) {
-    return array_insert_many(dst, index, src, status);
+    return array_insert_many(dst, index, src->elements, src->len, status);
 }
 
 bool array_insert_array_fast(Array *dst, size_t index, Array *src,
@@ -324,7 +321,8 @@ bool array_append_array(Array *dst, Array *src, Status *status);
 
 static inline
 void array_overwrite_fast(Array *array, size_t index, void *element) {
-    cbmemmove(array_index_fast(array, index), element, 1, array->element_size);
+    cbbase_memmove(array_index_fast(array, index), element,
+                                                   array->element_size);
 }
 
 static inline
@@ -343,8 +341,9 @@ static inline
 void array_overwrite_many_fast(Array *array, size_t index,
                                              void *elements,
                                              size_t element_count) {
-    cbmemmove(array_index_fast(array, index), elements, element_count,
-                                                        array->element_size);
+    cbbase_memmove(array_index_fast(array, index),
+                   elements,
+                   element_count * array->element_size);
 }
 
 static inline
@@ -445,10 +444,9 @@ bool array_zero_element(Array *array, size_t index, Status *status) {
 
 static inline
 void array_delete_fast(Array *array, size_t index) {
-    cbmemmove(array_index_fast(array, index + 1),
-              array_index_fast(array, index),
-              array->len - index - 1,
-              array->element_size);
+    cbbase_memmove(array_index_fast(array, index + 1),
+                   array_index_fast(array, index),
+                   (array->len - index - 1) * array->element_size);
 
     array->len--;
 }
@@ -467,10 +465,9 @@ bool array_delete(Array *array, size_t index, Status *status) {
 static inline
 void array_delete_unordered_fast(Array *array, size_t index) {
     if (index < (array->len - 1)) {
-        cbmemmove(array_index_fast(array, index),
-                  array_index_fast(array, array->len - 1),
-                  1
-                  array->element_size);
+        cbbase_memmove(array_index_fast(array, index),
+                       array_index_fast(array, array->len - 1),
+                       array->element_size);
     }
 
     array->len--;
@@ -528,7 +525,8 @@ bool array_truncate_no_zero(Array *array, size_t len, Status *status) {
 
 static inline
 void array_copy_element_fast(Array *array, size_t index, void **element) {
-    cbmemmove(element, array_index_fast(array, index), 1, array->element_size);
+    cbbase_memmove(element, array_index_fast(array, index),
+                            array->element_size);
 }
 
 static inline
@@ -546,8 +544,9 @@ bool array_copy_element(Array *array, size_t index, void *element,
 static inline
 void array_copy_elements_fast(Array *array, size_t index, size_t count,
                                                           void *elements) {
-    cbmemmove(elements, array_index_fast(array, index), count,
-                                                        array->element_size);
+    cbbase_memmove(elements, array_index_fast(array, index),
+                             count,
+                             array->element_size);
 }
 
 static inline

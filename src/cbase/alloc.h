@@ -1,108 +1,165 @@
 #ifndef ALLOC_H__
 #define ALLOC_H__
 
-static inline bool __cbmemmove(void *dest, const void *src, size_t count,
-                                                            size_t size) {
-    if (!check_overflow(count, size)) {
-        return false;
-    }
-
-    (void)memmove(dest, src, count * size);
-
-    return true;
-}
-
-#ifndef cbmemmove
-#define cbmemmove __cbmemmove
+#ifndef cbbase_malloc
+#define cbbase_malloc malloc
 #endif
 
-static inline void* __cbmalloc(size_t count, size_t size) {
-    if (!check_overflow(count, size)) {
-        errno = ENOMEM;
-        return NULL;
-    }
+#ifndef cbbase_calloc
+#define cbbase_calloc calloc
+#endif
 
-    return malloc(count * size);
-}
+#ifndef cbbase_realloc
+#define cbbase_realloc realloc
+#endif
+
+#ifndef cbbase_free
+#define cbbase_free free
+#endif
+
+#ifndef cbbase_memmove
+#define cbbase_memmove memmove
+#endif
 
 #ifndef cbmalloc
 #define cbmalloc __cbmalloc
 #endif
 
-static inline void* __cbcalloc(size_t count, size_t size) {
-    if (!check_overflow(count, size)) {
-        errno = ENOMEM;
-        return NULL;
-    }
-
-    return calloc(count, size);
-}
-
 #ifndef cbcalloc
 #define cbcalloc __cbcalloc
 #endif
-
-static inline void* __cbrealloc(void *ptr, size_t count, size_t size) {
-    if (!check_overflow(count, size)) {
-        errno = ENOMEM;
-        return NULL;
-    }
-
-    return realloc(ptr, count * size);
-}
 
 #ifndef cbrealloc
 #define cbrealloc __cbrealloc
 #endif
 
-static inline void __cbfree(void *ptr) {
-    free(ptr);
-}
-
 #ifndef cbfree
 #define cbfree __cbfree
 #endif
 
-static inline char* __cbstrndup(const char *cs, size_t len) {
-    char *str = cbmalloc(len + 1, sizeof(char));
-
-    if (!str) {
-        return NULL;
-    }
-
-    cbmemmove(str, cs, len);
-
-    *(str + len) = '\0';
-
-    return str;
-}
-
-#ifndef cbstrndup
-#define cbstrndup __cbstrndup
+#ifndef cbmemmove
+#define cbmemmove __cbmemmove
 #endif
-
-static inline void* cbmemcpy(void *dest, const void *src, size_t size) {
-    return cbmemmove(dest, src, size);
-}
-
-static inline void* __cbmemdup(const void *ptr, size_t count) {
-  void *buf = cbmalloc(count, 1);
-
-  if (!buf) {
-      return NULL;
-  }
-
-  cbmemmove(buf, ptr, count);
-
-  return buf;
-}
 
 #ifndef cbmemdup
 #define cbmemdup __cbmemdup
 #endif
 
-static inline char* cbstrdup(const char *cs) {
-    return cbstrndup(cs, strlen(cs));
+#ifndef cbstrndup
+#define cbstrndup __cbstrndup
+#endif
+
+#ifndef cbstrdup
+#define cbstrdup __cbstrdup
+#endif
+
+/* [TODO] Look for reallocarray and use here if found */
+static inline
+bool __cbmalloc(size_t count, size_t size, void **ptr, Status *status) {
+    void *new_ptr = NULL;
+
+    if (!check_overflow(count, size)) {
+        return numeric_overflow(status);
+    }
+
+    new_ptr = cbbase_malloc(count * size);
+
+    if (!new_ptr) {
+        return alloc_failure(status);
+    }
+
+    *ptr = new_ptr;
+
+    return status_ok(status);
+}
+
+static inline
+bool __cbcalloc(size_t count, size_t size, void **ptr, Status *status) {
+    void *new_ptr = cbbase_calloc(count, size);
+
+    if (!new_ptr) {
+        return alloc_failure(status);
+    }
+
+    *ptr = new_ptr;
+
+    return status_ok(status);
+}
+
+static inline
+bool __cbrealloc(size_t count, size_t size, void **ptr, Status *status) {
+    void *new_ptr = NULL;
+
+    if (!check_overflow(count, size)) {
+        return numeric_overflow(status);
+    }
+
+    new_ptr = cbbase_realloc(*ptr, count * size);
+
+    if (!new_ptr) {
+        return alloc_failure(status);
+    }
+
+    *ptr = new_ptr;
+
+    return status_ok(status);
+}
+
+static inline
+void __cbfree(void *ptr) {
+    cbbase_free(ptr);
+}
+
+static inline
+bool __cbmemmove(void *dest, const void *src, size_t count, size_t size,
+                                                            Status *status) {
+    if (!check_overflow(count, size)) {
+        return numeric_overflow(status);
+    }
+
+    (void)cbbase_memmove(dest, src, count * size);
+
+    return status_ok(status);
+}
+
+static inline
+bool __cbmemcpy(void *dest, const void *src, size_t count, size_t size,
+                                                           Status *status) {
+    return cbmemmove(dest, src, count, size, status);
+}
+
+static inline
+bool __cbmemdup(const void *ptr, size_t byte_count, Status *status) {
+    void *buf = NULL;
+
+    return (
+        cbmalloc(byte_count, 1, &buf, status) &&
+        cbmemmove(buf, ptr, byte_count, 1, status)
+    );
+}
+
+static inline
+bool __cbstrndup(const char *cs, size_t len, char **ptr, Status *status) {
+    char *new_str = NULL;
+    
+    if (!cbmalloc(len + 1, sizeof(char), (void **)new_str, status)) {
+        return false;
+    }
+
+    if (!cbmemmove(new_str, cs, len, sizeof(char), status)) {
+        return false;
+    }
+
+    *(new_str + len) = '\0';
+
+    *ptr = new_str;
+
+    return status_ok(status);
+}
+
+static inline
+bool __cbstrdup(const char *cs, char **ptr, Status *status) {
+    return cbstrndup(cs, strlen(cs), ptr, status);
 }
 
 #endif
