@@ -33,13 +33,3 @@ void zero_buf_fast(void *buf, size_t byte_count) {
 #endif
 }
 
-bool zero_buf(void *buf, size_t count, size_t size) {
-    if (!check_overflow(count, size)) {
-        errno = EOVERFLOW;
-        return false;
-    }
-
-    zero_buf_fast(buf, count * size);
-
-    return true;
-}
