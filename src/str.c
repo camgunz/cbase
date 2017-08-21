@@ -7,6 +7,18 @@
     "vsnprintf failed"                           \
 )
 
+bool string_index_rune(String *string, size_t index, rune *r, Status *status) {
+    if (index >= string->len) {
+        return index_out_of_bounds(status);
+    }
+
+    if (string_empty(string)) {
+        return empty(status);
+    }
+
+    return utf8_index_rune(string->buffer.array.data, index, rune, status);
+}
+
 bool string_insert_vprintf(String *string, size_t index, Status *status,
                                                          const char *fmt,
                                                          va_list args) {

@@ -14,11 +14,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "cbase/status.h"
+#include "cbase/errors.h"
 #include "cbase/util.h"
 #include "cbase/types.h"
 #include "cbase/swap.h"
-#include "cbase/status.h"
-#include "cbase/errors.h"
 #include "cbase/log.h"
 #include "cbase/rune.h"
 #include "cbase/charset.h"
@@ -33,6 +33,7 @@
 #include "cbase/parray.h"
 #include "cbase/slice.h"
 #include "cbase/buffer.h"
+#include "cbase/strbase.h"
 #include "cbase/sslice.h"
 #include "cbase/str.h"
 #include "cbase/table.h"

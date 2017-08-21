@@ -10,9 +10,25 @@ enum {
     UTF8_UNKNOWN_ERROR
 };
 
+/*
+ * [FIXME] There's no clear indication whether or not data needs to be NULL-
+ *         terminated.
+ */
+
 bool utf8_handle_error_code(ssize_t error_code, Status *status);
 
 bool utf8len_fast(const char *data, size_t *len, ssize_t *error);
+
+static inline
+bool utf8_validate(const char *data, size_t byte_len, Status *status) {
+    ssize_t error = 0;
+
+    if (!utf8_validate_fast(data, byte_len, &error)) {
+        return utf8_handle_error_code(error, status);
+    }
+
+    return status_ok(status);
+}
 
 static inline
 bool utf8len(const char *data, size_t *len, Status *status) {
@@ -72,6 +88,10 @@ bool utf8_index(const char *data, size_t index, char **cursor,
                                                 Status *status) {
     ssize_t error = 0;
 
+    if ((!data) || (!*data)) {
+        return empty(status);
+    }
+
     if (!utf8_index_fast(data, index, cursor, &error)) {
         return utf8_handle_error_code(error, status);
     }
@@ -86,8 +106,34 @@ static inline
 bool utf8_index_rune(const char *data, size_t index, rune *r, Status *status) {
     ssize_t error = 0;
 
+    if ((!data) || (!*data)) {
+        return empty(status);
+    }
+
     if (!utf8_index_rune_fast(data, index, r, &error)) {
         return utf8_handle_error_code(error, status);
+    }
+
+    return status_ok(status);
+}
+
+bool utf8_index_rune_reverse_fast(const char *data, size_t byte_len,
+                                                    size_t index,
+                                                    rune *r,
+                                                    ssize_t *error);
+static inline
+bool utf8_index_rune_reverse(const char *data, size_t byte_len,
+                                               size_t index,
+                                               rune *r,
+                                               Status *status) {
+    ssize_t error = 0;
+
+    if ((!data) || (!*data) || (!byte_len)) {
+        return empty(status);
+    }
+
+    if (!utf8_index_rune_reverse_fast(data, byte_len, index, r, &error)) {
+        return utf8_handle_error_code(bytes_read, status);
     }
 
     return status_ok(status);
@@ -100,6 +146,10 @@ static inline
 bool utf8_skip(const char *data, size_t len, char **cursor,
                                              Status *status) {
     ssize_t error = 0;
+
+    if ((!data) || (!*data) || (!len)) {
+        return empty(status);
+    }
 
     if (!utf8_skip_fast(data, len, cursor, &error)) {
         return utf8_handle_error_code(error, status);

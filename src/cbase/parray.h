@@ -22,11 +22,11 @@ bool parray_compact(PArray *parray, Status *status) {
 
 static inline
 void parray_init(PArray *parray) {
-    return array_init(&parray->array, sizeof(void *));
+    array_init(&parray->array, sizeof(void *));
 }
 
 static inline
-void parray_init_alloc(PArray *parray, size_t alloc, Status *status) {
+bool parray_init_alloc(PArray *parray, size_t alloc, Status *status) {
     return array_init_alloc(&parray->array, sizeof(void *), alloc, status);
 }
 
@@ -36,7 +36,7 @@ bool parray_new(PArray **parray, Status *status) {
         return false;
     }
 
-    parray_init(new_parray);
+    parray_init(*parray);
 
     return status_ok(status);
 }
@@ -127,7 +127,7 @@ void parray_insert_parray_fast(PArray *dst, size_t index, PArray *src) {
 static inline
 bool parray_insert_parray(PArray *dst, size_t index, PArray *src,
                                                      Status *status) {
-    return array_insert_same_array(&dst->array, index, &src->array, status);
+    return array_insert_array_same(&dst->array, index, &src->array, status);
 }
 
 static inline
@@ -155,14 +155,13 @@ bool parray_prepend_many(PArray *parray, void **elements, size_t element_count,
 }
 
 static inline
-void parray_prepend_parray_fast(PArray *dst, size_t index, PArray *src) {
-    array_prepend_array_same_fast(&dst->array, index, &src->array);
+void parray_prepend_parray_fast(PArray *dst, PArray *src) {
+    array_prepend_array_same_fast(&dst->array, &src->array);
 }
 
 static inline
-bool parray_prepend_parray(PArray *dst, size_t index, PArray *src,
-                                                      Status *status) {
-    return array_prepend_same_array(&dst->array, index, &src->array, status);
+bool parray_prepend_parray(PArray *dst, PArray *src, Status *status) {
+    return array_prepend_array_same(&dst->array, &src->array, status);
 }
 
 static inline
@@ -190,21 +189,18 @@ bool parray_append_many(PArray *parray, void **elements, size_t element_count,
 }
 
 static inline
-void parray_append_parray_fast(PArray *dst, size_t index, PArray *src) {
-    array_append_array_same_fast(&dst->array, index, &src->array);
+void parray_append_parray_fast(PArray *dst, PArray *src) {
+    array_append_array_same_fast(&dst->array, &src->array);
 }
 
 static inline
-bool parray_append_parray(PArray *dst, size_t index, PArray *src,
-                                                     Status *status) {
-    return array_append_same_array(&dst->array, index, &src->array, status);
+bool parray_append_parray(PArray *dst, PArray *src, Status *status) {
+    return array_append_array_same(&dst->array, &src->array, status);
 }
 
 static inline
 void parray_overwrite_fast(PArray *parray, size_t index, void *element) {
-    void **element2 = array_overwrite_fast(&parray->array);
-
-    *element2 = element;
+    array_overwrite_fast(&parray->array, index, element);
 }
 
 static inline
@@ -231,13 +227,13 @@ bool parray_overwrite_many(PArray *parray, size_t index, void **elements,
 
 static inline
 void parray_overwrite_parray_fast(PArray *dst, size_t index, PArray *src) {
-    array_overwrite_array_fast(&dst->array, index, &src->array);
+    array_overwrite_array_same_fast(&dst->array, index, &src->array);
 }
 
 static inline
 bool parray_overwrite_parray(PArray *dst, size_t index, PArray *src,
                                                         Status *status) {
-    return array_overwrite_array(&dst->array, index, &src->array, status);
+    return array_overwrite_array_same(&dst->array, index, &src->array, status);
 }
 
 static inline
@@ -263,9 +259,8 @@ bool parray_assign_parray(PArray *dst, PArray *src, Status *status) {
 }
 
 static inline
-bool parray_zero_elements_fast(PArray *parray, size_t index, size_t count,
-                                                             Status *status) {
-    return array_zero_elements_fast(&parray->array, index, count, status);
+void parray_zero_elements_fast(PArray *parray, size_t index, size_t count) {
+    array_zero_elements_fast(&parray->array, index, count);
 }
 
 static inline
@@ -275,9 +270,8 @@ bool parray_zero_elements(PArray *parray, size_t index, size_t count,
 }
 
 static inline
-bool parray_zero_element_fast(PArray *parray, size_t index, size_t count,
-                                                            Status *status) {
-    return array_zero_element_fast(&parray->array, index, count, status);
+void parray_zero_element_fast(PArray *parray, size_t index) {
+    array_zero_element_fast(&parray->array, index);
 }
 
 static inline
@@ -287,7 +281,7 @@ bool parray_zero_element(PArray *parray, size_t index, Status *status) {
 
 static inline
 void parray_delete_fast(PArray *parray, size_t index) {
-    return array_delete_fast(&parray->array, index);
+    array_delete_fast(&parray->array, index);
 }
 
 static inline
@@ -314,7 +308,7 @@ void parray_delete_leave_null_fast(PArray *parray, size_t index) {
 
 static inline
 bool parray_delete_leave_null(PArray *parray, size_t index, Status *status) {
-    if (index >= parray->len) {
+    if (index >= parray->array.len) {
         return index_out_of_bounds(status);
     }
 
@@ -357,8 +351,8 @@ void* parray_pop_unordered_fast(PArray *parray, size_t index) {
 }
 
 static inline
-bool *parray_pop_unordered(PArray *parray, size_t index, void **element,
-                                                         Status *status) {
+bool parray_pop_unordered(PArray *parray, size_t index, void **element,
+                                                        Status *status) {
     return array_pop_unordered(&parray->array, index, element, status);
 }
 
@@ -425,7 +419,7 @@ void parray_pop_leave_null_fast(PArray *parray, size_t index, void **element) {
 static inline
 bool parray_pop_leave_null(PArray *parray, size_t index, void **element,
                                                          Status *status) {
-    if (index >= parray->len) {
+    if (index >= parray->array.len) {
         return index_out_of_bounds(status);
     }
 

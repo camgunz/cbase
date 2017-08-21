@@ -41,10 +41,6 @@ cbase requires:
 - dynamic allocation
 - 32 or 64-bit architecture
 
-It may be possible to run on 16-bit or smaller architectures if you use
-different hashing functions for `table` than those provided in `hash`.
-This is untested.
-
 ## Dependencies
 
 cbase depends on:
@@ -140,3 +136,21 @@ In the error case, `Status` is still relatively quick:
   - Returning a `bool`
   - Checking the value of the returned `bool`
 
+## General Philosophy
+
+### Security is the default
+
+cbase's basic functions perform checks by default; usually these are bounds and
+overflow checks.  cbase always checks return values and never swallows errors.
+
+### Performance is possible
+
+Where possible, cbase provides `_fast` variants of functions that bypass
+checks.  For example, if you use `array_ensure_capacity`, you can then use
+`array_index_fast` with confidence as long as your index is within the ensured
+capacity.
+
+### Consistency is paramount
+
+cbase strives for consistency everywhere: naming, parameter order (counts
+before sizes), style, and so on.
