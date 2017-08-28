@@ -1,12 +1,5 @@
 #include "cbase.h"
 
-#define empty(status) status_failure( \
-    status,                           \
-    "sslice",                         \
-    SSLICE_EMPTY,                     \
-    "SSlice is empty"                 \
-)
-
 #define not_subslice(status) status_failure( \
     status,                                  \
     "sslice",                                \
@@ -15,33 +8,18 @@
 )
 
 bool sslice_index_rune(SSlice *sslice, size_t index, rune *r, Status *status) {
-    if (index >= sslice->len) {
-        return index_out_of_bounds(status);
-    }
-
-    if (sslice_empty(sslice)) {
-        return empty(status);
-    }
-
-    return utf8_index_rune(string->buffer.array.data, index, rune, status);
+    return utf8_index_rune(sslice->data, index, r, status);
 }
 
 bool sslice_skip_runes(SSlice *sslice, size_t rune_count, Status *status) {
-    char *cursor = NULL;
+    char *saved_data = sslice->data;
 
-    if (sslice_empty(sslice)) {
-        return empty(status);
-    }
-
-    if (!utf8_skip(sslice->data, rune_count, &cursor, status)) {
+    if (!utf8_index(sslice->data, sslice->byte_len, rune_count, &sslice->data,
+                                                                status)) {
         return false;
     }
 
-    ptrdiff_t bytes_read = cursor - s->data;
-
-    sslice->len -= rune_count;
-    sslice->byte_len -= bytes_read;
-    sslice->data += bytes_read;
+    sslice->byte_len -= sslice->data - saved_data;
 
     return status_ok(status);
 }
@@ -49,10 +27,6 @@ bool sslice_skip_runes(SSlice *sslice, size_t rune_count, Status *status) {
 bool sslice_skip_rune_if_equals(SSlice *sslice, rune r, Status *status) {
     rune r2;
     size_t bytes_read;
-
-    if (sslice_empty(sslice)) {
-        return false;
-    }
 
     if (!utf8_get_first_rune_len(sslice->data, &r2, &bytes_read, status)) {
         return false;
@@ -85,64 +59,46 @@ bool sslice_pop_rune(SSlice *sslice, rune *r, Status *status) {
 
 bool sslice_starts_with_rune(SSlice *sslice, rune r, bool *starts_with,
                                                      Status *status) {
-    rune r2 = 0;
-
-    if (!sslice_get_first_rune(sslice, &r2, status)) {
-        return false;
-    }
-
-    *starts_with = r2 == r;
-
-    return status_ok(status);
+    return utf8_starts_with_rune(sslice->data, sslice->byte_len, r,
+                                                                 starts_with,
+                                                                 status);
 }
 
 bool sslice_starts_with_cstr(SSlice *sslice, const char *cs, bool *starts_with,
                                                              Status *status) {
-    if (sslice_empty(sslice)) {
-        return empty(status);
-    }
+    return utf8_starts_with_cstr(sslice->data, sslice->byte_len, cs,
+                                                                 starts_with,
+                                                                 status);
+}
 
-    *starts_with = (
-        (strlen(cs) <= sslice->byte_len) &&
-        (memcmp(sslice->data, cs, sslice->byte_len) == 0)
-    );
-
-    return status_ok(status);
+bool sslice_starts_with_sslice(SSlice *sslice1, SSlice *sslice2,
+                                                bool *starts_with
+                                                Status *status) {
+    return utf8_starts_with_data(sslice1->data, sslice1->byte_len,
+                                 sslice2->data, sslice2->byte_len,
+                                                starts_with,
+                                                status);
 }
 
 bool sslice_ends_with_rune(SSlice *sslice, rune r, bool *ends_with,
                                                    Status *status) {
-    rune r2;
-
-    if (sslice_empty(sslice)) {
-        return empty(status);
-    }
-
-    if (!utf8_get_end_rune(sslice->data, sslice->byte_len, &r2, status)) {
-        return false;
-    }
-
-    *ends_with = r2 == r;
-
-    return status_ok(status);
+    return utf8_ends_with_rune(sslice->data, sslice->byte_len, r, ends_with,
+                                                                  status);
 }
 
 bool sslice_ends_with_cstr(SSlice *sslice, const char *cs, bool *ends_with,
                                                            Status *status) {
-    size_t cstr_byte_len = 0;
+    return utf8_ends_with_cstr(sslice->data, sslice->byte_len, cs, ends_with,
+                                                                   status);
+}
 
-    if (sslice_empty(sslice)) {
-        return empty(status);
-    }
-
-    cstr_byte_len = strlen(cs);
-
-    *ends_with = (
-        (cstr_byte_len <= sslice->byte_len) &&
-        (memcmp(data + (byte_len - cstr_byte_len), cs, cstr_byte_len) == 0)
-    );
-
-    return status_ok(status);
+bool sslice_ends_with_sslice(SSlice *sslice1, SSlice *sslice2,
+                                              bool *ends_with,
+                                              Status *status) {
+    return utf8_ends_with_data(sslice1->data, sslice1->byte_len,
+                               sslice2->data, sslice2->byte_len,
+                                              ends_with,
+                                              status);
 }
 
 bool sslice_pop_rune_if_matches(SSlice *sslice, RuneMatchFunc *matches,
@@ -150,10 +106,6 @@ bool sslice_pop_rune_if_matches(SSlice *sslice, RuneMatchFunc *matches,
                                                 Status *status) {
     rune r2 = 0;
     size_t bytes_read;
-
-    if (sslice_empty(sslice)) {
-        return empty(status);
-    }
 
     if (!utf8_get_first_rune_len(sslice->data, &r2, &bytes_read, status)) {
         return false;

@@ -10,6 +10,8 @@ enum {
     UTF8_UNKNOWN_ERROR
 };
 
+/* [TODO] Bounds checking */
+
 bool utf8_handle_error_code(ssize_t error_code, Status *status);
 
 static inline
@@ -120,13 +122,38 @@ void utf8_cstr_len(const char *data, size_t *len) {
 }
 
 static inline
-bool utf8_equal(const char *s1, const char *s2, size_t n) {
-    return memcmp(s1, s2, n) == 0;
+bool utf8_equal_fast(const char *s1, const char *s2, size_t byte_len) {
+    return memcmp(s1, s2, byte_len) == 0;
 }
 
 static inline
-bool utf8_cstr_equal(const char *s1, const char *s2) {
+bool utf8_equal(const char *s1, const char *s2, size_t byte_len,
+                                                bool *equal,
+                                                Status *status) {
+    if ((!s1) || (!*s1) || (!s2) || (!*s2)) {
+        return status_failure(status, "utf8", UTF8_EMPTY, "No data passed");
+    }
+
+    *equal = utf8_equal_fast(s1, s2, byte_len);
+
+    return status_ok(status);
+}
+
+static inline
+bool utf8_cstr_equal_fast(const char *s1, const char *s2) {
     return strcmp(s1, s2) == 0;
+}
+
+static inline
+bool utf8_cstr_equal(const char *s1, const char *s2, bool *equal,
+                                                     Status *status) {
+    if ((!s1) || (!*s1) || (!s2) || (!*s2)) {
+        return status_failure(status, "utf8", UTF8_EMPTY, "No data passed");
+    }
+
+    *equal = utf8_cstr_equal_fast(s1, s2);
+
+    return status_ok(status);
 }
 
 static inline
@@ -562,6 +589,256 @@ void utf8_slice_fast(const char *data, size_t byte_len, size_t index,
                                                         char **end) {
     utf8_index_fast(data, byte_len, index, start);
     utf8_index_fast(*start, byte_len, len, end);
+}
+
+static inline
+bool utf8_starts_with_data_fast(const char *s1, size_t byte_len1,
+                                const char *s2, size_t byte_len2) {
+    return (
+        (byte_len2 <= byte_len1) &&
+        (utf8_equal_fast(s1, s2, byte_len2))
+    );
+}
+
+static inline
+bool utf8_starts_with_data(const char *s1, size_t byte_len1,
+                           const char *s2, size_t byte_len2,
+                                           bool *starts_with,
+                                           Status *status) {
+    if ((!s1) || (!*s1) || (!s2) || (!*s2)) {
+        return status_failure(status, "utf8", UTF8_EMPTY, "No data passed");
+    }
+
+    *starts_with = utf8_starts_with_data_fast(s1, byte_len1, s2, byte_len2);
+
+    return status_ok(status);
+}
+
+static inline
+bool utf8_starts_with_cstr_fast(const char *data, size_t byte_len,
+                                                  const char *cs) {
+    return utf8_starts_with_data_fast(data, byte_len, cs, strlen(cs));
+}
+
+static inline
+bool utf8_starts_with_cstr(const char *data, size_t byte_len,
+                                             const char *cs,
+                                             bool *starts_with,
+                                             Status *status) {
+    if ((!data) || (!*data) || (!cs) || (!*cs)) {
+        return status_failure(status, "utf8", UTF8_EMPTY, "No data passed");
+    }
+
+    *starts_with = utf8_starts_with_cstr_fast(data, byte_len, cs);
+
+    return status_ok(status);
+}
+
+static inline
+bool utf8_starts_with_rune_fast(const char *data, size_t byte_len, rune r) {
+    rune r2 = 0;
+
+    utf8_get_first_rune(data, byte_len, &r2);
+
+    return r2 == r;
+}
+
+static inline
+bool utf8_starts_with_rune(const char *data, size_t byte_len,
+                                             rune r,
+                                             bool *starts_with,
+                                             Status *status) {
+    if ((!data) || (!*data)) {
+        return status_failure(status, "utf8", UTF8_EMPTY, "No data passed");
+    }
+
+    *starts_with = utf8_starts_with_rune_fast(data, byte_len, r);
+
+    return status_ok(status);
+}
+
+static inline
+bool utf8_cstr_starts_with_data_fast(const char *cs, const char *data,
+                                                     size_t byte_len) {
+    return utf8_starts_with_data_fast(cs, strlen(cs), data, byte_len);
+}
+
+static inline
+bool utf8_cstr_starts_with_data(const char *cs, const char *data,
+                                                size_t byte_len,
+                                                bool *starts_with,
+                                                Status *status) {
+    if ((!cs) || (!*cs) || (!data) || (!*data)) {
+        return status_failure(status, "utf8", UTF8_EMPTY, "No data passed");
+    }
+
+    *starts_with = utf8_cstr_starts_with_data_fast(cs, data, byte_len);
+
+    return status_ok(status);
+}
+
+static inline
+bool utf8_cstr_starts_with_cstr_fast(const char *cs1, const char *cs2) {
+    return utf8_starts_with_data_fast(cs1, strlen(cs1), cs2, strlen(cs2));
+}
+
+static inline
+bool utf8_cstr_starts_with_cstr(const char *cs1, const char *cs2,
+                                                 bool *starts_with,
+                                                 Status *status) {
+    if ((!cs1) || (!*cs1) || (!cs2) || (!*cs2)) {
+        return status_failure(status, "utf8", UTF8_EMPTY, "No data passed");
+    }
+
+    *starts_with = utf8_cstr_starts_with_cstr_fast(cs1, cs2);
+
+    return status_ok(status);
+}
+
+static inline
+bool utf8_cstr_starts_with_rune_fast(const char *data, rune r) {
+    rune r2 = 0;
+
+    utf8_cstr_get_first_rune_fast(data, &r2);
+
+    return r2 == r;
+}
+
+static inline
+bool utf8_cstr_starts_with_rune(const char *data, rune r, bool *starts_with,
+                                                          Status *status) {
+    if ((!data) || (!*data)) {
+        return status_failure(status, "utf8", UTF8_EMPTY, "No data passed");
+    }
+
+    *starts_with = utf8_cstr_starts_with_rune_fast(data, r);
+
+    return status_ok(status);
+}
+
+static inline
+bool utf8_ends_with_data_fast(const char *s1, size_t byte_len1,
+                              const char *s2, size_t byte_len2) {
+    return (
+        (byte_len2 <= byte_len1) &&
+        (utf8_equal_fast(s1 + (byte_len1 - byte_len2), s2, byte_len2))
+    );
+}
+
+static inline
+bool utf8_ends_with_data(const char *s1, size_t byte_len1,
+                         const char *s2, size_t byte_len2,
+                                         bool *ends_with,
+                                         Status *status) {
+    if ((!s1) || (!*s1) || (!s2) || (!*s2)) {
+        return status_failure(status, "utf8", UTF8_EMPTY, "No data passed");
+    }
+
+    *ends_with = utf8_ends_with_data_fast(s1, byte_len1, s2, byte_len2);
+
+    return status_ok(status);
+}
+
+static inline
+bool utf8_ends_with_cstr_fast(const char *data, size_t byte_len,
+                                                const char *cs) {
+    return utf8_ends_with_data_fast(data, byte_len, cs, strlen(cs));
+}
+
+static inline
+bool utf8_ends_with_cstr(const char *data, size_t byte_len,
+                                           const char *cs,
+                                           bool *ends_with,
+                                           Status *status) {
+    if ((!data) || (!*data) || (!cs) || (!*cs)) {
+        return status_failure(status, "utf8", UTF8_EMPTY, "No data passed");
+    }
+
+    *ends_with = utf8_ends_with_cstr_fast(data, byte_len, cs);
+
+    return status_ok(status);
+}
+
+static inline
+bool utf8_ends_with_rune_fast(const char *data, size_t byte_len, rune r) {
+    rune r2 = 0;
+
+    utf8_get_last_rune(data, byte_len, &r2);
+
+    return r2 == r;
+}
+
+static inline
+bool utf8_ends_with_rune(const char *data, size_t byte_len,
+                                           rune r,
+                                           bool *ends_with,
+                                           Status *status) {
+    if ((!data) || (!*data)) {
+        return status_failure(status, "utf8", UTF8_EMPTY, "No data passed");
+    }
+
+    *ends_with = utf8_ends_with_rune_fast(data, byte_len, r);
+
+    return status_ok(status);
+}
+
+static inline
+bool utf8_cstr_ends_with_data_fast(const char *cs, const char *data,
+                                                   size_t byte_len) {
+    return utf8_ends_with_data_fast(cs, strlen(cs), data, byte_len);
+}
+
+static inline
+bool utf8_cstr_ends_with_data(const char *cs, const char *data,
+                                              size_t byte_len,
+                                              bool *ends_with,
+                                              Status *status) {
+    if ((!cs) || (!*cs) || (!data) || (!*data)) {
+        return status_failure(status, "utf8", UTF8_EMPTY, "No data passed");
+    }
+
+    *ends_with = utf8_cstr_ends_with_data_fast(cs, data, byte_len);
+
+    return status_ok(status);
+}
+
+static inline
+bool utf8_cstr_ends_with_cstr_fast(const char *cs1, const char *cs2) {
+    return utf8_ends_with_data_fast(cs1, strlen(cs1), cs2, strlen(cs2));
+}
+
+static inline
+bool utf8_cstr_ends_with_cstr(const char *cs1, const char *cs2,
+                                               bool *ends_with,
+                                               Status *status) {
+    if ((!cs1) || (!*cs1) || (!cs2) || (!*cs2)) {
+        return status_failure(status, "utf8", UTF8_EMPTY, "No data passed");
+    }
+
+    *ends_with = utf8_cstr_ends_with_cstr_fast(cs1, cs2);
+
+    return status_ok(status);
+}
+
+static inline
+bool utf8_cstr_ends_with_rune_fast(const char *data, rune r) {
+    rune r2 = 0;
+
+    utf8_cstr_get_last_rune_fast(data, &r2);
+
+    return r2 == r;
+}
+
+static inline
+bool utf8_cstr_ends_with_rune(const char *data, rune r, bool *ends_with,
+                                                        Status *status) {
+    if ((!data) || (!*data)) {
+        return status_failure(status, "utf8", UTF8_EMPTY, "No data passed");
+    }
+
+    *ends_with = utf8_cstr_ends_with_rune_fast(data, r);
+
+    return status_ok(status);
 }
 
 bool rune_to_string(rune r, char **out, Status *status);
