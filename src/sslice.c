@@ -165,7 +165,7 @@ bool sslice_seek_to_cstr(SSlice *sslice, const char *cs, Status *status) {
     sslice_copy(&copy, sslice);
 
     while (copy.byte_len >= cslen) {
-        if (utf8ncmp(copy.data, cs, cslen)) {
+        if (utf8_equal_fast(copy.data, cs, cslen)) {
             sslice_copy(sslice, &copy);
             return status_ok(status);
         }
@@ -178,10 +178,10 @@ bool sslice_seek_to_cstr(SSlice *sslice, const char *cs, Status *status) {
     return not_found(status);
 }
 
-bool sslice_seek_to_whitespace(SSlice *s, Status *status) {
+bool sslice_seek_to_whitespace(SSlice *sslice, Status *status) {
     SSlice cursor;
 
-    sslice_copy(&cursor, s);
+    sslice_copy(&cursor, sslice);
 
     while (true) {
         rune r;
@@ -192,7 +192,7 @@ bool sslice_seek_to_whitespace(SSlice *s, Status *status) {
         }
 
         if (rune_is_whitespace(r)) {
-            sslice_copy(s, &cursor);
+            sslice_copy(sslice, &cursor);
             return status_ok(status);
         }
 
@@ -202,25 +202,24 @@ bool sslice_seek_to_whitespace(SSlice *s, Status *status) {
     }
 }
 
-bool sslice_seek_to_subslice(SSlice *s, SSlice *subslice, Status *status) {
-    if (subslice->data < s->data) {
+bool sslice_seek_to_subslice(SSlice *sslice, SSlice *subslice,
+                                             Status *status) {
+    if (subslice->data < sslice->data) {
         return not_subslice(status);
     }
 
-    if (subslice->data >= (s->data + s->byte_len)) {
+    if (subslice->data >= (sslice->data + sslice->byte_len)) {
         return index_out_of_bounds(status);
     }
 
-    if (s->data == subslice->data) {
+    if (sslice->data == subslice->data) {
         return status_ok(status);
     }
 
-    size_t start_byte_len = subslice->data - s->data;
+    size_t start_byte_len = subslice->data - sslice->data;
     size_t start_len;
 
-    if (!utf8nlen(s->data, start_byte_len, &start_len, status)) {
-        return false;
-    }
+    utf8_len(sslice->data, sslice->byte_len, &start_len);
 
     s->len -= start_len;
     s->byte_len -= start_byte_len;
@@ -229,31 +228,30 @@ bool sslice_seek_to_subslice(SSlice *s, SSlice *subslice, Status *status) {
     return status_ok(status);
 }
 
-bool sslice_seek_past_subslice(SSlice *s, SSlice *subslice, Status *status) {
+bool sslice_seek_past_subslice(SSlice *sslice, SSlice *subslice,
+                                               Status *status) {
     size_t start_len = 0;
     char *start = subslice->data + subslice->byte_len;
-    char *current_end = s->data + s->byte_len;
+    char *current_end = sslice->data + sslice->byte_len;
 
-    if (start < s->data) {
+    if (start < sslice->data) {
         return not_subslice(status);
     }
 
     if (start >= current_end) {
-        sslice_clear(s);
+        sslice_clear(sslice);
         return status_ok(status);
     }
 
-    size_t start_byte_len = subslice->data - s->data;
+    size_t start_byte_len = subslice->data - sslice->data;
 
     if (start_byte_len) {
-        if (!utf8nlen(s->data, start_byte_len, &start_len, status)) {
-            return false;
-        }
+        utf8_len(sslice->data, start_byte_len, &start_len);
     }
 
-    s->len -= (start_len + subslice->len);
-    s->byte_len -= (start_byte_len + subslice->len);
-    s->data = start;
+    sslice->len -= (start_len + subslice->len);
+    sslice->byte_len -= (start_byte_len + subslice->len);
+    sslice->data = start;
 
     return status_ok(status);
 }
@@ -283,20 +281,29 @@ bool sslice_seek_past_whitespace(SSlice *s, Status *status) {
 }
 
 bool sslice_truncate_runes(SSlice *sslice, size_t rune_count, Status *status) {
-    size_t offset;
+    char *end_point = NULL;
 
     if (sslice->len < rune_count) {
         sslice_clear(sslice);
         return status_ok(status);
     }
 
-    if (!utf8_get_end_offset(data, rune_count, sslice->byte_len, &offset,
-                                                                 status)) {
+    if (rune_count > (sslice->len / 2)) {
+        if (!utf8_index_reverse(sslice->data, sslice->byte_len,
+                                              sslice->len - rune_count,
+                                              &end_point,
+                                              status)) {
+            return false;
+        }
+    }
+    else if (utf8_index(sslice->data, sslice->byte_len, sslice->len,
+                                                        &end_point,
+                                                        status)) {
         return false;
     }
 
     s->len -= rune_count;
-    s->byte_len -= offset;
+    s->byte_len = end_point - sslice->data;
 
     return status_ok(status);
 }

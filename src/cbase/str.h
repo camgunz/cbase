@@ -2,9 +2,9 @@
 #define STR_H__
 
 typedef struct StringStruct {
-    Buffer buffer;
     size_t len;
     size_t byte_len;
+    Buffer buffer;
 } String;
 
 static inline

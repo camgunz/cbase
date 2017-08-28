@@ -2,8 +2,8 @@
 #define SLICE_H__
 
 typedef struct {
-    char *data;
     size_t len;
+    char *data;
 } Slice;
 
 static inline

@@ -28,8 +28,6 @@
 - Check for consistency, i.e. when accepting a length, should an error occur if
   len is longer than the data structure, or should it... clear, for example in
   the case of truncation.
-- Anything `*Slice` can do, the underlying data structure should also be able
-  to do.  Probably a lot of copy/paste, but so be it.
 
 ## Tests
 
@@ -42,7 +40,7 @@
 
 ## Docs
 
-- Probably cldoc?
+- cldoc
 
 ## Misc.
 

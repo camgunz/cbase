@@ -18,7 +18,6 @@ typedef void*(TableGetKeyFromObj)(const void *obj);
 typedef bool(TableKeyEqual)(const void *key1, const void *key2);
 
 typedef struct {
-    Array buckets;
     TableGetHashFromKey *key_to_hash;
     TableGetKeyFromObj *obj_to_key;
     TableKeyEqual *key_equal;
@@ -27,6 +26,7 @@ typedef struct {
     size_t bucket_max;
     size_t bucket_mask;
     size_t len;
+    Array buckets;
 } Table;
 
 bool  table_init(Table *table, TableGetHashFromKey *key_to_hash,
