@@ -81,9 +81,7 @@ bool string_assign_utf8_data(String *string, const char *data,
     size_t len = 0;
 
     if (data) {
-        if (!utf8nlen(data, byte_len, &len, status)) {
-            return false;
-        }
+        utf8_len(data, byte_len, &len);
     }
 
     return string_assign_full(string, data, len, byte_len, status);
@@ -530,9 +528,9 @@ bool string_get_first_rune(String *string, rune *r, Status *status) {
 
 static inline
 bool string_get_last_rune(String *string, rune *r, Status *status) {
-    return utf8_get_end_rune(string->buffer.array.data, string->byte_len,
-                                                        r,
-                                                        status) {
+    return utf8_get_end_rune(
+        string->buffer.array.data, string->byte_len, r, status
+    );
 }
 
 static inline
@@ -566,11 +564,11 @@ bool string_equals_utf8_buffer(String *string, Buffer *buffer) {
 }
 
 static inline
-bool string_starts_with_rune(String *s, rune r, bool *starts_with,
+bool string_starts_with_rune(String *string, rune r, bool *starts_with,
                                                 Status *status) {
     rune r2;
 
-    if (!string_get_first_rune(s, &r2, status)) {
+    if (!string_get_first_rune(string, &r2, status)) {
         return false;
     }
 
@@ -650,19 +648,17 @@ bool string_slice_fast(String *string, size_t index, size_t len,
         return false;
     }
 
-    sslice->len = len;
-    sslice->byte_len = end - start;
-    sslice->data = start;
+    sslice_assign_full(sslice, start, len, end - start);
 
-    return true;
+    return status_ok(status);
 }
 
 static inline
-bool string_slice(String *s, size_t index, size_t len, SSlice *sslice,
+bool string_slice(String *string, size_t index, size_t len, SSlice *sslice,
                                                        Status *status) {
     ssize_t error;
 
-    if (!string_slice_fast(s, index, len, sslice, &error)) {
+    if (!string_slice_fast(string, index, len, sslice, &error)) {
         return utf8_handle_error_code(error, status);
     }
 
@@ -870,9 +866,7 @@ bool string_insert_utf8_data(String *string, size_t index, const char *data,
     size_t len = 0;
 
     if (data) {
-        if (!utf8nlen(data, &len, status)) {
-            return false;
-        }
+        utf8_len(data, byte_len, &len);
     }
 
     return string_insert_utf8_data(string, index, data, len, byte_len, status);
@@ -1509,7 +1503,7 @@ bool string_vprintf(String *string, Status *status, const char *fmt,
 }
 
 static inline
-bool string_printf(String *s, Status *status, const char *fmt, ...) {
+bool string_printf(String *string, Status *status, const char *fmt, ...) {
     va_list args;
     bool res;
 
@@ -1525,7 +1519,7 @@ bool string_printf(String *s, Status *status, const char *fmt, ...) {
 }
 
 static inline
-bool string_delete(String *s, size_t index, size_t len, Status *status) {
+bool string_delete(String *string, size_t index, size_t len, Status *status) {
     ssize_t error;
 
     if ((index + len) > string->len) {

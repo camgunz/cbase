@@ -97,8 +97,8 @@ bool string_delete_fast(String *string, size_t index, size_t len,
     return true;
 }
 
-bool string_encode(String *s, const char *encoding, Buffer *out,
-                                                    Status *status) {
+bool string_encode(String *string, const char *encoding, Buffer *out,
+                                                         Status *status) {
     Slice outsl;
 
     outsl.len = out->alloc;
@@ -107,8 +107,8 @@ bool string_encode(String *s, const char *encoding, Buffer *out,
     while (true) {
         Slice in;
 
-        in.len = s->byte_len;
-        in.data = s->data;
+        in.len = string->byte_len;
+        in.data = string->data;
 
         if (charset_convert(&in, "UTF-8", encoding, &outsl, status)) {
             out->len = outsl.data - out->data;

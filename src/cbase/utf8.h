@@ -247,8 +247,7 @@ void utf8_index_rune_len_fast(const char *data, size_t byte_len, size_t index,
     char *cursor = NULL;
 
     utf8_index_fast(data, byte_len, index, &cursor);
-    utf8_decode(data, r);
-    *len = cursor - data;
+    utf8_decode_len(data, r, len);
 }
 
 static inline
@@ -306,8 +305,7 @@ void utf8_cstr_index_rune_len_fast(const char *data, size_t index,
     char *cursor = NULL;
 
     utf8_cstr_index_rune_fast(data, index, r);
-    utf8_decode(data, r);
-    *len = cursor - data;
+    utf8_decode_len(data, r, len);
 }
 
 static inline
@@ -635,24 +633,22 @@ bool utf8_starts_with_cstr(const char *data, size_t byte_len,
 }
 
 static inline
-bool utf8_starts_with_rune_fast(const char *data, size_t byte_len, rune r) {
+bool utf8_starts_with_rune_fast(const char *data, rune r) {
     rune r2 = 0;
 
-    utf8_get_first_rune(data, byte_len, &r2);
+    utf8_get_first_rune_fast(data, &r2);
 
     return r2 == r;
 }
 
 static inline
-bool utf8_starts_with_rune(const char *data, size_t byte_len,
-                                             rune r,
-                                             bool *starts_with,
-                                             Status *status) {
+bool utf8_starts_with_rune(const char *data, rune r, bool *starts_with,
+                                                     Status *status) {
     if ((!data) || (!*data)) {
         return status_failure(status, "utf8", UTF8_EMPTY, "No data passed");
     }
 
-    *starts_with = utf8_starts_with_rune_fast(data, byte_len, r);
+    *starts_with = utf8_starts_with_rune_fast(data, r);
 
     return status_ok(status);
 }
@@ -763,7 +759,7 @@ static inline
 bool utf8_ends_with_rune_fast(const char *data, size_t byte_len, rune r) {
     rune r2 = 0;
 
-    utf8_get_last_rune(data, byte_len, &r2);
+    utf8_get_last_rune_fast(data, byte_len, &r2);
 
     return r2 == r;
 }

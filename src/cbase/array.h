@@ -463,6 +463,8 @@ bool array_assign(Array *array, const void *elements, size_t element_count,
     }
 
     array_truncate_fast(array, element_count);
+
+    return true;
 }
 
 static inline
