@@ -302,8 +302,6 @@ static inline
 void utf8_cstr_index_rune_len_fast(const char *data, size_t index,
                                                      rune *r,
                                                      size_t *len) {
-    char *cursor = NULL;
-
     utf8_cstr_index_rune_fast(data, index, r);
     utf8_decode_len(data, r, len);
 }

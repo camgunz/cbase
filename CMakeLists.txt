@@ -131,6 +131,7 @@ IF(DEBUGGING)
   ENDIF()
 ENDIF()
 
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ferror-limit=10")
 CHECK_SYMBOL_EXISTS(memset_s, string.h HAVE_MEMSET_S)
 CHECK_SYMBOL_EXISTS(explicit_bzero string.h strings.h HAVE_EXPLICIT_ZERO)
 

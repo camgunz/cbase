@@ -1533,26 +1533,29 @@ bool string_delete(String *string, size_t index, size_t len, Status *status) {
     return status_ok(status);
 }
 
+static inline
 bool string_encode(String *string, const char *encoding, Buffer *out,
-                                                         Status *status);
+                                                         Status *status) {
+    return strbase_encode(
+        string->data, string->byte_len, encoding, out, status
+    );
+}
 
 static inline
 bool string_localize(String *string, Buffer *out, Status *status) {
-    return string_encode(string, "wchar_t", out, status);
+    return strbase_localize(string, out, status);
 }
 
 static inline
 void string_clear(String *string) {
     buffer_clear(&string->buffer);
-    string->len = 0;
-    string->byte_len = 0;
+    strbase_clear(&string->len, &string->byte_len);
 }
 
 static inline
 void string_free(String *string) {
     buffer_free(&string->buffer);
-    string->len = 0;
-    string->byte_len = 0;
+    strbase_clear(&string->len, &string->byte_len);
 }
 
 #endif

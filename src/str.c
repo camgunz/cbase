@@ -97,51 +97,6 @@ bool string_delete_fast(String *string, size_t index, size_t len,
     return true;
 }
 
-bool string_encode(String *string, const char *encoding, Buffer *out,
-                                                         Status *status) {
-    Slice outsl;
-
-    outsl.len = out->alloc;
-    outsl.data = out->data;
-
-    while (true) {
-        Slice in;
-
-        in.len = string->byte_len;
-        in.data = string->data;
-
-        if (charset_convert(&in, "UTF-8", encoding, &outsl, status)) {
-            out->len = outsl.data - out->data;
-            break;
-        }
-
-        if (status_match(status, "charset", CHARSET_OUTPUT_BUFFER_TOO_SMALL)) {
-            ptrdiff_t bytes_written = outsl.data - out->data;
-
-            if (!buffer_ensure_capacity(out, out->alloc * 2, status)) {
-                return false;
-            }
-
-            outsl.len = out->alloc - bytes_written;
-            outsl.data = out->data + bytes_written;
-        }
-        else if (status_match(status, "charset",
-                                      CHARSET_BUFFER_DATA_UNINITIALIZED)) {
-            if (!buffer_ensure_capacity(out, 64, status)) {
-                return false;
-            }
-
-            outsl.len = out->alloc;
-            outsl.data = out->data;
-        }
-        else {
-            return false;
-        }
-    }
-
-    return status_ok(status);
-}
-
 void string_replace_cstr(String *s, const char *cs, const char *replacement,
                                                     Status *status) {
     SSlice ss;

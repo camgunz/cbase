@@ -37,6 +37,13 @@
     "unknown utf8proc error"                   \
 )
 
+#define empty(status) status_failure( \
+    status,                           \
+    "utf8",                           \
+    UTF8_EMPTY,                       \
+    "UTF8 data is empty"              \
+)
+
 bool utf8_handle_error_code(ssize_t error_code, Status *status) {
     switch (error_code) {
         case UTF8PROC_ERROR_NOMEM:
@@ -185,6 +192,24 @@ void utf8_index_reverse_fast(const char *data, size_t byte_len,
     }
 
     *cursor = local_cursor;
+}
+
+void utf8_iterate_fast(char **data, size_t *byte_len, rune *r) {
+    size_t rune_byte_len = 0;
+
+    utf8_decode_len(*data, r, &rune_byte_len);
+    *data += rune_byte_len;
+    *byte_len -= rune_byte_len;
+}
+
+bool utf8_iterate(char **data, size_t *byte_len, rune *r, Status *status) {
+    if ((!(*data)) || (!(**data)) || (*byte_len == 0)) {
+        return empty(status);
+    }
+
+    utf8_iterate_fast(data, byte_len, r);
+
+    return status_ok(status);
 }
 
 bool rune_to_string(rune r, char **out, Status *status) {
