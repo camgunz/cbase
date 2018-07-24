@@ -6,7 +6,7 @@ enum {
     SSLICE_NOT_SUBSLICE,
 };
 
-typedef struct {
+typedef struct SSliceStruct {
     size_t len;
     size_t byte_len;
     char *data;
@@ -34,21 +34,22 @@ bool sslice_new_full(SSlice **sslice, char *data, size_t len,
         return false;
     }
 
-    sslice_init_full(*sslice, dadta, len, byte_len);
+    sslice_init_full(*sslice, data, len, byte_len);
 
     return status_ok(status);
 }
 
 static inline
 bool sslice_index_rune(SSlice *sslice, size_t index, rune *r, Status *status) {
+    return strbase_index_rune(
+        sslice->data, sslice->byte_len, index, r, status
+    );
 }
 
 static inline
-bool sslice_empty(SSlice *s) {
-    return strbase_empty(s->data, s->len, s->byte_len);
+bool sslice_empty(SSlice *sslice) {
+    return strbase_empty(sslice->data, sslice->len, sslice->byte_len);
 }
-
-bool sslice_index_rune(SSlice *sslice, size_t index, rune *r, Status *status);
 
 static inline
 bool sslice_get_first_rune(SSlice *sslice, rune *r, Status *status) {
@@ -62,34 +63,23 @@ bool sslice_get_last_rune(SSlice *sslice, rune *r, Status *status) {
 
 static inline
 bool sslice_equals_cstr(SSlice *sslice, const char *cs) {
-    return utf8ncmp(cs, sslice->byte_len, sslice->data);
+    return utf8_cstr_equal_fast(cs, sslice->data);
 }
 
 static inline
 bool sslice_equals_utf8_data(SSlice *sslice, const char *data, size_t len) {
     return (
         (len == sslice->byte_len) &&
-        utf8ncmp(sslice->data, len, data)
+        utf8_cstr_equal_fast(sslice->data, data)
     );
 }
 
 static inline
 bool sslice_equals_sslice(SSlice *s1, SSlice *s2) {
-    return str
     return (
         (s1->len == s2->len) &&
         (s1->byte_len == s2->byte_len) &&
-        (memcmp(s1->data, s2->data2, s1->byte_len) == 0)
-    );
-}
-
-static inline
-bool sslice_equals_string(SSlice *sslice, String *string) {
-    return (
-        (sslice->len == string->len) &&
-        (sslice->byte_len == string->byte_len) &&
-        (memcmp(sslice->data, string->buffer.array.elements,
-                              sslice->byte_len) == 0)
+        (memcmp(s1->data, s2->data, s1->byte_len) == 0)
     );
 }
 
@@ -109,7 +99,7 @@ bool sslice_starts_with_rune(SSlice *sslice, rune r, bool *starts_with,
                                                      Status *status) {
     rune r2;
 
-    if (!sslice_get_first_rune(s, &r2, status)) {
+    if (!sslice_get_first_rune(sslice, &r2, status)) {
         return false;
     }
 
@@ -164,7 +154,7 @@ bool sslice_pop_rune_if_oct_digit(SSlice *sslice, rune *r, Status *status) {
 
 static inline
 bool sslice_pop_rune_if_bin_digit(SSlice *sslice, rune *r, Status *status) {
-    return sslice_pop_rune_if_matches(sslice, rune_is_bin-digit, r, status);
+    return sslice_pop_rune_if_matches(sslice, rune_is_bin_digit, r, status);
 }
 
 static inline
@@ -214,25 +204,25 @@ void sslice_copy(SSlice *dst, SSlice *src) {
 
 static inline
 bool sslice_skip_rune(SSlice *sslice, Status *status) {
-    return sslice_skip_runes(s, 1, status);
+    return sslice_skip_runes(sslice, 1, status);
 }
 
 static inline
 bool sslice_truncate_rune(SSlice *sslice, Status *status) {
-    return sslice_truncate_runes(s, 1, status);
+    return sslice_truncate_runes(sslice, 1, status);
 }
 
 
 static inline
-void sslice_seek_to_end(SSlice *s) {
+void sslice_seek_to_end(SSlice *sslice) {
     sslice->data += sslice->byte_len;
     sslice->len = 0;
     sslice->byte_len = 0;
 }
 
 static inline
-bool sslice_to_cstr(SSlice *s, char **cs, Status *status) {
-    return cbstrndup(s->data, s->byte_len, cs, status);
+bool sslice_to_cstr(SSlice *sslice, char **cs, Status *status) {
+    return cbstrndup(sslice->data, sslice->byte_len, cs, status);
 }
 
 #endif

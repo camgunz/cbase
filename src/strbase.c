@@ -135,7 +135,7 @@ bool strbase_skip_rune_if_matches(char **data, size_t *len,
     return status_ok(status);
 }
 
-bool strbase_pop_rune(String *string, rune *r, Status *status) {
+bool strbase_pop_rune(char **data, rune *r, Status *status) {
     rune r2 = 0;
     size_t rune_byte_len = 0;
 
@@ -153,7 +153,7 @@ bool strbase_pop_rune(String *string, rune *r, Status *status) {
     return status_ok(status);
 }
 
-bool strbase_pop_rune_if_equals(String *string, rune r, Status *status) {
+bool strbase_pop_rune_if_equals(char **data, rune r, Status *status) {
     rune r2 = 0;
     size_t rune_byte_len = 0;
 
@@ -203,11 +203,12 @@ bool strbase_seek_to_rune(char **data, size_t *len, size_t *byte_len,
         rune r2 = 0;
         size_t rune_byte_len = 0;
 
-        strbase_get_first_rune_len_fast(cursor, &r2, &rune_byte_len, status);
+        strbase_get_first_rune_len_fast(cursor, &r2, &rune_byte_len);
 
         if (r2 == r) {
             *len -= i;
             *byte_len -= (cursor - *data);
+            *data = cursor;
             return status_ok(status);
         }
 
@@ -221,23 +222,46 @@ bool strbase_seek_to_utf8_data(char **data, size_t *len, size_t *byte_len,
                                                          const char *data2,
                                                          size_t byte_len2,
                                                          Status *status) {
-    size_t byte_index = 0;
+    char *cursor = *data;
 
     for (size_t i = 0; i < *len; i++) {
         rune r2 = 0;
         size_t rune_byte_len = 0;
 
-        strbase_get_first_rune_len_fast(
-            *data + byte_index, &r2, &rune_byte_len, status
-        );
+        strbase_get_first_rune_len_fast(cursor, &r2, &rune_byte_len);
 
-        if (memcmp(cursor, cs,
+        if (memcmp(*data + i, data2 + i, byte_len2) == 0) {
             *len -= i;
-            *byte_len -= byte_index;
+            *byte_len -= (cursor - *data);
+            *data = cursor;
             return status_ok(status);
         }
 
-        byte_index += rune_byte_len;
+        cursor += rune_byte_len;
+    }
+
+    return not_found(status);
+}
+
+bool strbase_seek_to_match(char **data, size_t *len, size_t *byte_len,
+                                                     RuneMatchFunc matches,
+                                                     Status *status) {
+    char *cursor = *data;
+
+    for (size_t i = 0; i < *len; i++) {
+        rune r2 = 0;
+        size_t rune_byte_len = 0;
+
+        strbase_get_first_rune_len_fast(cursor, &r2, &rune_byte_len);
+
+        if (matches(r)) {
+            *len -= i;
+            *byte_len -= (cursor - *data);
+            *data = cursor;
+            return status_ok(status);
+        }
+
+        cursor += rune_byte_len;
     }
 
     return not_found(status);

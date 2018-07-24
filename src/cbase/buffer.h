@@ -1,7 +1,7 @@
 #ifndef BUFFER_H__
 #define BUFFER_H__
 
-typedef struct {
+typedef struct BufferStruct {
     Array array;
 } Buffer;
 
@@ -219,8 +219,8 @@ void buffer_clear_no_zero(Buffer *buffer) {
 }
 
 static inline
-bool buffer_clear(Buffer *buffer, Status *status) {
-    return array_clear(&buffer->array, status);
+void buffer_clear(Buffer *buffer) {
+    return array_clear(&buffer->array);
 }
 
 static inline
@@ -229,39 +229,41 @@ void buffer_free(Buffer *buffer) {
 }
 
 static inline
-void buffer_insert_fast(Buffer *buffer, size_t index, char *bytes,
-                                                      size_t count) {
+void buffer_insert_data_fast(Buffer *buffer, size_t index, const char *bytes,
+                                                           size_t count) {
     array_insert_many_fast(&buffer->array, index, bytes, count);
 }
 
 static inline
-bool buffer_insert(Buffer *buffer, size_t index, char *bytes, size_t count,
-                                                              Status *status) {
+bool buffer_insert_data(Buffer *buffer, size_t index, const char *bytes,
+                                                      size_t count,
+                                                      Status *status) {
     return array_insert_many(&buffer->array, index, bytes, count, status);
 }
 
 static inline
-void buffer_insert_blank_fast_no_zero(Buffer *buffer, size_t index,
-                                                      size_t count) {
+void buffer_insert_blank_data_fast_no_zero(Buffer *buffer, size_t index,
+                                                           size_t count) {
     array_shift_elements_down_fast_no_zero(&buffer->array, index, count);
 }
 
 static inline
-void buffer_insert_blank_fast(Buffer *buffer, size_t index, size_t count) {
+void buffer_insert_blank_data_fast(Buffer *buffer, size_t index,
+                                                   size_t count) {
     array_shift_elements_down_fast(&buffer->array, index, count);
 }
 
 static inline
-bool buffer_insert_blank_no_zero(Buffer *buffer, size_t index,
-                                                 size_t count,
-                                                 Status *status) {
+bool buffer_insert_blank_data_no_zero(Buffer *buffer, size_t index,
+                                                      size_t count,
+                                                      Status *status) {
     return array_shift_elements_down_no_zero(&buffer->array, index, count,
                                                                     status);
 }
 
 static inline
-bool buffer_insert_blank(Buffer *buffer, size_t index, size_t count,
-                                                       Status *status) {
+bool buffer_insert_blank_data(Buffer *buffer, size_t index, size_t count,
+                                                            Status *status) {
     return array_shift_elements_down(&buffer->array, index, count, status);
 }
 
@@ -278,12 +280,13 @@ bool buffer_insert_slice(Buffer *buffer, size_t index, Slice *slice,
 }
 
 static inline
-void buffer_prepend_fast(Buffer *buffer, char *bytes, size_t count) {
+void buffer_prepend_data_fast(Buffer *buffer, const char *bytes, size_t count) {
     array_prepend_many_fast(&buffer->array, bytes, count);
 }
 
 static inline
-bool buffer_prepend(Buffer *buffer, char *bytes, size_t count, Status *status) {
+bool buffer_prepend_data(Buffer *buffer, const char *bytes, size_t count,
+                                                      Status *status) {
     return array_prepend_many(&buffer->array, bytes, count, status);
 }
 
@@ -299,12 +302,13 @@ bool buffer_prepend_slice(Buffer *buffer, Slice *slice, Status *status) {
 }
 
 static inline
-void buffer_append_fast(Buffer *buffer, char *bytes, size_t count) {
+void buffer_append_data_fast(Buffer *buffer, const char *bytes, size_t count) {
     array_append_many_fast(&buffer->array, bytes, count);
 }
 
 static inline
-bool buffer_append(Buffer *buffer, char *bytes, size_t count, Status *status) {
+bool buffer_append_data(Buffer *buffer, const char *bytes, size_t count,
+                                                           Status *status) {
     return array_append_many(&buffer->array, bytes, count, status);
 }
 
@@ -319,15 +323,15 @@ bool buffer_append_slice(Buffer *buffer, Slice *slice, Status *status) {
 }
 
 static inline
-void buffer_overwrite_fast(Buffer *buffer, size_t index, char *bytes,
-                                                         size_t count) {
+void buffer_overwrite_data_fast(Buffer *buffer, size_t index, const char *bytes,
+                                                              size_t count) {
     array_overwrite_many_fast(&buffer->array, index, bytes, count);
 }
 
 static inline
-bool buffer_overwrite(Buffer *buffer, size_t index, char *bytes,
-                                                    size_t count,
-                                                    Status *status) {
+bool buffer_overwrite_data(Buffer *buffer, size_t index, const char *bytes,
+                                                         size_t count,
+                                                         Status *status) {
     return array_overwrite_many(&buffer->array, index, bytes, count, status);
 }
 
@@ -364,35 +368,10 @@ bool buffer_zero(Buffer *buffer, Status *status) {
     return array_zero_elements(&buffer->array, 0, buffer->array.len, status);
 }
 
-#if 0
-static inline
-bool buffer_encode(Buffer *src const char *src_encoding,
-                               const char *dst_encoding,
-                               Buffer *dst,
-                               Status *status) {
-    while (true) {
-        if (charset_convert_data(src->array.data, src->array.len, src_encoding,
-                                                                  to_encoding,
-                                                                  &dst->array.data,
-                                                                  &dst->array.len,
-                                                                  status)) {
-            break;
-        }
-
-        if (status_match(status, "charset", CHARSET_OUTPUT_BUFFER_TOO_SMALL)) {
-            if (!buffer_ensure_capacity(dst, dst->array.alloc * 2, status)) {
-                return false;
-            }
-        }
-        else {
-            return false;
-        }
-    }
-
-    return status_ok(status);
-}
-#endif
-
+bool buffer_encode(Buffer *src, const char *src_encoding,
+                                const char *dst_encoding,
+                                Buffer *dst,
+                                Status *status);
 #endif
 
 /* vi: set et ts=4 sw=4: */

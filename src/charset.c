@@ -73,8 +73,9 @@ bool charset_convert_data(const char *data, size_t len,
 
     while (true) {
         size_t res;
+        char **cursor = (char **)&data;
 
-        res = iconv(cd, &data, &len, &output_data, &output_len);
+        res = iconv(cd, cursor, &len, &output_data, &output_len);
 
         if (res == (size_t)-1) {
             switch (errno) {

@@ -5,7 +5,7 @@ enum {
     ARRAY_ELEMENT_SIZE_MISMATCH = 1,
 };
 
-typedef struct {
+typedef struct ArrayStruct {
     size_t len;
     size_t alloc;
     size_t element_size;
@@ -661,14 +661,9 @@ void array_clear_no_zero(Array *array) {
 }
 
 static inline
-bool array_clear(Array *array, Status *status) {
-    if (!array_zero_elements(array, 0, array->len, status)) {
-        return false;
-    }
-
+void array_clear(Array *array) {
+    array_zero_elements_fast(array, 0, array->len);
     array_clear_no_zero(array);
-
-    return status_ok(status);
 }
 
 static inline

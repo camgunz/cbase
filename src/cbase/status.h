@@ -14,7 +14,7 @@ typedef enum {
     STATUS_FATAL,    /* Exits program */
 } StatusLevel;
 
-typedef struct {
+typedef struct StatusStruct {
     StatusLevel  level;
     const char  *domain;
     int          code;

@@ -1,7 +1,7 @@
 #ifndef PARRAY_H__
 #define PARRAY_H__
 
-typedef struct {
+typedef struct PArrayStruct {
     Array array;
 } PArray;
 
@@ -434,8 +434,8 @@ void parray_clear_no_null(PArray *parray) {
 }
 
 static inline
-bool parray_clear(PArray *parray, Status *status) {
-    return array_clear(&parray->array, status);
+void parray_clear(PArray *parray) {
+    array_clear(&parray->array);
 }
 
 static inline

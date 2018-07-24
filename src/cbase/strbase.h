@@ -1,6 +1,8 @@
 #ifndef STRBASE_H__
 #define STRBASE_H__
 
+struct SSliceStruct;
+
 enum {
     STRBASE_EMPTY = 1,
 };
@@ -171,7 +173,7 @@ static inline
 bool strbase_skip_rune_if_bin_digit(char **data, size_t *len, size_t *byte_len,
                                                               Status *status) {
     return strbase_skip_rune_if_matches(
-        data, len, byte_len, rune_is_bin-digit, status
+        data, len, byte_len, rune_is_bin_digit, status
     );
 }
 
@@ -191,6 +193,14 @@ bool strbase_skip_rune_if_whitespace(char **data, size_t *len,
         data, len, byte_len, rune_is_whitespace, status
     );
 }
+
+bool strbase_pop_rune(char **data, rune *r, Status *status);
+bool strbase_pop_rune_if_equals(char **data, rune r, Status *status);
+bool strbase_pop_rune_if_matches(char **data, size_t *len,
+                                              size_t *byte_len,
+                                              RuneMatchFunc *matches,
+                                              rune *r,
+                                              Status *status);
 
 static inline
 bool strbase_pop_rune_if_alpha(char **data, size_t *len, size_t *byte_len,
@@ -233,7 +243,7 @@ bool strbase_pop_rune_if_bin_digit(char **data, size_t *len, size_t *byte_len,
                                                              rune *r,
                                                              Status *status) {
     return strbase_pop_rune_if_matches(
-        data, len, byte_len, rune_is_bin-digit, r, status
+        data, len, byte_len, rune_is_bin_digit, r, status
     );
 }
 
@@ -261,7 +271,7 @@ bool strbase_seek_to_rune(char **data, size_t *len, size_t *byte_len,
                                                     Status *status);
 bool strbase_seek_to_utf8_data(char **data, size_t *len, size_t *byte_len,
                                                          const char *data2,
-                                                         size_t *byte_len2,
+                                                         size_t byte_len2,
                                                          Status *status);
 
 static inline
@@ -275,36 +285,39 @@ bool strbase_seek_to_cstr(char **data, size_t *len, size_t *byte_len,
 
 bool strbase_seek_to_match(char **data, size_t *len, size_t *byte_len,
                                                      RuneMatchFunc matches,
-                                                     Status *status) {
-    
-}
+                                                     Status *status);
 
 static inline
 bool strbase_seek_to_whitespace(char **data, size_t *len,
                                              size_t *byte_len,
-                                             RuneMatchFunc matches,
-                                             Status *status);
+                                             Status *status) {
+    return strbase_seek_to_match(
+        data, len, byte_len, rune_is_whitespace, status
+    );
+}
 
-bool strbase_seek_past_whitespace(char **data, size_t *len, size_t *byte_len, Status *status);
+bool strbase_seek_past_whitespace(char **data, size_t *len, size_t *byte_len,
+                                                            Status *status);
 
-static inline
 bool strbase_truncate_runes(char **data, size_t *len, size_t *byte_len,
                                                       size_t rune_count,
-                                                      Status *status) {
-    return strbase_truncate_runes(data, len, byte_len, rune_count, status);
-}
+                                                      Status *status);
 
 bool strbase_truncate_whitespace(char **data, size_t *len, size_t *byte_len,
-                                                            Status *status);
-bool strbase_truncate_at(char **data, size_t *len, size_t *byte_len, rune r, Status *status);
-bool strbase_truncate_at_whitespace(char **data, size_t *len, size_t *byte_len, Status *status);
-bool strbase_truncate_at_subslice(char **data, size_t *len, size_t *byte_len, SSlice *subslice,
+                                                           Status *status);
+bool strbase_truncate_at(char **data, size_t *len, size_t *byte_len,
+                                                   rune r,
                                                    Status *status);
-static inline
+bool strbase_truncate_at_whitespace(char **data, size_t *len, size_t *byte_len,
+                                                              Status *status);
+
+bool strbase_truncate_at_subslice(char **data, size_t *len,
+                                               size_t *byte_len,
+                                               struct SSliceStruct *subslice,
+                                               Status *status);
+
 bool strbase_truncate_rune(const char *data, size_t *len, size_t *byte_len,
-                                                          Status *status) {
-    return strbase_truncate_runes(data, len, byte_len, 1, status);
-}
+                                                          Status *status);
 
 static inline
 void strbase_clear(size_t *len, size_t *byte_len) {

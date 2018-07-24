@@ -178,6 +178,7 @@ IF(${BIGENDIAN})
 ENDIF()
 
 SET(LIBCBASE_SOURCE_FILES
+  ${CMAKE_SOURCE_DIR}/src/buffer.c
   ${CMAKE_SOURCE_DIR}/src/charset.c
   ${CMAKE_SOURCE_DIR}/src/file.c
   ${CMAKE_SOURCE_DIR}/src/list.c
@@ -236,10 +237,10 @@ TARGET_LINK_LIBRARIES(cbasesharedlib ${LIBCBASE_LIBRARIES})
 SET_TARGET_PROPERTIES(cbasesharedlib PROPERTIES OUTPUT_NAME cbase)
 
 ADD_EXECUTABLE(cbase_test ${LIBCBASE_SOURCE_FILES}
-  ${CMAKE_SOURCE_DIR}/test/main.c
   ${CMAKE_SOURCE_DIR}/test/charset.c
   ${CMAKE_SOURCE_DIR}/test/dlist.c
   ${CMAKE_SOURCE_DIR}/test/list.c
+  ${CMAKE_SOURCE_DIR}/test/main.c
   ${CMAKE_SOURCE_DIR}/test/path.c
   ${CMAKE_SOURCE_DIR}/test/sslice.c
   ${CMAKE_SOURCE_DIR}/test/status.c

@@ -7,10 +7,6 @@
     "SSlice is not a subslice"               \
 )
 
-bool sslice_index_rune(SSlice *sslice, size_t index, rune *r, Status *status) {
-    return utf8_index_rune(sslice->data, index, r, status);
-}
-
 bool sslice_skip_runes(SSlice *sslice, size_t rune_count, Status *status) {
     char *saved_data = sslice->data;
 

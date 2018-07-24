@@ -47,7 +47,7 @@ enum {
     PATH_UNKNOWN_ERROR,
 };
 
-typedef struct {
+typedef struct PathStruct {
     Buffer local_path;
     String normal_path;
 } Path;

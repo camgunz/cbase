@@ -3,7 +3,7 @@
 
 #define table_node_empty(n) ((n)->distance == SIZE_MAX)
 
-typedef struct {
+typedef struct TArrayNodeStruct {
     size_t distance;
     size_t hash;
     void *obj;
@@ -17,7 +17,7 @@ typedef size_t(TableGetHashFromKey)(const void *key, size_t seed);
 typedef void*(TableGetKeyFromObj)(const void *obj);
 typedef bool(TableKeyEqual)(const void *key1, const void *key2);
 
-typedef struct {
+typedef struct TableStruct {
     TableGetHashFromKey *key_to_hash;
     TableGetKeyFromObj *obj_to_key;
     TableKeyEqual *key_equal;

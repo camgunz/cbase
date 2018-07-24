@@ -1,6 +1,8 @@
 #ifndef TYPES_H__
 #define TYPES_H__
 
+#if 0
+
 typedef uint8_t  u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
@@ -19,6 +21,8 @@ typedef unsigned long long int ulonglong;
 
 typedef float  f32;
 typedef double f64;
+
+#endif
 
 #endif
 
