@@ -131,7 +131,7 @@ IF(DEBUGGING)
   ENDIF()
 ENDIF()
 
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ferror-limit=10")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ferror-limit=0")
 CHECK_SYMBOL_EXISTS(memset_s, string.h HAVE_MEMSET_S)
 CHECK_SYMBOL_EXISTS(explicit_bzero string.h strings.h HAVE_EXPLICIT_ZERO)
 
@@ -184,6 +184,7 @@ SET(LIBCBASE_SOURCE_FILES
   ${CMAKE_SOURCE_DIR}/src/list.c
   ${CMAKE_SOURCE_DIR}/src/log.c
   ${CMAKE_SOURCE_DIR}/src/rune.c
+  ${CMAKE_SOURCE_DIR}/src/slice.c
   ${CMAKE_SOURCE_DIR}/src/sslice.c
   ${CMAKE_SOURCE_DIR}/src/status.c
   ${CMAKE_SOURCE_DIR}/src/str.c

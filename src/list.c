@@ -98,7 +98,7 @@ bool list_new(List **list, size_t element_size, Status *status) {
         return false;
     }
 
-    list_init(list, element_size);
+    list_init(*list, element_size);
 
     return status_ok(status);
 }
@@ -109,7 +109,7 @@ bool list_new_alloc(List **list, size_t element_size, size_t length,
         return false;
     }
 
-    if (!list_init_alloc(list, element_size, length, status)) {
+    if (!list_init_alloc(*list, element_size, length, status)) {
         return false;
     }
 
@@ -213,7 +213,7 @@ bool dlist_new(DList **dlist, size_t element_size, Status *status) {
         return false;
     }
 
-    dlist_init(dlist, element_size);
+    dlist_init(*dlist, element_size);
 
     return status_ok(status);
 }
@@ -224,7 +224,7 @@ bool dlist_new_alloc(DList **dlist, size_t element_size, size_t length,
         return false;
     }
 
-    if (!dlist_init_alloc(dlist, element_size, length, status)) {
+    if (!dlist_init_alloc(*dlist, element_size, length, status)) {
         return false;
     }
 

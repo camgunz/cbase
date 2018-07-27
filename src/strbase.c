@@ -74,20 +74,16 @@ bool strbase_skip_runes(char **data, size_t *len, size_t *byte_len,
                                                   size_t rune_count,
                                                   Status *status) {
     char *cursor = NULL;
-    ptrdiff_t diff = 0;
 
     if (!strbase_index(*data, *byte_len, rune_count, &cursor, status)) {
         return false;
     }
 
-    diff = cursor - *data;
-
-    if (diff < 0) {
-        diff = 0;
+    if (cursor > *data) {
+        *byte_len = (cursor - *data);
     }
 
     *data = cursor;
-    *byte_len = diff;
     *len = *len - rune_count;
 
     return status_ok(status);

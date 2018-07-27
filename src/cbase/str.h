@@ -662,9 +662,9 @@ bool string_slice(String *string, size_t index, size_t len, SSlice *sslice,
 
 static inline
 void string_slice_full(String *string, SSlice *sslice) {
-    sslice->data = string->buffer.array.elements;
-    sslice->len = string->len;
-    sslice->byte_len = string->buffer.array.len;
+    sslice_assign_full(sslice, string->buffer.array.elements,
+                               string->len,
+                               string->buffer.array.len);
 }
 
 bool string_delete_fast(String *string, size_t index, size_t len,
@@ -1483,6 +1483,9 @@ bool string_append_local_data(String *string, const char *data,
                                               Status *status) {
     return string_insert_local_data(string, 0, data, byte_len, status);
 }
+
+bool string_replace_cstr(String *s, const char *cs, const char *replacement,
+                                                    Status *status);
 
 static inline
 bool string_encode(String *string, const char *encoding, Buffer *out,

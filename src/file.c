@@ -338,22 +338,26 @@ static inline bool sslice_is_absolute_path(SSlice *ss) {
         return true;
     }
 
+    /*
+     * [TODO]
+     *
+     *   //SERVER01/share/
+     *   //?/SERVER01/share/
+     *   //?/UNC/[server]/[sharename]/
+     *   //./[physical_device]/
+     */
 
     return false;
 }
 
 static inline bool cstr_is_absolute_path(const char *cs) {
-    size_t len = strlen(cs);
+    SSlice ss;
+    Status status;
 
-    if ((len >= 1) && (cs[0] == '/')) {
-        return true;
-    }
-
-    if ((len >= 3) && (isdigit(cs[0])) && (cs[1] == ':') && (cs[2] == '/')) {
-        return true;
-    }
-
-    return false;
+    return (
+        sslice_assign_cstr(&ss, (char *)cs, &status) &&
+        sslice_is_absolute_path(&ss)
+    );
 }
 
 static bool stat_path(const char *path, struct stat *stat_obj, Status *status) {
@@ -402,6 +406,7 @@ static bool stat_path(const char *path, struct stat *stat_obj, Status *status) {
 static bool canonicalize_path(Path *path, Status *status) {
     SSlice ss1;
     SSlice ss2;
+    bool ends_with = false;
 
     if (!string_replace_cstr(&path->normal_path, "\\", "/", status)) {
         return false;
@@ -421,24 +426,34 @@ static bool canonicalize_path(Path *path, Status *status) {
         return false;
     }
 
-#if 0
-    if (string_ends_with_cstr(&path->normal_path, "/..")) {
-        if (!string_truncate_runes(&path->normal_path, 3, status)) {
-            return false;
-        }
-    }
-#endif
+    /* [TODO] Convert ".." into the enclosing folder. */
 
-    if (string_ends_with_cstr(&path->normal_path, "/.")) {
-        if (!string_truncate_runes(&path->normal_path, 2, status)) {
+    while (true) {
+        if (!string_ends_with_cstr(&path->normal_path, "/.", &ends_with,
+                                                             status)) {
             return false;
         }
-    }
 
-    while (string_ends_with_cstr(&path->normal_path, "/")) {
-        if (!string_truncate_runes(&path->normal_path, 1, status)) {
+        if (ends_with) {
+            if (!string_truncate_runes(&path->normal_path, 2, status)) {
+                return false;
+            }
+
+            continue;
+        }
+
+        if (!string_ends_with_cstr(&path->normal_path, "/", &ends_with,
+                                                             status)) {
             return false;
         }
+
+        if (ends_with) {
+            if (!string_truncate_runes(&path->normal_path, 1, status)) {
+                return false;
+            }
+        }
+
+        break;
     }
 
     return status_ok(status);
@@ -447,7 +462,7 @@ static bool canonicalize_path(Path *path, Status *status) {
 bool path_init(Path *path, Status *status) {
     buffer_init(&path->local_path);
 
-    if (!string_init(&path->normal_path, "", status)) {
+    if (!string_init_from_cstr(&path->normal_path, "", status)) {
         buffer_free(&path->local_path);
         return false;
     }
@@ -475,11 +490,10 @@ bool path_init_and_set(Path *path, SSlice *input, Status *status) {
     return status_ok(status);
 }
 
-bool path_init_and_set_cstr(Path *path, const char *input,
-                                             Status *status) {
+bool path_init_and_set_cstr(Path *path, const char *input, Status *status) {
     SSlice ss;
 
-    if (!sslice_init_from_cstr(&ss, (char *)input, status)) {
+    if (!sslice_assign_cstr(&ss, (char *)input, status)) {
         return false;
     }
 
@@ -496,7 +510,7 @@ bool path_init_and_set_local(Path *path, Slice *input, Status *status) {
         return false;
     }
 
-    if (!string_init(&path->normal_path, "", status)) {
+    if (!string_init_from_cstr(&path->normal_path, "", status)) {
         buffer_free(&path->local_path);
         return false;
     }
@@ -518,7 +532,9 @@ bool path_init_and_set_local(Path *path, Slice *input, Status *status) {
 }
 
 bool path_new(Path **path, Status *status) {
-    if (!cbmalloc(1, sizeof(Path), (void **)path, status)) {
+    Path *new_path = NULL;
+
+    if (!cbmalloc(1, sizeof(Path), (void **)&new_path, status)) {
         return false;
     }
 
@@ -533,7 +549,9 @@ bool path_new(Path **path, Status *status) {
 }
 
 bool path_new_and_set(Path **path, SSlice *input, Status *status) {
-    if (!cbmalloc(1, sizeof(Path), (void **)path, status)) {
+    Path *new_path = NULL;
+
+    if (!cbmalloc(1, sizeof(Path), (void **)&new_path, status)) {
         return false;
     }
 
@@ -548,7 +566,9 @@ bool path_new_and_set(Path **path, SSlice *input, Status *status) {
 }
 
 bool path_new_and_set_local(Path **path, Slice *input, Status *status) {
-    if (!cbmalloc(1, sizeof(Path), (void **)path, status)) {
+    Path *new_path = NULL;
+
+    if (!cbmalloc(1, sizeof(Path), (void **)&new_path, status)) {
         return false;
     }
 
@@ -563,7 +583,9 @@ bool path_new_and_set_local(Path **path, Slice *input, Status *status) {
 }
 
 bool path_new_and_set_cstr(Path **path, const char *input, Status *status) {
-    if (!cbmalloc(1, sizeof(Path), (void **)path, status)) {
+    Path *new_path = NULL;
+
+    if (!cbmalloc(1, sizeof(Path), (void **)&new_path, status)) {
         return false;
     }
 
@@ -610,6 +632,7 @@ bool path_set_local(Path *path, Slice *new_path, Status *status) {
 
 bool path_dirname(Path *path, Path *out, Status *status) {
     SSlice dirname;
+    bool ends_with = false;
 
     if (path_is_root(path)) {
         return is_already_root(status);
@@ -620,8 +643,16 @@ bool path_dirname(Path *path, Path *out, Status *status) {
         return false;
     }
 
-    while (sslice_ends_with_cstr(&dirname, "/")) {
+    if (!sslice_ends_with_cstr(&dirname, "/", &ends_with, status)) {
+        return false;
+    }
+
+    while (ends_with) {
         if (!sslice_truncate_rune(&dirname, status)) {
+            return false;
+        }
+
+        if (!sslice_ends_with_cstr(&dirname, "/", &ends_with, status)) {
             return false;
         }
     }
@@ -686,7 +717,7 @@ bool path_strip_extension(Path *path, Status *status) {
 
     return (
         path_extension(path, &extension, status) &&
-        string_truncate(&path->normal_path, extension.len, status) &&
+        string_truncate_runes(&path->normal_path, extension.len, status) &&
         string_slice(&path->normal_path, 0, path->normal_path.len, &new_path,
                                                                    status) &&
         path_set(path, &new_path, status)
@@ -696,7 +727,7 @@ bool path_strip_extension(Path *path, Status *status) {
 bool path_exists(Path *path, bool *exists, Status *status) {
     struct stat stat_obj;
 
-    if (stat_path(path->local_path.data, &stat_obj, status)) {
+    if (stat_path(path->local_path.array.elements, &stat_obj, status)) {
         *exists = true;
     }
     else if (status_match(status, "path", PATH_NOT_FOUND)) {
@@ -712,7 +743,7 @@ bool path_exists(Path *path, bool *exists, Status *status) {
 bool path_is_file(Path *path, bool *is_file, Status *status) {
     struct stat stat_obj;
 
-    if (!stat_path(path->local_path.data, &stat_obj, status)) {
+    if (!stat_path(path->local_path.array.elements, &stat_obj, status)) {
         return false;
     }
 
@@ -731,7 +762,7 @@ bool path_is_file(Path *path, bool *is_file, Status *status) {
 bool path_is_regular_file(Path *path, bool *is_regular_file, Status *status) {
     struct stat stat_obj;
 
-    if (!stat_path(path->local_path.data, &stat_obj, status)) {
+    if (!stat_path(path->local_path.array.elements, &stat_obj, status)) {
         return false;
     }
 
@@ -743,7 +774,7 @@ bool path_is_regular_file(Path *path, bool *is_regular_file, Status *status) {
 bool path_is_folder(Path *path, bool *is_folder, Status *status) {
     struct stat stat_obj;
 
-    if (!stat_path(path->local_path.data, &stat_obj, status)) {
+    if (!stat_path(path->local_path.array.elements, &stat_obj, status)) {
         return false;
     }
 
@@ -755,7 +786,7 @@ bool path_is_folder(Path *path, bool *is_folder, Status *status) {
 bool path_is_symlink(Path *path, bool *is_symlink, Status *status) {
     struct stat stat_obj;
 
-    if (!stat_path(path->local_path.data, &stat_obj, status)) {
+    if (!stat_path(path->local_path.array.elements, &stat_obj, status)) {
         return false;
     }
 
@@ -765,45 +796,15 @@ bool path_is_symlink(Path *path, bool *is_symlink, Status *status) {
 }
 
 bool path_is_root(Path *path) {
-    String *np = &path->normal_path;
+    SSlice sslice;
 
-    /* "/" */
-    if ((np->byte_len == 1) && (np->data[0] == '/')) {
-        return true;
-    }
+    string_slice_full(&path->normal_path, &sslice);
 
-    /* "C:/" */
-    if ((np->byte_len == 3) && (isalpha(np->data[0])) &&
-                               (np->data[1] == ':') &&
-                               (np->data[2] == '/')) {
-        return true;
-    }
-
-    /* "//?/C:/"                       */
-    if ((np->byte_len == 7) && (np->data[0] == '/') &&
-                               (np->data[1] == '/') &&
-                               (np->data[2] == '?') &&
-                               (np->data[3] == '/') &&
-                               (isalpha(np->data[4])) &&
-                               (np->data[5] == ':') &&
-                               (np->data[6] == '/')) {
-        return true;
-    }
-
-    /*
-     * [TODO]
-     *
-     *   //SERVER01/share/
-     *   //?/SERVER01/share/
-     *   //?/UNC/[server]/[sharename]/
-     *   //./[physical_device]/
-     */
-
-    return false;
+    return sslice_is_absolute_path(&sslice);
 }
 
 bool path_is_readable(Path *path, bool *readable, Status *status) {
-    if (access(path->local_path.data, R_OK) == 0) {
+    if (access(path->local_path.array.elements, R_OK) == 0) {
         *readable = true;
         return status_ok(status);
     }
@@ -851,7 +852,7 @@ bool path_is_readable(Path *path, bool *readable, Status *status) {
 }
 
 bool path_is_writable(Path *path, bool *writable, Status *status) {
-    if (access(path->local_path.data, W_OK) == 0) {
+    if (access(path->local_path.array.elements, W_OK) == 0) {
         *writable = true;
         return status_ok(status);
     }
@@ -900,7 +901,7 @@ bool path_is_writable(Path *path, bool *writable, Status *status) {
 
 bool path_is_readable_and_writable(Path *path, bool *readable_and_writable,
                                                Status *status) {
-    if (access(path->local_path.data, R_OK | W_OK) == 0) {
+    if (access(path->local_path.array.elements, R_OK | W_OK) == 0) {
         *readable_and_writable = true;
         return status_ok(status);
     }
@@ -950,7 +951,7 @@ bool path_is_readable_and_writable(Path *path, bool *readable_and_writable,
 bool path_size(Path *path, size_t *size, Status *status) {
     struct stat stat_buf;
 
-    if (!stat_path(path->local_path.data, &stat_buf, status)) {
+    if (!stat_path(path->local_path.array.elements, &stat_buf, status)) {
         return false;
     }
 
@@ -960,7 +961,8 @@ bool path_size(Path *path, size_t *size, Status *status) {
 }
 
 bool path_rename(Path *old_path, Path *new_path, Status *status) {
-    if (rename(old_path->local_path.data, new_path->local_path.data) != 0) {
+    if (rename(old_path->local_path.array.elements,
+               new_path->local_path.array.elements) != 0) {
 
         switch (errno) {
             case EACCES:
@@ -1032,7 +1034,7 @@ bool path_rename(Path *old_path, Path *new_path, Status *status) {
 }
 
 bool path_delete(Path *path, Status *status) {
-    if (remove(path->local_path.data) != 0) {
+    if (remove(path->local_path.array.elements) != 0) {
         switch (errno) {
             case EACCES:
             case EPERM:
@@ -1086,29 +1088,41 @@ bool path_delete(Path *path, Status *status) {
 }
 
 bool path_join(Path *path, SSlice *path_addition, Status *status) {
+    bool ends_with = false;
+
     if (sslice_is_absolute_path(path_addition)) {
         return subpath_is_absolute(status);
     }
 
-    if (!string_ends_with_cstr(&path->normal_path, "/")) {
+    if (!string_ends_with_cstr(&path->normal_path, "/", &ends_with, status)) {
+        return false;
+    }
+
+    if (ends_with) {
         if (!string_append_cstr(&path->normal_path, "/", status)) {
             return false;
         }
     }
 
     return (
-        string_append(&path->normal_path, path_addition, status) &&
+        string_append_sslice(&path->normal_path, path_addition, status) &&
         canonicalize_path(path, status) &&
         string_localize(&path->normal_path, &path->local_path, status)
     );
 }
 
 bool path_join_cstr(Path *path, const char *path_addition, Status *status) {
+    bool ends_with = false;
+
     if (cstr_is_absolute_path(path_addition)) {
         return subpath_is_absolute(status);
     }
 
-    if (!string_ends_with_cstr(&path->normal_path, "/")) {
+    if (!string_ends_with_cstr(&path->normal_path, "/", &ends_with, status)) {
+        return false;
+    }
+
+    if (ends_with) {
         if (!string_append_cstr(&path->normal_path, "/", status)) {
             return false;
         }
@@ -1122,7 +1136,7 @@ bool path_join_cstr(Path *path, const char *path_addition, Status *status) {
 }
 
 bool path_folder_create(Path *path, int mode, Status *status) {
-    if (mkdir(path->local_path.data, mode) != 0) {
+    if (mkdir(path->local_path.array.elements, mode) != 0) {
         switch (errno) {
             case EACCES:
             case EPERM:
@@ -1171,7 +1185,7 @@ bool path_folder_create(Path *path, int mode, Status *status) {
 }
 
 bool path_folder_delete(Path *path, Status *status) {
-    if (rmdir(path->local_path.data) != 0) {
+    if (rmdir(path->local_path.array.elements) != 0) {
         switch (errno) {
             case EACCES:
             case EPERM:
@@ -1228,7 +1242,7 @@ bool path_file_create(Path *path, int mode, Status *status) {
 }
 
 bool path_file_delete(Path *path, Status *status) {
-    if (unlink(path->local_path.data) != 0) {
+    if (unlink(path->local_path.array.elements) != 0) {
         switch (errno) {
             case EACCES:
             case EPERM:
@@ -1288,7 +1302,8 @@ bool path_file_read(Path *path, Buffer *buffer, Status *status) {
         return false;
     }
 
-    if (!buffer_ensure_capacity(buffer, buffer->len + file_size, status)) {
+    if (!buffer_ensure_capacity(buffer, buffer->array.len + file_size,
+                                        status)) {
         return false;
     }
 
@@ -1316,7 +1331,7 @@ bool path_file_read(Path *path, Buffer *buffer, Status *status) {
 }
 
 bool path_file_open(Path *path, File **file, const char *mode, Status *status) {
-    FILE *fobj = fopen(path->local_path.data, mode);
+    FILE *fobj = fopen(path->local_path.array.elements, mode);
 
     if (!fobj) {
         switch (errno) {
@@ -1408,14 +1423,16 @@ bool file_read(File *file, Buffer *buffer, size_t count, size_t size,
 
     bytes_requested = count * size;
 
-    if (!buffer_ensure_capacity(buffer, buffer->len + bytes_requested,
+    if (!buffer_ensure_capacity(buffer, buffer->array.len + bytes_requested,
                                         status)) {
         return false;
     }
 
-    bytes_read = fread(buffer->data + buffer->len, size, count, fobj);
+    bytes_read = fread(
+        buffer->array.elements + buffer->array.len, size, count, fobj
+    );
 
-    buffer->len += bytes_read;
+    buffer->array.len += bytes_read;
 
     if (bytes_read != bytes_requested) {
         if (feof(fobj)) {

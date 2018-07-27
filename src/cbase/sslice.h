@@ -13,6 +13,21 @@ typedef struct SSliceStruct {
 } SSlice;
 
 static inline
+bool sslice_assign_cstr(SSlice *sslice, char *cs, Status *status) {
+    if (cs) {
+        utf8_process_cstr(cs, &sslice->len, &sslice->byte_len, status);
+    }
+    else {
+        sslice->len = 0;
+        sslice->byte_len = 0;
+    }
+
+    sslice->data = cs;
+
+    return status_ok(status);
+}
+
+static inline
 void sslice_assign_full(SSlice *sslice, char *data, size_t len,
                                                     size_t byte_len) {
     sslice->data = data;
@@ -21,9 +36,17 @@ void sslice_assign_full(SSlice *sslice, char *data, size_t len,
 }
 
 static inline
-void sslice_init_full(SSlice *sslice, char *data, size_t len,
-                                                  size_t byte_len) {
-    sslice_assign_full(sslice, data, len, byte_len);
+bool sslice_new_from_cstr(SSlice **sslice, char *cs, Status *status) {
+    if (!cbmalloc(1, sizeof(SSlice), (void **)sslice, status)) {
+        return false;
+    }
+
+    if (!sslice_assign_cstr(*sslice, cs, status)) {
+        cbfree(*sslice);
+        return false;
+    }
+
+    return status_ok(status);
 }
 
 static inline
@@ -34,7 +57,7 @@ bool sslice_new_full(SSlice **sslice, char *data, size_t len,
         return false;
     }
 
-    sslice_init_full(*sslice, data, len, byte_len);
+    sslice_assign_full(*sslice, data, len, byte_len);
 
     return status_ok(status);
 }
@@ -97,15 +120,49 @@ bool sslice_equals_utf8_buffer(SSlice *sslice, Buffer *buffer) {
 static inline
 bool sslice_starts_with_rune(SSlice *sslice, rune r, bool *starts_with,
                                                      Status *status) {
-    rune r2;
+    return utf8_starts_with_rune(sslice->data, r, starts_with, status);
+}
 
-    if (!sslice_get_first_rune(sslice, &r2, status)) {
-        return false;
-    }
+static inline
+bool sslice_starts_with_cstr(SSlice *sslice, const char *cs, bool *starts_with,
+                                                             Status *status) {
+    return utf8_starts_with_cstr(sslice->data, sslice->byte_len, cs,
+                                                                 starts_with,
+                                                                 status);
+}
 
-    *starts_with = (r2 == r);
+static inline
+bool sslice_starts_with_sslice(SSlice *sslice1, SSlice *sslice2,
+                                                bool *starts_with,
+                                                Status *status) {
+    return utf8_starts_with_data(sslice1->data, sslice1->byte_len,
+                                 sslice2->data, sslice2->byte_len,
+                                                starts_with,
+                                                status);
+}
 
-    return status_ok(status);
+static inline
+bool sslice_ends_with_rune(SSlice *sslice, rune r, bool *ends_with,
+                                                   Status *status) {
+    return utf8_ends_with_rune(sslice->data, sslice->byte_len, r, ends_with,
+                                                                  status);
+}
+
+static inline
+bool sslice_ends_with_cstr(SSlice *sslice, const char *cs, bool *ends_with,
+                                                           Status *status) {
+    return utf8_ends_with_cstr(sslice->data, sslice->byte_len, cs, ends_with,
+                                                                   status);
+}
+
+static inline
+bool sslice_ends_with_sslice(SSlice *sslice1, SSlice *sslice2,
+                                              bool *ends_with,
+                                              Status *status) {
+    return utf8_ends_with_data(sslice1->data, sslice1->byte_len,
+                               sslice2->data, sslice2->byte_len,
+                                              ends_with,
+                                              status);
 }
 
 static inline
@@ -167,14 +224,58 @@ bool sslice_pop_rune_if_whitespace(SSlice *sslice, rune *r, Status *status) {
     return sslice_pop_rune_if_matches(sslice, rune_is_whitespace, r, status);
 }
 
-bool  sslice_seek_to(SSlice *sslice, rune r, Status *status);
-bool  sslice_seek_to_cstr(SSlice *sslice, const char *cs, Status *status);
-bool  sslice_seek_to_whitespace(SSlice *sslice, Status *status);
+static inline
+bool sslice_seek_to_rune(SSlice *sslice, rune r, Status *status) {
+    return strbase_seek_to_rune(
+        &sslice->data, &sslice->len, &sslice->byte_len, rune, status
+    );
+}
+
+static inline
+bool sslice_seek_to_cstr(SSlice *sslice, const char *cs, Status *status) {
+    return strbase_seek_to_cstr(
+        &sslice->data, &sslice->len, &sslice->byte_len, cs, status
+    );
+}
+
+static inline
+bool sslice_seek_to_whitespace(SSlice *sslice, Status *status) {
+    return strbase_seek_to_whitespace(
+        &sslice->data, &sslice->len, &sslice->byte_len, status
+    );
+}
+
 bool  sslice_seek_to_subslice(SSlice *sslice, SSlice *subslice,
                                               Status *status);
 bool  sslice_seek_past_subslice(SSlice *sslice, SSlice *subslice,
                                                 Status *status);
-bool  sslice_seek_past_whitespace(SSlice *sslice, Status *status);
+static inline
+bool sslice_seek_past_whitespace(SSlice *sslice, Status *status) {
+    return strbase_seek_past_whitespace(
+        &sslice->data, &sslice->len, &sslice->byte_len, status
+    );
+}
+
+static inline
+bool sslice_truncate_whitespace(SSlice *sslice, Status *status) {
+    return strbase_truncate_whitespace(
+        &sslice->data, &sslice->len, &sslice->byte_len, status
+    );
+}
+
+static inline
+bool sslice_truncate_at(SSlice *sslice, rune r, Status *status) {
+    return strbase_truncate_whitespace(
+        &sslice->data, &sslice->len, &sslice->byte_len, r, status
+    );
+}
+
+bool sslice_truncate_at_whitespace(SSlice *sslice, Status *status) {
+    return strbase_truncate_at_whitespace(
+        &sslice->data, &sslice->len, &sslice->byte_len, status
+    );
+}
+
 
 static inline
 bool sslice_truncate_runes(SSlice *sslice, size_t rune_count, Status *status) {
@@ -183,9 +284,6 @@ bool sslice_truncate_runes(SSlice *sslice, size_t rune_count, Status *status) {
     );
 }
 
-bool  sslice_truncate_whitespace(SSlice *sslice, Status *status);
-bool  sslice_truncate_at(SSlice *sslice, rune r, Status *status);
-bool  sslice_truncate_at_whitespace(SSlice *sslice, Status *status);
 bool  sslice_truncate_at_subslice(SSlice *sslice, SSlice *subslice,
                                                   Status *status);
 

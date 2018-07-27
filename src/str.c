@@ -97,7 +97,7 @@ bool string_delete_fast(String *string, size_t index, size_t len,
     return true;
 }
 
-void string_replace_cstr(String *s, const char *cs, const char *replacement,
+bool string_replace_cstr(String *s, const char *cs, const char *replacement,
                                                     Status *status) {
     SSlice ss;
 
