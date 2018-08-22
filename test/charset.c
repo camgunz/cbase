@@ -73,8 +73,7 @@ EncodingInfo encoding_info[6] = {
 };
 
 void test_charset(void **state) {
-    Slice inslice;
-    Slice outslice;
+    Buffer in;
     Buffer out;
     String sout;
     Status status;
@@ -83,12 +82,13 @@ void test_charset(void **state) {
 
     status_clear(&status);
 
+    assert_true(buffer_init_alloc(&in, 64, &status));
     assert_true(buffer_init_alloc(&out, 64, &status));
-    assert_true(string_init(&sout, " ", &status));
-    assert_true(string_ensure_capacity(&sout, 64, &status));
+    assert_true(string_init_alloc(&sout, 64, &status));
 
     for (size_t i = 0; i < 6; i++) {
         for (size_t j = 0; j < 6; j++) {
+            size_t len = 0;
             EncodingInfo *from_encoding = &encoding_info[i];
             EncodingInfo *to_encoding = &encoding_info[j];
 
@@ -96,30 +96,50 @@ void test_charset(void **state) {
                 continue;
             }
 
+            buffer_clear(&in);
             buffer_clear(&out);
-            inslice.data = (char *)from_encoding->data;
-            inslice.len = from_encoding->len;
-            outslice.data = out.data;
-            outslice.len = out.alloc;
-            assert_true(charset_convert(&inslice, from_encoding->name,
-                                                  to_encoding->name,
-                                                  &outslice,
-                                                  &status));
-            out.len = (outslice.data - out.data);
-            assert_int_equal(out.len, to_encoding->len);
-            assert_memory_equal(out.data, to_encoding->data, out.len);
+            assert_true(buffer_assign_data(
+                &in,
+                (const char *)from_encoding->data,
+                from_encoding->len,
+                &status
+            ));
+
+            len = out.array.alloc;
+
+            assert_true(charset_convert_data(
+                in.array.elements,
+                in.array.len,
+                from_encoding->name,
+                to_encoding->name,
+                out.array.elements,
+                &len,
+                &status
+            ));
+
+            assert_int_equal(out.array.len, to_encoding->len);
+
+            assert_memory_equal(
+                out.array.elements, to_encoding->data, out.array.len
+            );
 
             string_clear(&sout);
-            assert_true(string_assign_buffer(&sout, &out, to_encoding->name,
-                                                          &status));
-            assert_int_equal(sout.byte_len, strlen(utf8_phrase) + 1);
-            assert_memory_equal(sout.data, utf8_phrase, sout.byte_len);
+            assert_true(string_assign_buffer(
+                &sout, &out, to_encoding->name, &status
+            ));
+            assert_int_equal(sout.buffer.array.len, strlen(utf8_phrase) + 1);
+            assert_memory_equal(
+                sout.buffer.array.elements, utf8_phrase, sout.buffer.array.len
+            );
 
             buffer_clear(&out);
-            assert_true(string_encode(&sout, from_encoding->name, &out,
-                                                                  &status));
-            assert_int_equal(out.len, from_encoding->len);
-            assert_memory_equal(out.data, from_encoding->data, out.len);
+            assert_true(string_encode(
+                &sout, from_encoding->name, &out, &status
+            ));
+            assert_int_equal(out.array.len, from_encoding->len);
+            assert_memory_equal(
+                out.array.elements, from_encoding->data, out.array.len
+            );
         }
     }
 }

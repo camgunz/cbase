@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef ERRORS_H__
 #define ERRORS_H__
 

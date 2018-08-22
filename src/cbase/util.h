@@ -1,5 +1,12 @@
+#pragma once
+
 #ifndef UTIL_H__
 #define UTIL_H__
+
+static inline
+bool cstr_end(const char *cs) {
+    return ((!cs) || (!*cs));
+}
 
 static inline
 bool check_overflow(size_t a, size_t b) {

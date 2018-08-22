@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef LIST_H__
 #define LIST_H__
 

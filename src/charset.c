@@ -55,8 +55,9 @@ bool charset_convert_data(const char *data, size_t len,
                                             const char *src_encoding,
                                             const char *dst_encoding,
                                             char *output_data,
-                                            size_t output_len,
+                                            size_t *output_len,
                                             Status *status) {
+    size_t original_len = *output_len;
     iconv_t cd = iconv_open(dst_encoding, src_encoding);
 
     if (cd == (iconv_t)-1) {
@@ -75,7 +76,7 @@ bool charset_convert_data(const char *data, size_t len,
         size_t res;
         char **cursor = (char **)&data;
 
-        res = iconv(cd, cursor, &len, &output_data, &output_len);
+        res = iconv(cd, cursor, &len, &output_data, output_len);
 
         if (res == (size_t)-1) {
             switch (errno) {
@@ -98,6 +99,8 @@ bool charset_convert_data(const char *data, size_t len,
     if (iconv_close(cd)) {
         return unknown_iconv_error(status);
     }
+
+    *output_len = original_len - *output_len;
 
     return status_ok(status);
 }

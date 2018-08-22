@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef CBASE_H__
 #define CBASE_H__
 

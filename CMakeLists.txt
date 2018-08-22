@@ -178,18 +178,23 @@ IF(${BIGENDIAN})
 ENDIF()
 
 SET(LIBCBASE_SOURCE_FILES
+  ${CMAKE_SOURCE_DIR}/src/alloc.c
+  ${CMAKE_SOURCE_DIR}/src/array.c
   ${CMAKE_SOURCE_DIR}/src/buffer.c
   ${CMAKE_SOURCE_DIR}/src/charset.c
   ${CMAKE_SOURCE_DIR}/src/file.c
   ${CMAKE_SOURCE_DIR}/src/list.c
   ${CMAKE_SOURCE_DIR}/src/log.c
+  ${CMAKE_SOURCE_DIR}/src/parray.c
   ${CMAKE_SOURCE_DIR}/src/rune.c
   ${CMAKE_SOURCE_DIR}/src/slice.c
   ${CMAKE_SOURCE_DIR}/src/sslice.c
   ${CMAKE_SOURCE_DIR}/src/status.c
   ${CMAKE_SOURCE_DIR}/src/str.c
+  ${CMAKE_SOURCE_DIR}/src/strbase.c
   ${CMAKE_SOURCE_DIR}/src/table.c
   ${CMAKE_SOURCE_DIR}/src/utf8.c
+  ${CMAKE_SOURCE_DIR}/src/util.c
   ${CMAKE_SOURCE_DIR}/src/xxhash.c
 )
 

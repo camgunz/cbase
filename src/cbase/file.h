@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef FILE_H__
 #define FILE_H__
 

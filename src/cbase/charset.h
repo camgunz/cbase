@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef CHARSET_H__
 #define CHARSET_H__
 
@@ -15,7 +17,7 @@ bool charset_convert_data(const char *data, size_t len,
                                             const char *src_encoding,
                                             const char *dst_encoding,
                                             char *output_data,
-                                            size_t output_len,
+                                            size_t *output_len,
                                             Status *status);
 
 #endif

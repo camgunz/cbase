@@ -46,7 +46,7 @@
 
 - statuses should also have a `func` field
 - `*_free` functions need an accompanying `*_zero_free` that zeros the data
-  before freeing it.  OpenBSD implements `freezero` and `recallocarray` for
-  this kind of thing and should maybe be used if found; `recallocarray` is
-  tricky though.
+  before freeing it.  OpenBSD provides `freezero` and `recallocarray` for this
+  kind of thing and should maybe be used if found; `recallocarray` is tricky
+  though.
 

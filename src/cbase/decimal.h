@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef DECIMAL_H__
 #define DECIMAL_H__
 

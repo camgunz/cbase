@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef SWAP_H__
 #define SWAP_H__
 

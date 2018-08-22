@@ -675,7 +675,7 @@ bool path_basename(Path *path, SSlice *basename, Status *status) {
     }
 
     while (true) {
-        if (!sslice_seek_to(basename, '/', status)) {
+        if (!sslice_seek_to_rune(basename, '/', status)) {
             if (!status_match(status, "base", ERROR_NOT_FOUND)) {
                 sslice_clear(basename);
                 return false;
@@ -698,7 +698,7 @@ bool path_extension(Path *path, SSlice *extension, Status *status) {
         return false;
     }
 
-    if (!sslice_seek_to(extension, '.', status)) {
+    if (!sslice_seek_to_rune(extension, '.', status)) {
         sslice_clear(extension);
 
         if (status_match(status, "base", ERROR_NOT_FOUND)) {

@@ -18,7 +18,7 @@ void* (*const volatile memset_buf)(void *, int, size_t) = memset;
 
 static
 void secure_memzero(void *buf, size_t len) {
-    (memset_buf)(p, 0, len);
+    (memset_buf)(buf, 0, len);
 }
 
 void zero_buf_fast(void *buf, size_t byte_count) {

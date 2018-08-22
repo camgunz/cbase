@@ -1,7 +1,10 @@
+#pragma once
+
 #ifndef STATUS_H__
 #define STATUS_H__
 
 #define status_ok(status) true
+#define status_propagate(status) false
 
 typedef enum {
     STATUS_OK,       /* OK, no info */

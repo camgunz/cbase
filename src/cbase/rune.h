@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef RUNE_H__
 #define RUNE_H__
 
