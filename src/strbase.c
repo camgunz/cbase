@@ -1,6 +1,5 @@
 #include "cbase.h"
 
-inline
 void strbase_assign_full(char *dst_data, size_t dst_len, size_t dst_byte_len,
                          char *src_data, size_t src_len, size_t src_byte_len) {
     dst_data = src_data;
@@ -8,7 +7,6 @@ void strbase_assign_full(char *dst_data, size_t dst_len, size_t dst_byte_len,
     dst_byte_len = src_byte_len;
 }
 
-inline
 bool strbase_assign_cstr(char **dst_data, size_t *len, size_t *byte_len,
                                                        char *cs,
                                                        Status *status) {
@@ -17,7 +15,7 @@ bool strbase_assign_cstr(char **dst_data, size_t *len, size_t *byte_len,
         *byte_len = 0;
     }
     else if (!utf8_process_cstr(cs, len, byte_len, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     *dst_data = cs;
@@ -25,12 +23,10 @@ bool strbase_assign_cstr(char **dst_data, size_t *len, size_t *byte_len,
     return status_ok(status);
 }
 
-inline
 bool strbase_empty(const char *data, size_t len, size_t byte_len) {
     return (cstr_end(data) || (!len) || (!byte_len));
 }
 
-inline
 bool strbase_equals(const char *data1, size_t len1, size_t byte_len1,
                     const char *data2, size_t len2, size_t byte_len2) {
     return (
@@ -40,31 +36,26 @@ bool strbase_equals(const char *data1, size_t len1, size_t byte_len1,
     );
 }
 
-inline
 bool strbase_equals_cstr_full(const char *data, size_t byte_len,
                                                 const char *cs,
                                                 size_t cs_byte_len) {
     return strbase_equals(data, 0, byte_len, cs, 0, cs_byte_len);
 }
 
-inline
 bool strbase_equals_cstr(const char *data, size_t byte_len, const char *cs) {
     return strbase_equals_cstr_full(data, byte_len, cs, strlen(cs));
 }
 
-inline
 bool strbase_equals_utf8_data(const char *data1, size_t byte_len1,
                               const char *data2, size_t byte_len2) {
     return strbase_equals(data1, 0, byte_len1, data2, 0, byte_len2);
 }
 
-inline
 bool strbase_equals_utf8_slice(const char *data, size_t byte_len,
                                                  Slice *slice) {
     return strbase_equals_utf8_data(data, byte_len, slice->data, slice->len);
 }
 
-inline
 bool strbase_equals_utf8_buffer(const char *data, size_t byte_len,
                                                   Buffer *buffer) {
     return strbase_equals_utf8_data(
@@ -72,7 +63,6 @@ bool strbase_equals_utf8_buffer(const char *data, size_t byte_len,
     );
 }
 
-inline
 void strbase_copy(char **dst_data, size_t *dst_len, size_t *dst_byte_len,
                   const char *src_data, size_t src_len, size_t src_byte_len) {
     *dst_data = (char *)src_data;
@@ -110,6 +100,8 @@ void strbase_copy(char **dst_data, size_t *dst_len, size_t *dst_byte_len,
 #define strbase_ends_with_cstr utf8_ends_with_cstr
 #define strbase_ends_with_rune_fast utf8_ends_with_rune_fast
 #define strbase_ends_with_rune utf8_ends_with_rune
+#define strbase_iterate utf8_iterate
+#define strbase_iterate_fast utf8_iterate_fast
 
 bool strbase_encode(const char *data, size_t byte_len, const char *encoding,
                                                        Buffer *out,
@@ -133,23 +125,23 @@ bool strbase_encode(const char *data, size_t byte_len, const char *encoding,
             ptrdiff_t bytes_written = outsl.data - (char *)out->array.elements;
 
             if (!buffer_ensure_capacity(out, out->array.alloc * 2, status)) {
-                return false;
+                return status_propagate(status);
             }
 
-            outsl.len = out->array.alloc - bytes_written;
             outsl.data = out->array.elements + bytes_written;
+            outsl.len = out->array.alloc - bytes_written;
         }
         else if (status_match(status, "charset",
                                       CHARSET_BUFFER_DATA_UNINITIALIZED)) {
             if (!buffer_ensure_capacity(out, 64, status)) {
-                return false;
+                return status_propagate(status);
             }
 
-            outsl.len = out->array.alloc;
             outsl.data = out->array.elements;
+            outsl.len = out->array.alloc;
         }
         else {
-            return false;
+            return status_propagate(status);
         }
     }
 
@@ -157,7 +149,6 @@ bool strbase_encode(const char *data, size_t byte_len, const char *encoding,
 }
 
 
-inline
 bool strbase_localize(const char *data, size_t byte_len, Buffer *out,
                                                          Status *status) {
     return strbase_encode(data, byte_len, "wchar_t", out, status);
@@ -165,76 +156,40 @@ bool strbase_localize(const char *data, size_t byte_len, Buffer *out,
 
 void strbase_skip_runes_fast(char **data, size_t *len, size_t *byte_len,
                                                        size_t rune_count) {
-    char *cursor = NULL;
-    ptrdiff_t diff = 0;
-
-    strbase_index_fast(*data, *byte_len, rune_count, &cursor);
-
-    diff = cursor - *data;
-
-    if (diff < 0) {
-        diff = 0;
+    while (rune_count-- > 0) {
+        rune r;
+        utf8_iterate_fast(data, byte_len, &r);
     }
 
-    *data = cursor;
-    *byte_len = diff;
-    *len = *len - rune_count;
+    *len -= rune_count;
 }
 
 bool strbase_skip_runes(char **data, size_t *len, size_t *byte_len,
                                                   size_t rune_count,
                                                   Status *status) {
-    char *cursor = NULL;
-
-    if (!strbase_index(*data, *byte_len, rune_count, &cursor, status)) {
-        return false;
+    if (*len > rune_count) {
+        return index_out_of_bounds(status);
     }
 
-    if (cursor > *data) {
-        *byte_len = (cursor - *data);
+    while (rune_count-- > 0) {
+        rune r;
+        if (!utf8_iterate(data, byte_len, &r, status)) {
+            return status_propagate(status);
+        }
     }
 
-    *data = cursor;
-    *len = *len - rune_count;
+    *len -= rune_count;
 
     return status_ok(status);
 }
 
-inline
 void strbase_skip_rune_fast(char **data, size_t *len, size_t *byte_len) {
     strbase_skip_runes_fast(data, len, byte_len, 1);
 }
 
-inline
 bool strbase_skip_rune(char **data, size_t *len, size_t *byte_len,
                                                  Status *status) {
     return strbase_skip_runes(data, len, byte_len, 1, status);
-}
-
-/*
- * [TODO] strbase_skip_rune_* should be defined in terms of
- *        strbase_skip_runes_*, which should use strbase_iterate
- */
-
-bool strbase_skip_rune_if_equals(char **data, size_t *len,
-                                              size_t *byte_len,
-                                              rune r,
-                                              Status *status) {
-    rune r2 = 0;
-    size_t rune_byte_len = 0;
-
-    if (!strbase_index_rune_len(*data, *byte_len, 0, &r2, &rune_byte_len,
-                                                          status)) {
-        return false;
-    }
-
-    if (r2 == r) {
-        *data += rune_byte_len;
-        *len -= 1;
-        *byte_len -= rune_byte_len;
-    }
-
-    return status_ok(status);
 }
 
 bool strbase_skip_rune_if_matches(char **data, size_t *len,
@@ -246,7 +201,7 @@ bool strbase_skip_rune_if_matches(char **data, size_t *len,
 
     if (!strbase_index_rune_len(*data, *byte_len, 0, &r, &rune_byte_len,
                                                          status)) {
-        return false;
+        return status_propagate(status);
     }
 
     if (matches(r)) {
@@ -258,7 +213,27 @@ bool strbase_skip_rune_if_matches(char **data, size_t *len,
     return status_ok(status);
 }
 
-inline
+bool strbase_skip_rune_if_equals(char **data, size_t *len,
+                                              size_t *byte_len,
+                                              rune r,
+                                              Status *status) {
+    rune r2 = 0;
+    size_t rune_byte_len = 0;
+
+    if (!strbase_index_rune_len(*data, *byte_len, 0, &r2, &rune_byte_len,
+                                                          status)) {
+        return status_propagate(status);
+    }
+
+    if (r2 == r) {
+        *data += rune_byte_len;
+        *len -= 1;
+        *byte_len -= rune_byte_len;
+    }
+
+    return status_ok(status);
+}
+
 bool strbase_skip_rune_if_alpha(char **data, size_t *len, size_t *byte_len,
                                                           Status *status) {
     return strbase_skip_rune_if_matches(
@@ -266,7 +241,6 @@ bool strbase_skip_rune_if_alpha(char **data, size_t *len, size_t *byte_len,
     );
 }
 
-inline
 bool strbase_skip_rune_if_hex_digit(char **data, size_t *len, size_t *byte_len,
                                                               Status *status) {
     return strbase_skip_rune_if_matches(
@@ -274,7 +248,6 @@ bool strbase_skip_rune_if_hex_digit(char **data, size_t *len, size_t *byte_len,
     );
 }
 
-inline
 bool strbase_skip_rune_if_digit(char **data, size_t *len, size_t *byte_len,
                                                           Status *status) {
     return strbase_skip_rune_if_matches(
@@ -282,7 +255,6 @@ bool strbase_skip_rune_if_digit(char **data, size_t *len, size_t *byte_len,
     );
 }
 
-inline
 bool strbase_skip_rune_if_oct_digit(char **data, size_t *len, size_t *byte_len,
                                                               Status *status) {
     return strbase_skip_rune_if_matches(
@@ -290,7 +262,6 @@ bool strbase_skip_rune_if_oct_digit(char **data, size_t *len, size_t *byte_len,
     );
 }
 
-inline
 bool strbase_skip_rune_if_bin_digit(char **data, size_t *len, size_t *byte_len,
                                                               Status *status) {
     return strbase_skip_rune_if_matches(
@@ -298,7 +269,6 @@ bool strbase_skip_rune_if_bin_digit(char **data, size_t *len, size_t *byte_len,
     );
 }
 
-inline
 bool strbase_skip_rune_if_alnum(char **data, size_t *len, size_t *byte_len,
                                                           Status *status) {
     return strbase_skip_rune_if_matches(
@@ -306,7 +276,6 @@ bool strbase_skip_rune_if_alnum(char **data, size_t *len, size_t *byte_len,
     );
 }
 
-inline
 bool strbase_skip_rune_if_whitespace(char **data, size_t *len,
                                                   size_t *byte_len,
                                                   Status *status) {
@@ -323,34 +292,13 @@ bool strbase_pop_rune(char **data, size_t *len, size_t *byte_len,
 
     if (!strbase_index_rune_len(*data, *byte_len, 0, &r2, &rune_byte_len,
                                                           status)) {
-        return false;
+        return status_propagate(status);
     }
 
     *data += rune_byte_len;
     *len -= 1;
     *byte_len -= rune_byte_len;
-
     *r = r2;
-
-    return status_ok(status);
-}
-
-bool strbase_pop_rune_if_equals(char **data, size_t *len, size_t *byte_len,
-                                                          rune r,
-                                                          Status *status) {
-    rune r2 = 0;
-    size_t rune_byte_len = 0;
-
-    if (!strbase_index_rune_len(*data, *byte_len, 0, &r2, &rune_byte_len,
-                                                          status)) {
-        return false;
-    }
-
-    if (r2 == r) {
-        *data += rune_byte_len;
-        *len -= 1;
-        *byte_len -= rune_byte_len;
-    }
 
     return status_ok(status);
 }
@@ -365,7 +313,7 @@ bool strbase_pop_rune_if_matches(char **data, size_t *len,
 
     if (!strbase_index_rune_len(*data, *byte_len, 0, &r2, &rune_byte_len,
                                                           status)) {
-        return false;
+        return status_propagate(status);
     }
 
     if (matches(r2)) {
@@ -378,7 +326,6 @@ bool strbase_pop_rune_if_matches(char **data, size_t *len,
     return status_ok(status);
 }
 
-inline
 bool strbase_pop_rune_if_alpha(char **data, size_t *len, size_t *byte_len,
                                                          rune *r,
                                                          Status *status) {
@@ -387,7 +334,6 @@ bool strbase_pop_rune_if_alpha(char **data, size_t *len, size_t *byte_len,
     );
 }
 
-inline
 bool strbase_pop_rune_if_hex_digit(char **data, size_t *len, size_t *byte_len,
                                                              rune *r,
                                                              Status *status) {
@@ -396,7 +342,6 @@ bool strbase_pop_rune_if_hex_digit(char **data, size_t *len, size_t *byte_len,
     );
 }
 
-inline
 bool strbase_pop_rune_if_digit(char **data, size_t *len, size_t *byte_len,
                                                          rune *r,
                                                          Status *status) {
@@ -405,7 +350,6 @@ bool strbase_pop_rune_if_digit(char **data, size_t *len, size_t *byte_len,
     );
 }
 
-inline
 bool strbase_pop_rune_if_oct_digit(char **data, size_t *len, size_t *byte_len,
                                                              rune *r,
                                                              Status *status) {
@@ -414,7 +358,6 @@ bool strbase_pop_rune_if_oct_digit(char **data, size_t *len, size_t *byte_len,
     );
 }
 
-inline
 bool strbase_pop_rune_if_bin_digit(char **data, size_t *len, size_t *byte_len,
                                                              rune *r,
                                                              Status *status) {
@@ -423,7 +366,6 @@ bool strbase_pop_rune_if_bin_digit(char **data, size_t *len, size_t *byte_len,
     );
 }
 
-inline
 bool strbase_pop_rune_if_alnum(char **data, size_t *len, size_t *byte_len,
                                                          rune *r,
                                                          Status *status) {
@@ -432,7 +374,6 @@ bool strbase_pop_rune_if_alnum(char **data, size_t *len, size_t *byte_len,
     );
 }
 
-inline
 bool strbase_pop_rune_if_whitespace(char **data, size_t *len,
                                                  size_t *byte_len,
                                                  rune *r,
@@ -454,9 +395,9 @@ bool strbase_seek_to_rune(char **data, size_t *len, size_t *byte_len,
         strbase_get_first_rune_len_fast(cursor, &r2, &rune_byte_len);
 
         if (r2 == r) {
-            *len -= i;
             *byte_len -= (cursor - *data);
             *data = cursor;
+            *len -= i;
             return status_ok(status);
         }
 
@@ -479,9 +420,9 @@ bool strbase_seek_to_utf8_data(char **data, size_t *len, size_t *byte_len,
         strbase_get_first_rune_len_fast(cursor, &r2, &rune_byte_len);
 
         if (memcmp(*data + i, data2 + i, byte_len2) == 0) {
-            *len -= i;
             *byte_len -= (cursor - *data);
             *data = cursor;
+            *len -= i;
             return status_ok(status);
         }
 
@@ -491,7 +432,6 @@ bool strbase_seek_to_utf8_data(char **data, size_t *len, size_t *byte_len,
     return not_found(status);
 }
 
-inline
 bool strbase_seek_to_cstr(char **data, size_t *len, size_t *byte_len,
                                                     const char *cs,
                                                     Status *status) {
@@ -512,9 +452,9 @@ bool strbase_seek_to_match(char **data, size_t *len, size_t *byte_len,
         strbase_get_first_rune_len_fast(cursor, &r2, &rune_byte_len);
 
         if (matches(r2)) {
+            *data = cursor;
             *len -= i;
             *byte_len -= (cursor - *data);
-            *data = cursor;
             return status_ok(status);
         }
 
@@ -524,7 +464,6 @@ bool strbase_seek_to_match(char **data, size_t *len, size_t *byte_len,
     return not_found(status);
 }
 
-inline
 bool strbase_seek_to_whitespace(char **data, size_t *len,
                                              size_t *byte_len,
                                              Status *status) {
@@ -534,48 +473,121 @@ bool strbase_seek_to_whitespace(char **data, size_t *len,
 }
 
 bool strbase_seek_past_whitespace(char **data, size_t *len, size_t *byte_len,
-                                                            Status *status);
+															Status *status) {
+    while (!cstr_end(*data)) {
+        rune r;
+        size_t rune_byte_len = 0;
+
+        if (!utf8_get_first_rune_len(*data, &r, &rune_byte_len, status)) {
+            return status_propagate(status);
+        }
+
+        if (!rune_is_whitespace(r)) {
+            return status_ok(status);
+        }
+
+        *data += rune_byte_len;
+        *len -= 1;
+        *byte_len -= rune_byte_len;
+    }
+
+    return not_found(status);
+}
 
 bool strbase_truncate_runes(const char *data, size_t *len, size_t *byte_len,
-                            size_t rune_count, Status *status) {
+                                                           size_t rune_count,
+                                                           Status *status) {
     char *cursor = NULL;
-    ptrdiff_t new_byte_len = 0;
+    size_t new_byte_len = 0;
 
     if (!strbase_index_reverse(data, *byte_len, *len - rune_count, &cursor,
                                                                    status)) {
-        return false;
+        return status_propagate(status);
     }
 
-    new_byte_len = cursor - data;
-
-    if (new_byte_len < 0) {
+    if (cursor <= data) {
         new_byte_len = 0;
     }
+    else {
+        new_byte_len = cursor - data;
+    }
 
-    *len = (*len - rune_count);
+    *len -= rune_count;
     *byte_len = new_byte_len;
 
     return status_ok(status);
 }
-bool strbase_truncate_whitespace(char **data, size_t *len, size_t *byte_len,
-                                                           Status *status);
 
-bool strbase_truncate_at(char **data, size_t *len, size_t *byte_len,
-                                                   rune r,
-                                                   Status *status);
+bool strbase_truncate_whitespace(const char *data, size_t *len,
+                                                   size_t *byte_len,
+                                                   Status *status) {
+    while (*byte_len) {
+        rune r;
+        size_t rune_byte_len;
 
-bool strbase_truncate_at_whitespace(char **data, size_t *len, size_t *byte_len,
-                                                              Status *status);
+        if (!utf8_get_last_rune_len(data, *byte_len, &r, &rune_byte_len,
+                                                         status)) {
+            return status_propagate(status);
+        }
 
-bool strbase_truncate_at_subslice(char **data, size_t *len,
-                                               size_t *byte_len,
-                                               struct SSliceStruct *subslice,
-                                               Status *status);
+        if (!rune_is_whitespace(r)) {
+            return status_ok(status);
+        }
 
-bool strbase_truncate_rune(const char *data, size_t *len, size_t *byte_len,
-                                                          Status *status);
+        *len -= 1;
+        *byte_len -= rune_byte_len;
 
-inline
+    }
+
+    return not_found(status);
+}
+
+bool strbase_truncate_at_rune(const char *data, size_t *len, size_t *byte_len,
+														     rune r,
+														     Status *status) {
+    while (*byte_len) {
+        rune r2;
+        size_t rune_byte_len;
+
+        if (!utf8_get_last_rune_len(data, *byte_len, &r2, &rune_byte_len,
+                                                          status)) {
+            return status_propagate(status);
+        }
+
+        if (r2 == r) {
+            return status_ok(status);
+        }
+
+        *len -= 1;
+        *byte_len -= rune_byte_len;
+    }
+
+    return not_found(status);
+}
+
+bool strbase_truncate_at_whitespace(const char *data, size_t *len,
+                                                      size_t *byte_len,
+                                                      Status *status) {
+    while (*byte_len) {
+        rune r;
+        size_t rune_byte_len;
+
+        if (!utf8_get_last_rune_len(data, *byte_len, &r, &rune_byte_len,
+                                                         status)) {
+            return status_propagate(status);
+        }
+
+        if (rune_is_whitespace(r)) {
+            return status_ok(status);
+        }
+
+        *len -= 1;
+        *byte_len -= rune_byte_len;
+    }
+
+    return not_found(status);
+}
+
 void strbase_clear(size_t *len, size_t *byte_len) {
     *len = 0;
     *byte_len = 0;

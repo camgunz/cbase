@@ -1,6 +1,5 @@
 #include "cbase.h"
 
-inline
 bool __cbmalloc(size_t count, size_t size, void **ptr, Status *status) {
     void *new_ptr = NULL;
 
@@ -19,7 +18,6 @@ bool __cbmalloc(size_t count, size_t size, void **ptr, Status *status) {
     return status_ok(status);
 }
 
-inline
 bool __cbcalloc(size_t count, size_t size, void **ptr, Status *status) {
     void *new_ptr = cbbase_calloc(count, size);
 
@@ -32,7 +30,6 @@ bool __cbcalloc(size_t count, size_t size, void **ptr, Status *status) {
     return status_ok(status);
 }
 
-inline
 bool __cbrealloc(size_t count, size_t size, void **ptr, Status *status) {
     void *new_ptr = NULL;
 
@@ -51,12 +48,10 @@ bool __cbrealloc(size_t count, size_t size, void **ptr, Status *status) {
     return status_ok(status);
 }
 
-inline
 void __cbfree(void *ptr) {
     cbbase_free(ptr);
 }
 
-inline
 bool __cbmemmove(void *dest, const void *src, size_t count, size_t size,
                                                             Status *status) {
     if (!check_overflow(count, size)) {
@@ -68,13 +63,11 @@ bool __cbmemmove(void *dest, const void *src, size_t count, size_t size,
     return status_ok(status);
 }
 
-inline
 bool __cbmemcpy(void *dest, const void *src, size_t count, size_t size,
                                                            Status *status) {
     return cbmemmove(dest, src, count, size, status);
 }
 
-inline
 bool __cbmemdup(const void *ptr, size_t byte_count, Status *status) {
     void *buf = NULL;
 
@@ -84,11 +77,10 @@ bool __cbmemdup(const void *ptr, size_t byte_count, Status *status) {
     );
 }
 
-inline
 bool __cbstrndup(const char *cs, size_t len, char **ptr, Status *status) {
     char *new_str = NULL;
     
-    if (!cbmalloc(len + 1, sizeof(char), (void **)new_str, status)) {
+    if (!cbmalloc(len + 1, sizeof(char), new_str, status)) {
         return false;
     }
 
@@ -103,7 +95,6 @@ bool __cbstrndup(const char *cs, size_t len, char **ptr, Status *status) {
     return status_ok(status);
 }
 
-inline
 bool __cbstrdup(const char *cs, char **ptr, Status *status) {
     return cbstrndup(cs, strlen(cs), ptr, status);
 }

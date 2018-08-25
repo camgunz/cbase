@@ -94,7 +94,7 @@ bool list_init_alloc(List *list, size_t element_size, size_t length,
 }
 
 bool list_new(List **list, size_t element_size, Status *status) {
-    if (!cbmalloc(1, sizeof(List), (void **)list, status)) {
+    if (!cbmalloc(1, sizeof(List), list, status)) {
         return false;
     }
 
@@ -105,7 +105,7 @@ bool list_new(List **list, size_t element_size, Status *status) {
 
 bool list_new_alloc(List **list, size_t element_size, size_t length,
                                                       Status *status) {
-    if (!cbmalloc(1, sizeof(List), (void **)list, status)) {
+    if (!cbmalloc(1, sizeof(List), list, status)) {
         return false;
     }
 
@@ -209,7 +209,7 @@ bool dlist_init_alloc(DList *dlist, size_t element_size, size_t length,
 }
 
 bool dlist_new(DList **dlist, size_t element_size, Status *status) {
-    if (!cbmalloc(1, sizeof(DList), (void **)dlist, status)) {
+    if (!cbmalloc(1, sizeof(DList), dlist, status)) {
         return false;
     }
 
@@ -220,7 +220,7 @@ bool dlist_new(DList **dlist, size_t element_size, Status *status) {
 
 bool dlist_new_alloc(DList **dlist, size_t element_size, size_t length,
                                                          Status *status) {
-    if (!cbmalloc(1, sizeof(DList), (void **)dlist, status)) {
+    if (!cbmalloc(1, sizeof(DList), dlist, status)) {
         return false;
     }
 

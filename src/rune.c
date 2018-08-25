@@ -83,6 +83,10 @@ bool rune_is_bin_digit(rune r) {
     return false;
 }
 
+bool rune_is_alnum(rune r) {
+    return rune_is_alpha(r) || rune_is_digit(r);
+}
+
 bool rune_is_whitespace(rune r) {
     utf8proc_category_t category = utf8proc_category(r);
 
@@ -105,6 +109,36 @@ bool rune_is_whitespace(rune r) {
     }
 
     return false;
+}
+
+bool rune_equals_rune(rune r1, rune r2) {
+    return r1 == r2;
+}
+
+bool rune_to_string(rune r, char **out, Status *status) {
+    uint8_t buf[4] = {0};
+    ssize_t bytes_written;
+    char *s;
+
+    bytes_written = utf8proc_encode_char(r, &buf[0]);
+
+    if (bytes_written < 1) {
+        return utf8_handle_error_code(bytes_written, status);
+    }
+
+    if (!cbmalloc(bytes_written + 1, sizeof(char), &s, status)) {
+        return status_propagate(status);
+    }
+
+    if (!cbmemmove(s, buf, bytes_written, sizeof(char), status)) {
+        return status_propagate(status);
+    }
+
+    s[bytes_written] = '\0';
+
+    *out = s;
+
+    return status_ok(status);
 }
 
 /* vi: set et ts=4 sw=4: */

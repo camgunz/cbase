@@ -534,7 +534,7 @@ bool path_init_and_set_local(Path *path, Slice *input, Status *status) {
 bool path_new(Path **path, Status *status) {
     Path *new_path = NULL;
 
-    if (!cbmalloc(1, sizeof(Path), (void **)&new_path, status)) {
+    if (!cbmalloc(1, sizeof(Path), &new_path, status)) {
         return false;
     }
 
@@ -551,7 +551,7 @@ bool path_new(Path **path, Status *status) {
 bool path_new_and_set(Path **path, SSlice *input, Status *status) {
     Path *new_path = NULL;
 
-    if (!cbmalloc(1, sizeof(Path), (void **)&new_path, status)) {
+    if (!cbmalloc(1, sizeof(Path), &new_path, status)) {
         return false;
     }
 
@@ -568,7 +568,7 @@ bool path_new_and_set(Path **path, SSlice *input, Status *status) {
 bool path_new_and_set_local(Path **path, Slice *input, Status *status) {
     Path *new_path = NULL;
 
-    if (!cbmalloc(1, sizeof(Path), (void **)&new_path, status)) {
+    if (!cbmalloc(1, sizeof(Path), &new_path, status)) {
         return false;
     }
 
@@ -585,7 +585,7 @@ bool path_new_and_set_local(Path **path, Slice *input, Status *status) {
 bool path_new_and_set_cstr(Path **path, const char *input, Status *status) {
     Path *new_path = NULL;
 
-    if (!cbmalloc(1, sizeof(Path), (void **)&new_path, status)) {
+    if (!cbmalloc(1, sizeof(Path), &new_path, status)) {
         return false;
     }
 
@@ -657,7 +657,7 @@ bool path_dirname(Path *path, Path *out, Status *status) {
         }
     }
 
-    if (!sslice_truncate_at(&dirname, '/', status)) {
+    if (!sslice_truncate_at_rune(&dirname, '/', status)) {
         if (status_match(status, "base", ERROR_NOT_FOUND)) {
             return path_has_no_dirname(status);
         }

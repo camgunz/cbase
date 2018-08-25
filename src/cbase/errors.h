@@ -12,11 +12,11 @@ enum {
     ERROR_GENERAL_ERROR,
 };
 
-#define index_out_of_bounds(status) status_critical( \
-    status,                                          \
-    "base",                                          \
-    ERROR_OUT_OF_BOUNDS,                             \
-    "index out of bounds"                            \
+#define index_out_of_bounds(status) status_failure( \
+    status,                                         \
+    "base",                                         \
+    ERROR_OUT_OF_BOUNDS,                            \
+    "index out of bounds"                           \
 )
 
 #define alloc_failure(status) status_critical( \

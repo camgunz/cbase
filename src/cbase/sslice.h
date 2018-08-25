@@ -19,6 +19,8 @@ bool sslice_assign_cstr(SSlice *sslice, char *cs, Status *status);
 void sslice_assign_full(SSlice *sslice, char *data, size_t len,
                                                     size_t byte_len);
 
+void sslice_assign_sslice(SSlice *dst, SSlice *src);
+
 bool sslice_new_from_cstr(SSlice **sslice, char *cs, Status *status);
 
 bool sslice_new_full(SSlice **sslice, char *data, size_t len,
@@ -103,7 +105,7 @@ bool sslice_seek_past_whitespace(SSlice *sslice, Status *status);
 
 bool sslice_truncate_whitespace(SSlice *sslice, Status *status);
 
-bool sslice_truncate_at(SSlice *sslice, rune r, Status *status);
+bool sslice_truncate_at_rune(SSlice *sslice, rune r, Status *status);
 
 bool sslice_truncate_at_whitespace(SSlice *sslice, Status *status);
 
@@ -113,8 +115,6 @@ bool sslice_truncate_at_subslice(SSlice *sslice, SSlice *subslice,
                                                  Status *status);
 
 void sslice_clear(SSlice *s);
-
-void sslice_copy(SSlice *dst, SSlice *src);
 
 bool sslice_skip_rune(SSlice *sslice, Status *status);
 

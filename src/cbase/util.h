@@ -4,6 +4,15 @@
 #define UTIL_H__
 
 static inline
+size_t positive_ptrdiff(void *p1, void *p2) {
+    if (p2 <= p1) { /* [TODO] Maybe warn here? */
+        return 0;
+    }
+
+    return p2 - p1;
+}
+
+static inline
 bool cstr_end(const char *cs) {
     return ((!cs) || (!*cs));
 }

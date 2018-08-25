@@ -6,10 +6,14 @@
 #include <cmocka.h>
 
 void test_alloc(void **state) {
+    Status status;
     const char *s = "Hillary Clinton";
-    char *s2 = cbstrdup(s);
+    char *s2 = NULL;
 
     (void)state;
+
+    assert_true(cbstrdup(s, &s2, &status));
+    assert_non_null(s2);
 
     assert_string_equal(s, s2);
 

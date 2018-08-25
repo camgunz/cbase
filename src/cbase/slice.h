@@ -12,6 +12,8 @@ typedef struct SliceStruct {
 
 void slice_assign_data(Slice *slice, char *data, size_t len);
 
+void slice_assign_slice(Slice *dst, Slice *src);
+
 bool slice_equals_data_at_fast(Slice *slice, size_t index, size_t len,
                                                            const void *data);
 

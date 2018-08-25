@@ -1,4 +1,5 @@
 #include <setjmp.h>
+#include <stdio.h>
 
 #include "cbase.h"
 #include "cbase_test.h"

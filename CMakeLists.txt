@@ -147,9 +147,6 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src)
 FIND_PACKAGE(UTF8Proc REQUIRED)
 INCLUDE_DIRECTORIES(${UTF8PROC_INCLUDE_DIR})
 
-FIND_PACKAGE(MPDecimal REQUIRED)
-INCLUDE_DIRECTORIES(${MPDECIMAL_INCLUDE_DIR})
-
 FIND_PACKAGE(Iconv REQUIRED)
 INCLUDE_DIRECTORIES(${ICONV_INCLUDE_DIR})
 
@@ -183,6 +180,7 @@ SET(LIBCBASE_SOURCE_FILES
   ${CMAKE_SOURCE_DIR}/src/buffer.c
   ${CMAKE_SOURCE_DIR}/src/charset.c
   ${CMAKE_SOURCE_DIR}/src/file.c
+  ${CMAKE_SOURCE_DIR}/src/hash.c
   ${CMAKE_SOURCE_DIR}/src/list.c
   ${CMAKE_SOURCE_DIR}/src/log.c
   ${CMAKE_SOURCE_DIR}/src/parray.c
@@ -203,7 +201,6 @@ SET(INCLUDE_FILES
   ${CMAKE_SOURCE_DIR}/src/cbase/array.h
   ${CMAKE_SOURCE_DIR}/src/cbase/buffer.h
   ${CMAKE_SOURCE_DIR}/src/cbase/charset.h
-  ${CMAKE_SOURCE_DIR}/src/cbase/decimal.h
   ${CMAKE_SOURCE_DIR}/src/cbase/errors.h
   ${CMAKE_SOURCE_DIR}/src/cbase/file.h
   ${CMAKE_SOURCE_DIR}/src/cbase/hash.h
@@ -226,7 +223,6 @@ SET(INCLUDE_FILES
 
 SET(LIBCBASE_LIBRARIES
   ${UTF8PROC_LIBRARIES}
-  ${MPDECIMAL_LIBRARIES}
   ${ICONV_LIBRARIES}
 )
 
@@ -243,10 +239,13 @@ TARGET_LINK_LIBRARIES(cbasesharedlib ${LIBCBASE_LIBRARIES})
 SET_TARGET_PROPERTIES(cbasesharedlib PROPERTIES OUTPUT_NAME cbase)
 
 ADD_EXECUTABLE(cbase_test ${LIBCBASE_SOURCE_FILES}
+  ${CMAKE_SOURCE_DIR}/test/alloc.c
+  ${CMAKE_SOURCE_DIR}/test/array.c
   ${CMAKE_SOURCE_DIR}/test/charset.c
   ${CMAKE_SOURCE_DIR}/test/dlist.c
   ${CMAKE_SOURCE_DIR}/test/list.c
   ${CMAKE_SOURCE_DIR}/test/main.c
+  ${CMAKE_SOURCE_DIR}/test/parray.c
   ${CMAKE_SOURCE_DIR}/test/path.c
   ${CMAKE_SOURCE_DIR}/test/sslice.c
   ${CMAKE_SOURCE_DIR}/test/status.c

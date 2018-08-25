@@ -3,6 +3,15 @@
 #ifndef ALLOC_H__
 #define ALLOC_H__
 
+#define _cbmalloc(count, size, ptr, status) \
+    __cbmalloc(count, size, (void **)ptr, status)
+
+#define _cbcalloc(count, size, ptr, status) \
+    __cbcalloc(count, size, (void **)ptr, status)
+
+#define _cbrealloc(count, size, ptr, status) \
+    __cbrealloc(count, size, (void **)ptr, status)
+
 #ifndef cbbase_malloc
 #define cbbase_malloc malloc
 #endif
@@ -24,15 +33,15 @@
 #endif
 
 #ifndef cbmalloc
-#define cbmalloc __cbmalloc
+#define cbmalloc _cbmalloc
 #endif
 
 #ifndef cbcalloc
-#define cbcalloc __cbcalloc
+#define cbcalloc _cbcalloc
 #endif
 
 #ifndef cbrealloc
-#define cbrealloc __cbrealloc
+#define cbrealloc _cbrealloc
 #endif
 
 #ifndef cbfree

@@ -138,10 +138,6 @@ bool strbase_pop_rune(char **data, size_t *len, size_t *byte_len,
                                                 rune *r,
                                                 Status *status);
 
-bool strbase_pop_rune_if_equals(char **data, size_t *len, size_t *byte_len,
-                                                          rune r,
-                                                          Status *status);
-
 bool strbase_pop_rune_if_matches(char **data, size_t *len,
                                               size_t *byte_len,
                                               RuneMatchFunc *matches,
@@ -203,20 +199,18 @@ bool strbase_seek_past_whitespace(char **data, size_t *len, size_t *byte_len,
 
 bool strbase_truncate_runes(const char *data, size_t *len, size_t *byte_len,
                             size_t rune_count, Status *status);
-bool strbase_truncate_whitespace(char **data, size_t *len, size_t *byte_len,
-                                                           Status *status);
 
-bool strbase_truncate_at(char **data, size_t *len, size_t *byte_len,
-                                                   rune r,
+bool strbase_truncate_whitespace(const char *data, size_t *len,
+                                                   size_t *byte_len,
                                                    Status *status);
 
-bool strbase_truncate_at_whitespace(char **data, size_t *len, size_t *byte_len,
-                                                              Status *status);
+bool strbase_truncate_at_rune(const char *data, size_t *len, size_t *byte_len,
+                                                             rune r,
+                                                             Status *status);
 
-bool strbase_truncate_at_subslice(char **data, size_t *len,
-                                               size_t *byte_len,
-                                               struct SSliceStruct *subslice,
-                                               Status *status);
+bool strbase_truncate_at_whitespace(const char *data, size_t *len,
+                                                      size_t *byte_len,
+                                                      Status *status);
 
 bool strbase_truncate_rune(const char *data, size_t *len, size_t *byte_len,
                                                           Status *status);

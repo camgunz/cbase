@@ -69,7 +69,7 @@ bool utf8_cstr_equal(const char *s1, const char *s2, bool *equal,
 
 void utf8_decode(const char *data, rune *r);
 
-void utf8_decode_len(const char *data, rune *r, size_t *len);
+void utf8_decode_len(const char *data, rune *r, size_t *rune_byte_len);
 
 void utf8_index_fast(const char *data, size_t byte_len, size_t index,
                                                         char **cursor);
@@ -85,14 +85,16 @@ bool utf8_index_rune(const char *data, size_t byte_len, size_t index,
                                                         rune *r,
                                                         Status *status);
 
-void utf8_index_rune_len_fast(const char *data, size_t byte_len, size_t index,
-                                                                 rune *r,
-                                                                 size_t *len);
+void utf8_index_rune_len_fast(const char *data, size_t byte_len,
+                                                size_t index,
+                                                rune *r,
+                                                size_t *rune_byte_len);
 
-bool utf8_index_rune_len(const char *data, size_t byte_len, size_t index,
-                                                            rune *r,
-                                                            size_t *len,
-                                                            Status *status);
+bool utf8_index_rune_len(const char *data, size_t byte_len,
+                                           size_t index,
+                                           rune *r,
+                                           size_t *rune_byte_len,
+                                           Status *status);
 
 void utf8_cstr_index_fast(const char *data, size_t index, char **cursor);
 
@@ -106,11 +108,12 @@ bool utf8_cstr_index_rune(const char *data, size_t index, rune *r,
 
 void utf8_cstr_index_rune_len_fast(const char *data, size_t index,
                                                      rune *r,
-                                                     size_t *len);
+                                                     size_t *rune_byte_len);
 
-bool utf8_cstr_index_rune_len(const char *data, size_t index, rune *r,
-                                                              size_t *len,
-                                                              Status *status);
+bool utf8_cstr_index_rune_len(const char *data, size_t index,
+                                                rune *r,
+                                                size_t *rune_byte_len,
+                                                Status *status);
 
 void utf8_index_reverse_fast(const char *data, size_t byte_len,
                                                size_t index,
@@ -132,12 +135,12 @@ bool utf8_index_rune_reverse(const char *data, size_t byte_len,
 void utf8_index_rune_len_reverse_fast(const char *data, size_t byte_len,
                                                         size_t index,
                                                         rune *r,
-                                                        size_t *len);
+                                                        size_t *rune_byte_len);
 
 bool utf8_index_rune_len_reverse(const char *data, size_t byte_len,
                                                    size_t index,
                                                    rune *r,
-                                                   size_t *len,
+                                                   size_t *rune_byte_len,
                                                    Status *status);
 
 void utf8_cstr_index_reverse_fast(const char *data, size_t index,
@@ -154,33 +157,38 @@ bool utf8_cstr_index_rune_reverse(const char *data, size_t index,
                                                     rune *r,
                                                     Status *status);
 
-void utf8_cstr_index_rune_len_reverse_fast(const char *data, size_t index,
-                                                             rune *r,
-                                                             size_t *len);
+void utf8_cstr_index_rune_len_reverse_fast(const char *data,
+                                           size_t index,
+                                           rune *r,
+                                           size_t *rune_byte_len);
 
-bool utf8_cstr_index_rune_len_reverse(const char *data, size_t index,
-                                                        rune *r,
-                                                        size_t *len,
-                                                        Status *status);
+bool utf8_cstr_index_rune_len_reverse(const char *data,
+                                      size_t index,
+                                      rune *r,
+                                      size_t *rune_byte_len,
+                                      Status *status);
 
 void utf8_get_first_rune_fast(const char *data, rune *r);
 
 bool utf8_get_first_rune(const char *data, rune *r, Status *status);
 
-void utf8_get_first_rune_len_fast(const char *data, rune *r, size_t *len);
+void utf8_get_first_rune_len_fast(const char *data, rune *r,
+                                                    size_t *rune_byte_len);
 
-bool utf8_get_first_rune_len(const char *data, rune *r, size_t *len,
+bool utf8_get_first_rune_len(const char *data, rune *r, size_t *rune_byte_len,
                                                         Status *status);
 
 void utf8_cstr_get_first_rune_fast(const char *data, rune *r);
 
 bool utf8_cstr_get_first_rune(const char *data, rune *r, Status *status);
 
-void utf8_cstr_get_first_rune_len_fast(const char *data, rune *r,
-                                                         size_t *len);
+void utf8_cstr_get_first_rune_len_fast(const char *data,
+                                       rune *r,
+                                       size_t *rune_byte_len);
 
-bool utf8_cstr_get_first_rune_len(const char *data, rune *r, size_t *len,
-                                                             Status *status);
+bool utf8_cstr_get_first_rune_len(const char *data, rune *r,
+                                                    size_t *rune_byte_len,
+                                                    Status *status);
 
 void utf8_get_last_rune_fast(const char *data, size_t byte_len, rune *r);
 
@@ -189,11 +197,11 @@ bool utf8_get_last_rune(const char *data, size_t byte_len, rune *r,
 
 void utf8_get_last_rune_len_fast(const char *data, size_t byte_len,
                                                    rune *r,
-                                                   size_t *len);
+                                                   size_t *rune_byte_len);
 
 bool utf8_get_last_rune_len(const char *data, size_t byte_len,
                                               rune *r,
-                                              size_t *len,
+                                              size_t *rune_byte_len,
                                               Status *status);
 
 void utf8_cstr_get_last_rune_fast(const char *data, rune *r);
@@ -201,10 +209,11 @@ void utf8_cstr_get_last_rune_fast(const char *data, rune *r);
 bool utf8_cstr_get_last_rune(const char *data, rune *r, Status *status);
 
 void utf8_cstr_get_last_rune_len_fast(const char *data, rune *r,
-                                                        size_t *len);
+                                                        size_t *rune_byte_len);
 
-bool utf8_cstr_get_last_rune_len(const char *data, rune *r, size_t *len,
-                                                            Status *status);
+bool utf8_cstr_get_last_rune_len(const char *data, rune *r,
+                                                   size_t *rune_byte_len,
+                                                   Status *status);
 
 void utf8_slice_fast(const char *data, size_t len, size_t byte_len,
                                                    size_t index,
@@ -302,8 +311,6 @@ bool utf8_cstr_ends_with_rune(const char *data, rune r, bool *ends_with,
 void utf8_iterate_fast(char **data, size_t *byte_len, rune *r);
 
 bool utf8_iterate(char **data, size_t *byte_len, rune *r, Status *status);
-
-bool rune_to_string(rune r, char **out, Status *status);
 
 #endif
 

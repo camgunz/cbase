@@ -65,7 +65,6 @@ bool utf8_handle_error_code(ssize_t error_code, Status *status) {
     return status_ok(status);
 }
 
-inline
 bool utf8_byte_is_sequence_start(char b) {
     return (b & 0xC0) != 0x80;
 }
@@ -97,7 +96,6 @@ bool utf8_process_fast(const char *data, size_t byte_len, size_t *len,
     return true;
 }
 
-inline
 bool utf8_process(const char *data, size_t byte_len, size_t *len,
                                                      Status *status) {
     ssize_t error = 0;
@@ -140,7 +138,6 @@ bool utf8_process_cstr_fast(const char *data, size_t *len, size_t *byte_len,
     return true;
 }
 
-inline
 bool utf8_process_cstr(const char *data, size_t *len, size_t *byte_len,
                                                       Status *status) {
     ssize_t error = 0;
@@ -152,53 +149,44 @@ bool utf8_process_cstr(const char *data, size_t *len, size_t *byte_len,
     return status_ok(status);
 }
 
-inline
 bool utf8_validate_fast(const char *data, size_t byte_len, ssize_t *error) {
     return utf8_process_fast(data, byte_len, NULL, error);
 }
 
-inline
 bool utf8_validate(const char *data, size_t byte_len, Status *status) {
     return utf8_process(data, byte_len, NULL, status);
 }
 
-inline
 bool utf8_validate_cstr_fast(const char *data, ssize_t *error) {
     return utf8_process_cstr_fast(data, NULL, NULL, error);
 }
 
-inline
 bool utf8_validate_cstr(const char *data, Status *status) {
     return utf8_process_cstr(data, NULL, NULL, status);
 }
 
-inline
 bool utf8_validate_len_fast(const char *data, size_t byte_len,
                                               size_t *len,
                                               ssize_t *error) {
     return utf8_process_fast(data, byte_len, len, error);
 }
 
-inline
 bool utf8_validate_len(const char *data, size_t byte_len, size_t *len,
                                                           Status *status) {
     return utf8_process(data, byte_len, len, status);
 }
 
-inline
 bool utf8_cstr_validate_len_fast(const char *data, size_t *len,
                                                    size_t *byte_len,
                                                    ssize_t *error) {
     return utf8_process_cstr_fast(data, len, byte_len, error);
 }
 
-inline
 bool utf8_cstr_validate_len(const char *data, size_t *len, size_t *byte_len,
                                                            Status *status) {
     return utf8_process_cstr(data, len, byte_len, status);
 }
 
-inline
 void utf8_len(const char *data, size_t byte_len, size_t *len) {
     size_t rune_count = 0;
 
@@ -211,7 +199,6 @@ void utf8_len(const char *data, size_t byte_len, size_t *len) {
     *len = rune_count;
 }
 
-inline
 void utf8_cstr_len(const char *data, size_t *len) {
     size_t rune_count = 0;
 
@@ -224,12 +211,10 @@ void utf8_cstr_len(const char *data, size_t *len) {
     *len = rune_count;
 }
 
-inline
 bool utf8_equal_fast(const char *s1, const char *s2, size_t byte_len) {
     return memcmp(s1, s2, byte_len) == 0;
 }
 
-inline
 bool utf8_equal(const char *s1, const char *s2, size_t byte_len,
                                                 bool *equal,
                                                 Status *status) {
@@ -242,12 +227,10 @@ bool utf8_equal(const char *s1, const char *s2, size_t byte_len,
     return status_ok(status);
 }
 
-inline
 bool utf8_cstr_equal_fast(const char *s1, const char *s2) {
     return strcmp(s1, s2) == 0;
 }
 
-inline
 bool utf8_cstr_equal(const char *s1, const char *s2, bool *equal,
                                                      Status *status) {
     if (cstr_end(s1) || cstr_end(s2)) {
@@ -259,7 +242,6 @@ bool utf8_cstr_equal(const char *s1, const char *s2, bool *equal,
     return status_ok(status);
 }
 
-inline
 void utf8_decode(const char *data, rune *r) {
     const unsigned char *udata = (const unsigned char *)data;
 
@@ -280,28 +262,27 @@ void utf8_decode(const char *data, rune *r) {
     }
 }
 
-inline
-void utf8_decode_len(const char *data, rune *r, size_t *len) {
+void utf8_decode_len(const char *data, rune *r, size_t *rune_byte_len) {
     const unsigned char *udata = (const unsigned char *)data;
 
     if (udata[0] < 0x80) {
         *r = udata[0];
-        *len = 1;
+        *rune_byte_len = 1;
     }
     else if (udata[0] < 0xE0) {
         *r = ((udata[0] & 0x1F) << 6) | (udata[1] & 0x3F);
-        *len = 2;
+        *rune_byte_len = 2;
     }
     else if (udata[0] < 0xF0) {
         *r = ((udata[0] & 0xF) << 12) | ((udata[1] & 0x3F) << 6)
                                       |  (udata[2] & 0x3F);
-        *len = 3;
+        *rune_byte_len = 3;
     }
     else {
         *r = ((udata[0] & 7) << 18) | ((udata[1] & 0x3F) << 12)
                                     | ((udata[2] & 0x3F) << 6)
                                     |  (udata[3] & 0x3F);
-        *len = 4;
+        *rune_byte_len = 4;
     }
 }
 
@@ -330,7 +311,6 @@ void utf8_index_fast(const char *data, size_t byte_len, size_t index,
     *cursor = local_cursor;
 }
 
-inline
 bool utf8_index(const char *data, size_t byte_len, size_t index,
                                                    char **cursor,
                                                    Status *status) {
@@ -343,7 +323,6 @@ bool utf8_index(const char *data, size_t byte_len, size_t index,
     return status_ok(status);
 }
 
-inline
 void utf8_index_rune_fast(const char *data, size_t byte_len, size_t index,
                                                              rune *r) {
     char *cursor = NULL;
@@ -352,7 +331,6 @@ void utf8_index_rune_fast(const char *data, size_t byte_len, size_t index,
     utf8_decode(data, r);
 }
 
-inline
 bool utf8_index_rune(const char *data, size_t byte_len, size_t index,
                                                         rune *r,
                                                         Status *status) {
@@ -365,26 +343,26 @@ bool utf8_index_rune(const char *data, size_t byte_len, size_t index,
     return status_ok(status);
 }
 
-inline
-void utf8_index_rune_len_fast(const char *data, size_t byte_len, size_t index,
-                                                                 rune *r,
-                                                                 size_t *len) {
+void utf8_index_rune_len_fast(const char *data, size_t byte_len,
+                                                size_t index,
+                                                rune *r,
+                                                size_t *rune_byte_len) {
     char *cursor = NULL;
 
     utf8_index_fast(data, byte_len, index, &cursor);
-    utf8_decode_len(data, r, len);
+    utf8_decode_len(data, r, rune_byte_len);
 }
 
-inline
-bool utf8_index_rune_len(const char *data, size_t byte_len, size_t index,
-                                                            rune *r,
-                                                            size_t *len,
-                                                            Status *status) {
+bool utf8_index_rune_len(const char *data, size_t byte_len,
+                                           size_t index,
+                                           rune *r,
+                                           size_t *rune_byte_len,
+                                           Status *status) {
     if (cstr_end(data)) {
         return no_data_passed(status);
     }
 
-    utf8_index_rune_len_fast(data, byte_len, index, r, len);
+    utf8_index_rune_len_fast(data, byte_len, index, r, rune_byte_len);
 
     return status_ok(status);
 }
@@ -401,7 +379,6 @@ void utf8_cstr_index_fast(const char *data, size_t index, char **cursor) {
     *cursor = local_cursor;
 }
 
-inline
 bool utf8_cstr_index(const char *data, size_t index, char **cursor,
                                                      Status *status) {
     if (cstr_end(data)) {
@@ -413,7 +390,6 @@ bool utf8_cstr_index(const char *data, size_t index, char **cursor,
     return status_ok(status);
 }
 
-inline
 void utf8_cstr_index_rune_fast(const char *data, size_t index, rune *r) {
     char *cursor = NULL;
 
@@ -421,7 +397,6 @@ void utf8_cstr_index_rune_fast(const char *data, size_t index, rune *r) {
     utf8_decode(data, r);
 }
 
-inline
 bool utf8_cstr_index_rune(const char *data, size_t index, rune *r,
                                                           Status *status) {
     if (cstr_end(data)) {
@@ -433,23 +408,22 @@ bool utf8_cstr_index_rune(const char *data, size_t index, rune *r,
     return status_ok(status);
 }
 
-inline
 void utf8_cstr_index_rune_len_fast(const char *data, size_t index,
                                                      rune *r,
-                                                     size_t *len) {
+                                                     size_t *rune_byte_len) {
     utf8_cstr_index_rune_fast(data, index, r);
-    utf8_decode_len(data, r, len);
+    utf8_decode_len(data, r, rune_byte_len);
 }
 
-inline
-bool utf8_cstr_index_rune_len(const char *data, size_t index, rune *r,
-                                                              size_t *len,
-                                                              Status *status) {
+bool utf8_cstr_index_rune_len(const char *data, size_t index,
+                                                rune *r,
+                                                size_t *rune_byte_len,
+                                                Status *status) {
     if (cstr_end(data)) {
         return no_data_passed(status);
     }
 
-    utf8_cstr_index_rune_len_fast(data, index, r, len);
+    utf8_cstr_index_rune_len_fast(data, index, r, rune_byte_len);
 
     return status_ok(status);
 }
@@ -478,7 +452,6 @@ void utf8_index_reverse_fast(const char *data, size_t byte_len,
     *cursor = local_cursor;
 }
 
-inline
 bool utf8_index_reverse(const char *data, size_t byte_len, size_t index,
                                                            char **cursor,
                                                            Status *status) {
@@ -491,7 +464,6 @@ bool utf8_index_reverse(const char *data, size_t byte_len, size_t index,
     return status_ok(status);
 }
 
-inline
 void utf8_index_rune_reverse_fast(const char *data, size_t byte_len,
                                                     size_t index,
                                                     rune *r) {
@@ -502,7 +474,6 @@ void utf8_index_rune_reverse_fast(const char *data, size_t byte_len,
     utf8_decode(cursor, r);
 }
 
-inline
 bool utf8_index_rune_reverse(const char *data, size_t byte_len,
                                                size_t index,
                                                rune *r,
@@ -516,39 +487,36 @@ bool utf8_index_rune_reverse(const char *data, size_t byte_len,
     return status_ok(status);
 }
 
-inline
-void utf8_index_rune_len_reverse_fast(const char *data, size_t byte_len,
-                                                        size_t index,
-                                                        rune *r,
-                                                        size_t *len) {
+void utf8_index_rune_len_reverse_fast(const char *data,
+                                      size_t byte_len,
+                                      size_t index,
+                                      rune *r,
+                                      size_t *rune_byte_len) {
     char *cursor = NULL;
 
     utf8_index_reverse_fast(data, byte_len, index, &cursor);
-    utf8_decode_len(cursor, r, len);
+    utf8_decode_len(cursor, r, rune_byte_len);
 }
 
-inline
 bool utf8_index_rune_len_reverse(const char *data, size_t byte_len,
                                                    size_t index,
                                                    rune *r,
-                                                   size_t *len,
+                                                   size_t *rune_byte_len,
                                                    Status *status) {
     if (cstr_end(data)) {
         return no_data_passed(status);
     }
 
-    utf8_index_rune_len_reverse_fast(data, byte_len, index, r, len);
+    utf8_index_rune_len_reverse_fast(data, byte_len, index, r, rune_byte_len);
 
     return status_ok(status);
 }
 
-inline
 void utf8_cstr_index_reverse_fast(const char *data, size_t index,
                                                     char **cursor) {
     utf8_index_reverse_fast(data, strlen(data), index, cursor);
 }
 
-inline
 bool utf8_cstr_index_reverse(const char *data, size_t index,
                                                char **cursor,
                                                Status *status) {
@@ -561,7 +529,6 @@ bool utf8_cstr_index_reverse(const char *data, size_t index,
     return status_ok(status);
 }
 
-inline
 void utf8_cstr_index_rune_reverse_fast(const char *data, size_t index,
                                                          rune *r) {
     char *cursor = NULL;
@@ -570,7 +537,6 @@ void utf8_cstr_index_rune_reverse_fast(const char *data, size_t index,
     utf8_decode(cursor, r);
 }
 
-inline
 bool utf8_cstr_index_rune_reverse(const char *data, size_t index,
                                                     rune *r,
                                                     Status *status) {
@@ -583,36 +549,33 @@ bool utf8_cstr_index_rune_reverse(const char *data, size_t index,
     return status_ok(status);
 }
 
-inline
-void utf8_cstr_index_rune_len_reverse_fast(const char *data, size_t index,
-                                                             rune *r,
-                                                             size_t *len) {
+void utf8_cstr_index_rune_len_reverse_fast(const char *data,
+                                           size_t index,
+                                           rune *r,
+                                           size_t *rune_byte_len) {
     char *cursor = NULL;
 
     utf8_cstr_index_reverse_fast(data, index, &cursor);
-    utf8_decode_len(cursor, r, len);
+    utf8_decode_len(cursor, r, rune_byte_len);
 }
 
-inline
 bool utf8_cstr_index_rune_len_reverse(const char *data, size_t index,
                                                         rune *r,
-                                                        size_t *len,
+                                                        size_t *rune_byte_len,
                                                         Status *status) {
     if (cstr_end(data)) {
         return no_data_passed(status);
     }
 
-    utf8_cstr_index_rune_len_reverse_fast(data, index, r, len);
+    utf8_cstr_index_rune_len_reverse_fast(data, index, r, rune_byte_len);
 
     return status_ok(status);
 }
 
-inline
 void utf8_get_first_rune_fast(const char *data, rune *r) {
     utf8_decode(data, r);
 }
 
-inline
 bool utf8_get_first_rune(const char *data, rune *r, Status *status) {
     if (cstr_end(data)) {
         return no_data_passed(status);
@@ -623,29 +586,26 @@ bool utf8_get_first_rune(const char *data, rune *r, Status *status) {
     return status_ok(status);
 }
 
-inline
-void utf8_get_first_rune_len_fast(const char *data, rune *r, size_t *len) {
-    utf8_decode_len(data, r, len);
+void utf8_get_first_rune_len_fast(const char *data, rune *r,
+                                                    size_t *rune_byte_len) {
+    utf8_decode_len(data, r, rune_byte_len);
 }
 
-inline
-bool utf8_get_first_rune_len(const char *data, rune *r, size_t *len,
+bool utf8_get_first_rune_len(const char *data, rune *r, size_t *rune_byte_len,
                                                         Status *status) {
     if (cstr_end(data)) {
         return no_data_passed(status);
     }
 
-    utf8_get_first_rune_len_fast(data, r, len);
+    utf8_get_first_rune_len_fast(data, r, rune_byte_len);
 
     return status_ok(status);
 }
 
-inline
 void utf8_cstr_get_first_rune_fast(const char *data, rune *r) {
     utf8_decode(data, r);
 }
 
-inline
 bool utf8_cstr_get_first_rune(const char *data, rune *r, Status *status) {
     if (cstr_end(data)) {
         return no_data_passed(status);
@@ -656,30 +616,28 @@ bool utf8_cstr_get_first_rune(const char *data, rune *r, Status *status) {
     return status_ok(status);
 }
 
-inline
-void utf8_cstr_get_first_rune_len_fast(const char *data, rune *r,
-                                                         size_t *len) {
-    utf8_decode_len(data, r, len);
+void utf8_cstr_get_first_rune_len_fast(const char *data,
+                                       rune *r,
+                                       size_t *rune_byte_len) {
+    utf8_decode_len(data, r, rune_byte_len);
 }
 
-inline
-bool utf8_cstr_get_first_rune_len(const char *data, rune *r, size_t *len,
-                                                             Status *status) {
+bool utf8_cstr_get_first_rune_len(const char *data, rune *r,
+                                                    size_t *rune_byte_len,
+                                                    Status *status) {
     if (cstr_end(data)) {
         return no_data_passed(status);
     }
 
-    utf8_cstr_get_first_rune_len_fast(data, r, len);
+    utf8_cstr_get_first_rune_len_fast(data, r, rune_byte_len);
 
     return status_ok(status);
 }
 
-inline
 void utf8_get_last_rune_fast(const char *data, size_t byte_len, rune *r) {
     utf8_index_rune_reverse_fast(data, byte_len, 1, r);
 }
 
-inline
 bool utf8_get_last_rune(const char *data, size_t byte_len, rune *r,
                                                            Status *status) {
     if (cstr_end(data)) {
@@ -691,74 +649,68 @@ bool utf8_get_last_rune(const char *data, size_t byte_len, rune *r,
     return status_ok(status);
 }
 
-inline
 void utf8_get_last_rune_len_fast(const char *data, size_t byte_len,
                                                    rune *r,
-                                                   size_t *len) {
-    utf8_index_rune_len_reverse_fast(data, byte_len, 1, r, len);
+                                                   size_t *rune_byte_len) {
+    utf8_index_rune_len_reverse_fast(data, byte_len, 1, r, rune_byte_len);
 }
 
-inline
 bool utf8_get_last_rune_len(const char *data, size_t byte_len,
                                               rune *r,
-                                              size_t *len,
+                                              size_t *rune_byte_len,
                                               Status *status) {
     if (cstr_end(data)) {
         return no_data_passed(status);
     }
 
-    utf8_get_last_rune_len_fast(data, byte_len, r, len);
+    utf8_get_last_rune_len_fast(data, byte_len, r, rune_byte_len);
 
     return status_ok(status);
 }
 
-inline
 void utf8_cstr_get_last_rune_fast(const char *data, rune *r) {
     utf8_get_last_rune_fast(data, strlen(data), r);
 }
 
-inline
 bool utf8_cstr_get_last_rune(const char *data, rune *r, Status *status) {
     return utf8_get_last_rune(data, strlen(data), r, status);
 }
 
-inline
-void utf8_cstr_get_last_rune_len_fast(const char *data, rune *r,
-                                                        size_t *len) {
-    utf8_get_last_rune_len_fast(data, strlen(data), r, len);
+void utf8_cstr_get_last_rune_len_fast(const char *data,
+                                      rune *r,
+                                      size_t *rune_byte_len) {
+    utf8_get_last_rune_len_fast(data, strlen(data), r, rune_byte_len);
 }
 
-inline
-bool utf8_cstr_get_last_rune_len(const char *data, rune *r, size_t *len,
-                                                            Status *status) {
-    return utf8_get_last_rune_len(data, strlen(data), r, len, status);
+bool utf8_cstr_get_last_rune_len(const char *data, rune *r,
+                                 size_t *rune_byte_len,
+                                 Status *status) {
+    return utf8_get_last_rune_len(data, strlen(data), r, rune_byte_len, status);
 }
 
-inline
-void utf8_slice_fast(const char *data, size_t len, size_t byte_len,
-                                                   size_t index,
-                                                   char **start,
-                                                   char **end) {
+void utf8_slice_fast(const char *data, size_t byte_len, size_t index,
+                                                        size_t len,
+                                                        char **start,
+                                                        char **end) {
     utf8_index_fast(data, byte_len, index, start);
     utf8_index_fast(*start, byte_len, len, end);
 }
 
-inline
-bool utf8_slice(const char *data, size_t len, size_t byte_len,
-                                              size_t index,
-                                              char **start,
-                                              char **end,
-                                              Status *status) {
-    if (index >= len) {
-        return index_out_of_bounds(status);
+bool utf8_slice(const char *data, size_t byte_len, size_t index,
+                                                   size_t len,
+                                                   char **start,
+                                                   char **end,
+                                                   Status *status) {
+    if (cstr_end(data)) {
+        return no_data_passed(status);
     }
 
-    utf8_slice_fast(data, len, byte_len, index, start, end);
+
+    utf8_slice_fast(data, byte_len, index, len, start, end);
 
     return status_ok(status);
 }
 
-inline
 bool utf8_starts_with_data_fast(const char *s1, size_t byte_len1,
                                 const char *s2, size_t byte_len2) {
     return (
@@ -767,7 +719,6 @@ bool utf8_starts_with_data_fast(const char *s1, size_t byte_len1,
     );
 }
 
-inline
 bool utf8_starts_with_data(const char *s1, size_t byte_len1,
                            const char *s2, size_t byte_len2,
                                            bool *starts_with,
@@ -781,13 +732,11 @@ bool utf8_starts_with_data(const char *s1, size_t byte_len1,
     return status_ok(status);
 }
 
-inline
 bool utf8_starts_with_cstr_fast(const char *data, size_t byte_len,
                                                   const char *cs) {
     return utf8_starts_with_data_fast(data, byte_len, cs, strlen(cs));
 }
 
-inline
 bool utf8_starts_with_cstr(const char *data, size_t byte_len,
                                              const char *cs,
                                              bool *starts_with,
@@ -801,7 +750,6 @@ bool utf8_starts_with_cstr(const char *data, size_t byte_len,
     return status_ok(status);
 }
 
-inline
 bool utf8_starts_with_rune_fast(const char *data, rune r) {
     rune r2 = 0;
 
@@ -810,7 +758,6 @@ bool utf8_starts_with_rune_fast(const char *data, rune r) {
     return r2 == r;
 }
 
-inline
 bool utf8_starts_with_rune(const char *data, rune r, bool *starts_with,
                                                      Status *status) {
     if (cstr_end(data)) {
@@ -822,13 +769,11 @@ bool utf8_starts_with_rune(const char *data, rune r, bool *starts_with,
     return status_ok(status);
 }
 
-inline
 bool utf8_cstr_starts_with_data_fast(const char *cs, const char *data,
                                                      size_t byte_len) {
     return utf8_starts_with_data_fast(cs, strlen(cs), data, byte_len);
 }
 
-inline
 bool utf8_cstr_starts_with_data(const char *cs, const char *data,
                                                 size_t byte_len,
                                                 bool *starts_with,
@@ -842,12 +787,10 @@ bool utf8_cstr_starts_with_data(const char *cs, const char *data,
     return status_ok(status);
 }
 
-inline
 bool utf8_cstr_starts_with_cstr_fast(const char *cs1, const char *cs2) {
     return utf8_starts_with_data_fast(cs1, strlen(cs1), cs2, strlen(cs2));
 }
 
-inline
 bool utf8_cstr_starts_with_cstr(const char *cs1, const char *cs2,
                                                  bool *starts_with,
                                                  Status *status) {
@@ -860,7 +803,6 @@ bool utf8_cstr_starts_with_cstr(const char *cs1, const char *cs2,
     return status_ok(status);
 }
 
-inline
 bool utf8_cstr_starts_with_rune_fast(const char *data, rune r) {
     rune r2 = 0;
 
@@ -869,7 +811,6 @@ bool utf8_cstr_starts_with_rune_fast(const char *data, rune r) {
     return r2 == r;
 }
 
-inline
 bool utf8_cstr_starts_with_rune(const char *data, rune r, bool *starts_with,
                                                           Status *status) {
     if (cstr_end(data)) {
@@ -881,7 +822,6 @@ bool utf8_cstr_starts_with_rune(const char *data, rune r, bool *starts_with,
     return status_ok(status);
 }
 
-inline
 bool utf8_ends_with_data_fast(const char *s1, size_t byte_len1,
                               const char *s2, size_t byte_len2) {
     return (
@@ -890,7 +830,6 @@ bool utf8_ends_with_data_fast(const char *s1, size_t byte_len1,
     );
 }
 
-inline
 bool utf8_ends_with_data(const char *s1, size_t byte_len1,
                          const char *s2, size_t byte_len2,
                                          bool *ends_with,
@@ -904,13 +843,11 @@ bool utf8_ends_with_data(const char *s1, size_t byte_len1,
     return status_ok(status);
 }
 
-inline
 bool utf8_ends_with_cstr_fast(const char *data, size_t byte_len,
                                                 const char *cs) {
     return utf8_ends_with_data_fast(data, byte_len, cs, strlen(cs));
 }
 
-inline
 bool utf8_ends_with_cstr(const char *data, size_t byte_len,
                                            const char *cs,
                                            bool *ends_with,
@@ -924,7 +861,6 @@ bool utf8_ends_with_cstr(const char *data, size_t byte_len,
     return status_ok(status);
 }
 
-inline
 bool utf8_ends_with_rune_fast(const char *data, size_t byte_len, rune r) {
     rune r2 = 0;
 
@@ -933,7 +869,6 @@ bool utf8_ends_with_rune_fast(const char *data, size_t byte_len, rune r) {
     return r2 == r;
 }
 
-inline
 bool utf8_ends_with_rune(const char *data, size_t byte_len,
                                            rune r,
                                            bool *ends_with,
@@ -947,13 +882,11 @@ bool utf8_ends_with_rune(const char *data, size_t byte_len,
     return status_ok(status);
 }
 
-inline
 bool utf8_cstr_ends_with_data_fast(const char *cs, const char *data,
                                                    size_t byte_len) {
     return utf8_ends_with_data_fast(cs, strlen(cs), data, byte_len);
 }
 
-inline
 bool utf8_cstr_ends_with_data(const char *cs, const char *data,
                                               size_t byte_len,
                                               bool *ends_with,
@@ -967,12 +900,10 @@ bool utf8_cstr_ends_with_data(const char *cs, const char *data,
     return status_ok(status);
 }
 
-inline
 bool utf8_cstr_ends_with_cstr_fast(const char *cs1, const char *cs2) {
     return utf8_ends_with_data_fast(cs1, strlen(cs1), cs2, strlen(cs2));
 }
 
-inline
 bool utf8_cstr_ends_with_cstr(const char *cs1, const char *cs2,
                                                bool *ends_with,
                                                Status *status) {
@@ -985,7 +916,6 @@ bool utf8_cstr_ends_with_cstr(const char *cs1, const char *cs2,
     return status_ok(status);
 }
 
-inline
 bool utf8_cstr_ends_with_rune_fast(const char *data, rune r) {
     rune r2 = 0;
 
@@ -994,7 +924,6 @@ bool utf8_cstr_ends_with_rune_fast(const char *data, rune r) {
     return r2 == r;
 }
 
-inline
 bool utf8_cstr_ends_with_rune(const char *data, rune r, bool *ends_with,
                                                         Status *status) {
     if (cstr_end(data)) {
@@ -1020,32 +949,6 @@ bool utf8_iterate(char **data, size_t *byte_len, rune *r, Status *status) {
     }
 
     utf8_iterate_fast(data, byte_len, r);
-
-    return status_ok(status);
-}
-
-bool rune_to_string(rune r, char **out, Status *status) {
-    uint8_t buf[4] = {0};
-    ssize_t bytes_written;
-    char *s;
-
-    bytes_written = utf8proc_encode_char(r, &buf[0]);
-
-    if (bytes_written < 1) {
-        return utf8_handle_error_code(bytes_written, status);
-    }
-
-    if (!cbmalloc(bytes_written + 1, sizeof(char), (void **)&s, status)) {
-        return status_propagate(status);
-    }
-
-    if (!cbmemmove(s, buf, bytes_written, sizeof(char), status)) {
-        return status_propagate(status);
-    }
-
-    s[bytes_written] = '\0';
-
-    *out = s;
 
     return status_ok(status);
 }

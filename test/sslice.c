@@ -18,52 +18,56 @@ void test_sslice(void **state) {
     SSlice ss2;
     Status status;
     rune r;
+    bool starts_with;
 
     (void)state;
 
     status_init(&status);
 
-    assert_true(string_new(&alpha, "1abc", &status));
-    assert_true(string_new(&hex, "g0123456789aAbBcCdDeEfF", &status));
-    assert_true(string_new(&dec, "a123", &status));
-    assert_true(string_new(&oct, "801234567", &status));
-    assert_true(string_new(&bin, "201", &status));
-    assert_true(string_new(&whitespace, "a \t\r\n", &status));
-    assert_true(string_new(&alnum, " 1a", &status));
-    assert_true(string_new(&s, "", &status));
+    assert_true(string_new_from_cstr(&alpha, "1abc", &status));
+    assert_true(string_new_from_cstr(
+        &hex, "g0123456789aAbBcCdDeEfF", &status
+    ));
+    assert_true(string_new_from_cstr(&dec, "a123", &status));
+    assert_true(string_new_from_cstr(&oct, "801234567", &status));
+    assert_true(string_new_from_cstr(&bin, "201", &status));
+    assert_true(string_new_from_cstr(&whitespace, "a \t\r\n", &status));
+    assert_true(string_new_from_cstr(&alnum, " 1a", &status));
+    assert_true(string_new_from_cstr(&s, "", &status));
     assert_true(string_ensure_capacity(
         s,
-        alpha->byte_len +
-        hex->byte_len +
-        dec->byte_len +
-        oct->byte_len +
-        bin->byte_len +
-        whitespace->byte_len +
-        alnum->byte_len +
+        alpha->buffer.array.len +
+        hex->buffer.array.len +
+        dec->buffer.array.len +
+        oct->buffer.array.len +
+        bin->buffer.array.len +
+        whitespace->buffer.array.len +
+        alnum->buffer.array.len +
         6,
         &status
     ));
 
-    assert_true(string_append_str(s, alpha, &status));
+    assert_true(string_append_string(s, alpha, &status));
     assert_true(string_append_cstr(s, " ", &status));
-    assert_true(string_append_str(s, hex, &status));
+    assert_true(string_append_string(s, hex, &status));
     assert_true(string_append_cstr(s, " ", &status));
-    assert_true(string_append_str(s, dec, &status));
+    assert_true(string_append_string(s, dec, &status));
     assert_true(string_append_cstr(s, " ", &status));
-    assert_true(string_append_str(s, oct, &status));
+    assert_true(string_append_string(s, oct, &status));
     assert_true(string_append_cstr(s, " ", &status));
-    assert_true(string_append_str(s, bin, &status));
+    assert_true(string_append_string(s, bin, &status));
     assert_true(string_append_cstr(s, " ", &status));
-    assert_true(string_append_str(s, whitespace, &status));
+    assert_true(string_append_string(s, whitespace, &status));
     assert_true(string_append_cstr(s, " ", &status));
-    assert_true(string_append_str(s, alnum, &status));
+    assert_true(string_append_string(s, alnum, &status));
 
     assert_true(string_slice(s, 0, s->len, &ss, &status));
     assert_true(string_slice(s, 34, 3, &ss2, &status));
 
     assert_int_equal(ss.len, 57);
     assert_int_equal(ss.byte_len, 57);
-    assert_true(sslice_starts_with_cstr(&ss, "1abc"));
+    assert_true(sslice_starts_with_cstr(&ss, "1abc", &starts_with, &status));
+    assert_true(starts_with);
 
     assert_true(sslice_get_first_rune(&ss, &r, &status));
     assert_int_equal(r, '1');
@@ -94,17 +98,18 @@ void test_sslice(void **state) {
 
     assert_true(sslice_pop_rune(&ss, &r, &status));
     assert_int_equal(r, ' ');
-    assert_true(sslice_first_rune_equals(&ss, 'g', &status));
+    assert_true(sslice_starts_with_rune(&ss, 'g', &starts_with, &status));
+    assert_true(starts_with);
     assert_int_equal(ss.len, 52);
     assert_int_equal(ss.byte_len, 52);
 
-    assert_false(sslice_seek_to(&ss, 'q', &status));
+    assert_false(sslice_seek_to_rune(&ss, 'q', &status));
     assert_int_equal(status.code, ERROR_NOT_FOUND);
     assert_string_equal(status.domain, "base");
 
     status_init(&status);
 
-    assert_true(sslice_seek_to(&ss, 'a', &status));
+    assert_true(sslice_seek_to_rune(&ss, 'a', &status));
     assert_int_equal(ss.len, 41);
     assert_int_equal(ss.byte_len, 41);
 
@@ -122,12 +127,14 @@ void test_sslice(void **state) {
     assert_int_equal(r, 'C');
 
     assert_true(sslice_seek_to_whitespace(&ss, &status));
-    assert_true(sslice_first_rune_equals(&ss, ' ', &status));
+    assert_true(sslice_starts_with_rune(&ss, ' ', &starts_with, &status));
+    assert_true(starts_with);
     assert_int_equal(ss.len, 29);
     assert_int_equal(ss.byte_len, 29);
 
     assert_true(sslice_seek_past_whitespace(&ss, &status));
-    assert_true(sslice_first_rune_equals(&ss, 'a', &status));
+    assert_true(sslice_starts_with_rune(&ss, 'a', &starts_with, &status));
+    assert_true(starts_with);
     assert_int_equal(ss.len, 28);
     assert_int_equal(ss.byte_len, 28);
 
@@ -141,7 +148,7 @@ void test_sslice(void **state) {
     assert_int_equal(ss.byte_len, 20);
     assert_true(sslice_equals_cstr(&ss, "a123 801234567 201 a"));
 
-    assert_true(sslice_truncate_at(&ss, '2', &status));
+    assert_true(sslice_truncate_at_rune(&ss, '2', &status));
     assert_int_equal(ss.len, 16);
     assert_int_equal(ss.byte_len, 16);
     assert_true(sslice_equals_cstr(&ss, "a123 801234567 2"));
@@ -158,7 +165,9 @@ void test_sslice(void **state) {
     assert_int_equal(ss.byte_len, 8);
     assert_true(sslice_equals_cstr(&ss, "234567 2"));
 
-    char *dup = sslice_to_cstr(&ss);
+    char *dup = NULL;
+        
+    assert_true(sslice_to_cstr(&ss, &dup, &status));
     assert_non_null(dup);
     assert_int_equal(strcmp("234567 2", dup), 0);
     cbfree(dup);
@@ -265,7 +274,7 @@ void test_sslice(void **state) {
         assert_int_equal(ss.len, len - 1);
     }
 
-    assert_true(string_assign(s, "token1, token2, token3", &status));
+    assert_true(string_assign_cstr(s, "token1, token2, token3", &status));
     assert_true(string_slice(s, 0, s->len, &ss, &status));
     assert_true(string_slice(s, 8, s->len - 8, &ss2, &status));
     assert_true(sslice_equals_cstr(&ss2, "token2, token3"));

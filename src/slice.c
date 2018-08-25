@@ -1,18 +1,20 @@
 #include "cbase.h"
 
-inline
 void slice_assign_data(Slice *slice, char *data, size_t len) {
     slice->data = data;
     slice->len = len;
 }
 
-inline
+void slice_assign_slice(Slice *dst, Slice *src) {
+    dst->data = src->data;
+    dst->len = src->len;
+}
+
 bool slice_equals_data_at_fast(Slice *slice, size_t index, size_t len,
                                                            const void *data) {
     return memcmp(slice->data + index, data, len) == 0;
 }
 
-inline
 bool slice_equals_data_at(Slice *slice, size_t index, size_t len,
                                                       const void *data,
                                                       bool *equal,
@@ -26,22 +28,18 @@ bool slice_equals_data_at(Slice *slice, size_t index, size_t len,
     return true;
 }
 
-inline
 bool slice_equals_data(Slice *slice, const char *data) {
     return slice_equals_data_at_fast(slice, 0, slice->len, data);
 }
 
-inline
 bool slice_equals(Slice *s1, Slice *s2) {
     return slice_equals_data(s1, s2->data);
 }
 
-inline
 bool slice_starts_with_data_fast(Slice *slice, const void *data, size_t len) {
     return slice_equals_data_at_fast(slice, 0, len, data);
 }
 
-inline
 bool slice_starts_with_data(Slice *slice, const void *data, size_t len,
                                                             bool *equal,
                                                             Status *status) {
@@ -54,12 +52,10 @@ bool slice_starts_with_data(Slice *slice, const void *data, size_t len,
     return status_ok(status);
 }
 
-inline
 bool slice_ends_with_data_fast(Slice *slice, const void *data, size_t len) {
     return slice_equals_data_at_fast(slice, slice->len - len, len, data);
 }
 
-inline
 bool slice_ends_with_data(Slice *slice, const void *data, size_t len,
                                                           bool *equal,
                                                           Status *status) {
@@ -72,12 +68,10 @@ bool slice_ends_with_data(Slice *slice, const void *data, size_t len,
     return status_ok(status);
 }
 
-inline
 void slice_read_fast(Slice *slice, size_t index, size_t len, void *out) {
     cbbase_memmove(out, slice->data + index, len);
 }
 
-inline
 bool slice_read(Slice *slice, size_t index, size_t len, void *out,
                                                         Status *status) {
     if ((index + len) > slice->len) {
@@ -91,12 +85,6 @@ bool slice_read(Slice *slice, size_t index, size_t len, void *out,
     slice_read_fast(slice, index, len, out);
 
     return status_ok(status);
-}
-
-inline
-void slice_copy(Slice *dst, Slice *src) {
-    dst->data = src->data;
-    dst->len = src->len;
 }
 
 bool slice_encode(Slice *src, const char *src_encoding,
@@ -128,7 +116,6 @@ bool slice_encode(Slice *src, const char *src_encoding,
     return status_ok(status);
 }
 
-inline
 void slice_clear(Slice *slice) {
     slice->data = NULL;
     slice->len = 0;

@@ -42,7 +42,7 @@ void test_array(void **state) {
     assert_int_equal(array->len, 3);
     assert_int_equal(array->alloc, 5);
 
-    assert_true(array_insert_array(array, array2, 2, &status));
+    assert_true(array_insert_array(array, 2, array2, &status));
 
     assert_int_equal(array->len, 5);
     assert_int_equal(array->alloc, 5);
@@ -247,16 +247,16 @@ void test_array(void **state) {
     assert_string_equal(person->name, "Barack");
     assert_int_equal(person->age, 46);
 
-    assert_true(array_deep_copy(&stack_array2, &stack_array, &status));
+    assert_true(array_assign_array(&stack_array2, &stack_array, &status));
     array_free(&stack_array2);
 
-    assert_true(array_concat_no_clear(array, &stack_array, &status));
+    assert_true(array_append_array(array, &stack_array, &status));
     assert_int_equal(array->len, 5);
     assert_int_equal(array->alloc, 5);
     assert_int_equal(stack_array.len, 2);
     assert_int_equal(stack_array.alloc, 3);
 
-    assert_true(array_concat(array, &stack_array, &status));
+    assert_true(array_append_array(array, &stack_array, &status));
     assert_int_equal(array->len, 7);
     assert_int_equal(array->alloc, 7);
     assert_int_equal(stack_array.len, 0);

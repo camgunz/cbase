@@ -26,7 +26,6 @@
 #include "cbase/charset.h"
 
 #include "cbase/utf8.h"
-#include "cbase/decimal.h"
 
 #include "cbase/alloc.h"
 #include "cbase/array.h"

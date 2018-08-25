@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "cbase.h"
 
 #define vsnprintf_failed(status) status_failure( \
@@ -7,7 +9,6 @@
     "vsnprintf failed"                           \
 )
 
-inline
 void string_assign_cstr_full_fast(String *string, const char *cs,
                                                   size_t len,
                                                   size_t byte_len) {
@@ -15,7 +16,6 @@ void string_assign_cstr_full_fast(String *string, const char *cs,
     string->len = len;
 }
 
-inline
 bool string_assign_cstr_full(String *string, const char *cs, size_t len,
                                                              size_t byte_len,
                                                              Status *status) {
@@ -28,7 +28,6 @@ bool string_assign_cstr_full(String *string, const char *cs, size_t len,
     return status_ok(status);
 }
 
-inline
 bool string_assign_cstr(String *string, const char *cs, Status *status) {
     size_t len = 0;
     size_t byte_len = 0;
@@ -40,7 +39,6 @@ bool string_assign_cstr(String *string, const char *cs, Status *status) {
     return string_assign_cstr_full(string, cs, len, byte_len, status);
 }
 
-inline
 void string_assign_utf8_data_full_fast(String *string, const char *data,
                                                        size_t len,
                                                        size_t byte_len) {
@@ -52,7 +50,6 @@ void string_assign_utf8_data_full_fast(String *string, const char *data,
     string->len = len;
 }
 
-inline
 bool string_assign_utf8_data_full(String *string, const char *data,
                                                   size_t len,
                                                   size_t byte_len,
@@ -66,7 +63,6 @@ bool string_assign_utf8_data_full(String *string, const char *data,
     return status_ok(status);
 }
 
-inline
 bool string_assign_utf8_data_fast(String *string, const char *data,
                                                   size_t byte_len) {
     size_t len = 0;
@@ -80,7 +76,6 @@ bool string_assign_utf8_data_fast(String *string, const char *data,
     return status_ok(status);
 }
 
-inline
 bool string_assign_utf8_data(String *string, const char *data,
                                              size_t byte_len,
                                              Status *status) {
@@ -93,13 +88,11 @@ bool string_assign_utf8_data(String *string, const char *data,
     return string_assign_utf8_data_full(string, data, len, byte_len, status);
 }
 
-inline
 void string_assign_sslice_fast(String *string, SSlice *sslice) {
     string_assign_utf8_data_full_fast(string, sslice->data, sslice->len,
                                                             sslice->byte_len);
 }
 
-inline
 bool string_assign_sslice(String *string, SSlice *sslice, Status *status) {
     return string_assign_utf8_data_full(string, sslice->data, sslice->len,
                                                               sslice->byte_len,
@@ -157,7 +150,6 @@ bool string_assign_data(String *string, const char *data,
     return status_ok(status);
 }
 
-inline
 bool string_assign_slice_fast(String *string, Slice *slice,
                                               const char *encoding,
                                               Status *status) {
@@ -166,7 +158,6 @@ bool string_assign_slice_fast(String *string, Slice *slice,
     );
 }
 
-inline
 bool string_assign_slice(String *string, Slice *slice, const char *encoding,
                                                        Status *status) {
     return string_assign_data(
@@ -174,17 +165,14 @@ bool string_assign_slice(String *string, Slice *slice, const char *encoding,
     );
 }
 
-inline
 void string_assign_utf8_slice_fast(String *string, Slice *slice) {
     string_assign_utf8_data_fast(string, slice->data, slice->len);
 }
 
-inline
 bool string_assign_utf8_slice(String *string, Slice *slice, Status *status) {
     return string_assign_utf8_data(string, slice->data, slice->len, status);
 }
 
-inline
 bool string_assign_local_slice_fast(String *string, Slice *slice,
                                                     Status *status) {
     return string_assign_data_fast(string, slice->data,
@@ -193,7 +181,6 @@ bool string_assign_local_slice_fast(String *string, Slice *slice,
                                            status);
 }
 
-inline
 bool string_assign_local_slice(String *string, Slice *slice, Status *status) {
     return string_assign_data(string, slice->data, slice->len, "wchar_t",
                                                                status);
@@ -216,7 +203,6 @@ bool string_assign_buffer(String *string, Buffer *buffer, const char *encoding,
                                       status);
 }
 
-inline
 void string_assign_utf8_buffer_full_fast(String *string, Buffer *buffer,
                                                          size_t len) {
     string_assign_utf8_data_full_fast(string, buffer->array.elements,
@@ -224,7 +210,6 @@ void string_assign_utf8_buffer_full_fast(String *string, Buffer *buffer,
                                               buffer->array.len);
 }
 
-inline
 bool string_assign_utf8_buffer_full(String *string, Buffer *buffer,
                                                     size_t len,
                                                     Status *status) {
@@ -234,13 +219,11 @@ bool string_assign_utf8_buffer_full(String *string, Buffer *buffer,
                                                 status);
 }
 
-inline
 void string_assign_utf8_buffer_fast(String *string, Buffer *buffer) {
     string_assign_utf8_data_fast(string, buffer->array.elements,
                                          buffer->array.len);
 }
 
-inline
 bool string_assign_utf8_buffer(String *string, Buffer *buffer,
                                                Status *status) {
     return string_assign_utf8_data(string, buffer->array.elements,
@@ -248,40 +231,33 @@ bool string_assign_utf8_buffer(String *string, Buffer *buffer,
                                            status);
 }
 
-inline
 bool string_assign_local_buffer_fast(String *string, Buffer *buffer,
                                                      Status *status) {
     return string_assign_buffer_fast(string, buffer, "wchar_t", status);
 }
 
-inline
 bool string_assign_local_buffer(String *string, Buffer *buffer,
                                                 Status *status) {
     return string_assign_buffer(string, buffer, "wchar_t", status);
 }
 
-inline
 void string_assign_string_fast(String *dst, String *src) {
     string_assign_utf8_buffer_full_fast(dst, &src->buffer, src->len);
 }
 
-inline
 bool string_assign_string(String *dst, String *src, Status *status) {
     return string_assign_utf8_buffer_full(dst, &src->buffer, src->len, status);
 }
 
-inline
 bool string_ensure_capacity(String *string, size_t byte_len, Status *status) {
     return buffer_ensure_capacity(&string->buffer, byte_len + 1, status);
 }
 
-inline
 void string_init(String *string) {
     buffer_init(&string->buffer);
     string->len = 0;
 }
 
-inline
 bool string_init_alloc(String *string, size_t alloc, Status *status) {
     if (!buffer_init_alloc(&string->buffer, alloc, status)) {
         return status_propagate(status);
@@ -292,13 +268,11 @@ bool string_init_alloc(String *string, size_t alloc, Status *status) {
     return status_ok(status);
 }
 
-inline
 bool string_init_from_cstr(String *string, const char *cs, Status *status) {
     string_init(string);
     return string_assign_cstr(string, cs, status);
 }
 
-inline
 bool string_init_from_cstr_full(String *string, const char *cs,
                                                 size_t len,
                                                 size_t byte_len,
@@ -307,7 +281,6 @@ bool string_init_from_cstr_full(String *string, const char *cs,
     return string_assign_cstr_full(string, cs, len, byte_len, status);
 }
 
-inline
 bool string_init_from_utf8_data(String *string, const char *data,
                                                 size_t byte_len,
                                                 Status *status) {
@@ -315,7 +288,6 @@ bool string_init_from_utf8_data(String *string, const char *data,
     return string_assign_utf8_data(string, data, byte_len, status);
 }
 
-inline
 bool string_init_from_utf8_data_full(String *string, const char *data,
                                                      size_t len,
                                                      size_t byte_len,
@@ -324,40 +296,34 @@ bool string_init_from_utf8_data_full(String *string, const char *data,
     return string_assign_utf8_data_full(string, data, len, byte_len, status);
 }
 
-inline
 bool string_init_from_sslice(String *string, SSlice *sslice, Status *status) {
     string_init(string);
     return string_assign_sslice(string, sslice, status);
 }
 
-inline
 bool string_init_from_string(String *string, String *input, Status *status) {
     string_init(string);
     return string_assign_string(string, input, status);
 }
 
-inline
 bool string_init_from_slice(String *string, Slice *slice, const char *encoding,
                                                           Status *status) {
     string_init(string);
     return string_assign_slice(string, slice, encoding, status);
 }
 
-inline
 bool string_init_from_utf8_slice(String *string, Slice *slice,
                                                  Status *status) {
     string_init(string);
     return string_assign_utf8_slice(string, slice, status);
 }
 
-inline
 bool string_init_from_local_slice(String *string, Slice *slice, 
                                                   Status *status) {
     string_init(string);
     return string_assign_local_slice(string, slice, status);
 }
 
-inline
 bool string_init_from_buffer(String *string, Buffer *buffer,
                                              const char *encoding,
                                              Status *status) {
@@ -365,23 +331,20 @@ bool string_init_from_buffer(String *string, Buffer *buffer,
     return string_assign_buffer(string, buffer, encoding, status);
 }
 
-inline
 bool string_init_from_utf8_buffer(String *string, Buffer *buffer,
                                                   Status *status) {
     string_init(string);
     return string_assign_utf8_buffer(string, buffer, status);
 }
 
-inline
 bool string_init_from_local_buffer(String *string, Buffer *buffer,
                                                    Status *status) {
     string_init(string);
     return string_assign_local_buffer(string, buffer, status);
 }
 
-inline
 bool string_new(String **string, Status *status) {
-    if (!cbmalloc(1, sizeof(String), (void **)string, status)) {
+    if (!cbmalloc(1, sizeof(String), string, status)) {
         return status_propagate(status);
     }
 
@@ -390,7 +353,6 @@ bool string_new(String **string, Status *status) {
     return status_ok(status);
 }
 
-inline
 bool string_new_alloc(String **string, size_t alloc, Status *status) {
     return (
         string_new(string, status) &&
@@ -398,7 +360,6 @@ bool string_new_alloc(String **string, size_t alloc, Status *status) {
     );
 }
 
-inline
 bool string_new_from_cstr(String **string, const char *cs, Status *status) {
     return (
         string_new(string, status) &&
@@ -416,7 +377,6 @@ bool string_new_from_cstr_full(String **string, const char *cs,
     );
 }
 
-inline
 bool string_new_from_utf8_data_full(String **string, const char *data,
                                                      size_t len,
                                                      size_t byte_len,
@@ -427,7 +387,6 @@ bool string_new_from_utf8_data_full(String **string, const char *data,
     );
 }
 
-inline
 bool string_new_from_sslice(String **string, SSlice *sslice, Status *status) {
     return (
         string_new(string, status) &&
@@ -435,7 +394,6 @@ bool string_new_from_sslice(String **string, SSlice *sslice, Status *status) {
     );
 }
 
-inline
 bool string_new_from_string(String **string, String *input, Status *status) {
     return (
         string_new(string, status) &&
@@ -443,7 +401,6 @@ bool string_new_from_string(String **string, String *input, Status *status) {
     );
 }
 
-inline
 bool string_new_from_slice(String **string, Slice *slice, const char *encoding,
                                                           Status *status) {
     return (
@@ -452,7 +409,6 @@ bool string_new_from_slice(String **string, Slice *slice, const char *encoding,
     );
 }
 
-inline
 bool string_new_from_utf8_slice(String **string, Slice *slice,
                                                  Status *status) {
     return (
@@ -461,7 +417,6 @@ bool string_new_from_utf8_slice(String **string, Slice *slice,
     );
 }
 
-inline
 bool string_new_from_local_slice(String **string, Slice *slice, 
                                                   Status *status) {
     return (
@@ -470,7 +425,6 @@ bool string_new_from_local_slice(String **string, Slice *slice,
     );
 }
 
-inline
 bool string_new_from_buffer(String **string, Buffer *buffer,
                                              const char *encoding,
                                              Status *status) {
@@ -480,7 +434,6 @@ bool string_new_from_buffer(String **string, Buffer *buffer,
     );
 }
 
-inline
 bool string_new_from_utf8_buffer(String **string, Buffer *buffer,
                                                   Status *status) {
     return (
@@ -489,7 +442,6 @@ bool string_new_from_utf8_buffer(String **string, Buffer *buffer,
     );
 }
 
-inline
 bool string_new_from_local_buffer(String **string, Buffer *buffer,
                                                    Status *status) {
     return (
@@ -498,12 +450,10 @@ bool string_new_from_local_buffer(String **string, Buffer *buffer,
     );
 }
 
-inline
 bool string_compact(String *string, Status *status) {
     return buffer_compact(&string->buffer, status);
 }
 
-inline
 bool string_index_rune(String *string, size_t index, rune *r, Status *status) {
     return utf8_index_rune(
         string->buffer.array.elements,
@@ -514,7 +464,6 @@ bool string_index_rune(String *string, size_t index, rune *r, Status *status) {
     );
 }
 
-inline
 bool string_index_rune_reverse(String *string, size_t index, rune *r,
                                                              Status *status) {
     return strbase_index_rune_reverse(
@@ -526,50 +475,41 @@ bool string_index_rune_reverse(String *string, size_t index, rune *r,
     );
 }
 
-inline
 bool string_get_first_rune(String *string, rune *r, Status *status) {
     return string_index_rune(string, 0, r, status);
 }
 
-inline
 bool string_get_last_rune(String *string, rune *r, Status *status) {
     return utf8_get_last_rune(
         string->buffer.array.elements, string->buffer.array.len, r, status
     );
 }
 
-inline
 bool string_equals_cstr(String *string, const char *cs) {
     return buffer_equals_data(&string->buffer, cs, strlen(cs));
 }
 
-inline
 bool string_equals_utf8_data(String *string, const char *data,
                                              size_t byte_len) {
     return buffer_equals_data(&string->buffer, data, byte_len);
 }
 
-inline
 bool string_equals_sslice(String *string, SSlice *sslice) {
     return buffer_equals_data(&string->buffer, sslice->data, sslice->byte_len);
 }
 
-inline
 bool string_equals_string(String *s1, String *s2) {
-    return buffer_equals(&s1->buffer, &s2->buffer);
+    return buffer_equals_buffer(&s1->buffer, &s2->buffer);
 }
 
-inline
 bool string_equals_utf8_slice(String *string, Slice *slice) {
     return buffer_equals_data(&string->buffer, slice->data, slice->len);
 }
 
-inline
 bool string_equals_utf8_buffer(String *string, Buffer *buffer) {
-    return buffer_equals(&string->buffer, buffer);
+    return buffer_equals_buffer(&string->buffer, buffer);
 }
 
-inline
 bool string_starts_with_rune(String *string, rune r, bool *starts_with,
                                                 Status *status) {
     rune r2;
@@ -583,7 +523,6 @@ bool string_starts_with_rune(String *string, rune r, bool *starts_with,
     return status_ok(status);
 }
 
-inline
 bool string_starts_with_cstr_len(String *string, const char *cs,
                                                  size_t byte_len,
                                                  bool *starts_with,
@@ -602,14 +541,12 @@ bool string_starts_with_cstr_len(String *string, const char *cs,
     return status_ok(status);
 }
 
-inline
 bool string_starts_with_cstr(String *string, const char *cs, bool *starts_with,
                                                              Status *status) {
     return string_starts_with_cstr_len(string, cs, strlen(cs), starts_with,
                                                                status);
 }
 
-inline
 bool string_ends_with_rune(String *string, rune r, bool *ends_with,
                                                    Status *status) {
     rune r2 = 0;
@@ -626,7 +563,6 @@ bool string_ends_with_rune(String *string, rune r, bool *ends_with,
     return status_ok(status);
 }
 
-inline
 bool string_ends_with_utf8_data(String *string, const char *cs,
                                                 size_t byte_len,
                                                 bool *ends_with,
@@ -638,14 +574,12 @@ bool string_ends_with_utf8_data(String *string, const char *cs,
                                                              status);
 }
 
-inline
 bool string_ends_with_cstr(String *string, const char *cs, bool *ends_with,
                                                            Status *status) {
     return string_ends_with_utf8_data(string, cs, strlen(cs) + 1, ends_with,
                                                                   status);
 }
 
-inline
 void string_slice_fast(String *string, size_t index, size_t len,
                                                      SSlice *sslice) {
     char *start = NULL;
@@ -653,9 +587,9 @@ void string_slice_fast(String *string, size_t index, size_t len,
 
     utf8_slice_fast(
         string->buffer.array.elements,
-        len,
         string->buffer.array.len,
         index,
+        len,
         &start,
         &end
     );
@@ -663,7 +597,6 @@ void string_slice_fast(String *string, size_t index, size_t len,
     sslice_assign_full(sslice, start, len, end - start);
 }
 
-inline
 bool string_slice(String *string, size_t index, size_t len, SSlice *sslice,
                                                             Status *status) {
     char *start = NULL;
@@ -673,21 +606,20 @@ bool string_slice(String *string, size_t index, size_t len, SSlice *sslice,
         return index_out_of_bounds(status);
     }
 
-    if (!utf8_slice(string->buffer.array.elements, len,
-                                                   string->buffer.array.len,
-                                                   index,
-                                                   &start,
-                                                   &end,
-                                                   status)) {
-        return status_propagate(status);
-    }
+    utf8_slice_fast(
+        string->buffer.array.elements,
+        string->buffer.array.len,
+        index,
+        len,
+        &start,
+        &end
+    );
 
     sslice_assign_full(sslice, start, len, end - start);
 
     return status_ok(status);
 }
 
-inline
 void string_slice_full(String *string, SSlice *sslice) {
     sslice_assign_full(sslice, string->buffer.array.elements,
                                string->len,
@@ -767,17 +699,14 @@ bool string_delete(String *string, size_t index, size_t rune_count,
     return status_ok(status);
 }
 
-inline
 bool string_skip_rune(String *string, Status *status) {
     return string_delete(string, 0, 1, status);
 }
 
-inline
 bool string_skip_runes(String *string, size_t rune_count, Status *status) {
     return string_delete(string, 0, rune_count, status);
 }
 
-inline
 bool string_skip_rune_if_equals(String *string, rune r, Status *status) {
     rune r2;
 
@@ -792,7 +721,6 @@ bool string_skip_rune_if_equals(String *string, rune r, Status *status) {
     return string_skip_runes(string, 1, status);
 }
 
-inline
 bool string_pop_rune(String *string, rune *r, Status *status) {
     return (
         string_get_first_rune(string, r, status) &&
@@ -800,7 +728,6 @@ bool string_pop_rune(String *string, rune *r, Status *status) {
     );
 }
 
-inline
 bool string_pop_rune_if_matches(String *string, RuneMatchFunc *matches,
                                                 rune *r,
                                                 Status *status) {
@@ -822,7 +749,6 @@ bool string_pop_rune_if_matches(String *string, RuneMatchFunc *matches,
     return string_delete(string, 0, 1, status);
 }
 
-inline
 bool string_skip_rune_if_matches(String *string, RuneMatchFunc *matches,
                                                  Status *status) {
     rune r = 0;
@@ -830,7 +756,6 @@ bool string_skip_rune_if_matches(String *string, RuneMatchFunc *matches,
     return string_pop_rune_if_matches(string, matches, &r, status);
 }
 
-inline
 bool string_seek_to_rune(String *string, rune r, Status *status) {
     for (size_t i = 0; i < string->len; i++) {
         char *substring = NULL;
@@ -856,7 +781,6 @@ bool string_seek_to_rune(String *string, rune r, Status *status) {
     return not_found(status);
 }
 
-inline
 bool string_seek_to_cstr(String *string, const char *cs, Status *status) {
     for (size_t i = 0; i < string->len; i++) {
         bool equal = false;
@@ -882,17 +806,14 @@ bool string_seek_to_cstr(String *string, const char *cs, Status *status) {
     return not_found(status);
 }
 
-inline
 bool string_truncate_runes(String *string, size_t rune_count, Status *status) {
     return string_delete(string, string->len - rune_count, rune_count, status);
 }
 
-inline
 bool string_truncate_rune(String *string, Status *status) {
     return string_truncate_runes(string, 1, status);
 }
 
-inline
 char* string_to_cstr(String *string) {
     Status status;
     char *out = NULL;
@@ -904,7 +825,6 @@ char* string_to_cstr(String *string) {
     return out;
 }
 
-inline
 void string_insert_cstr_full_fast(String *string, size_t index,
                                                   const char *cs,
                                                   size_t len,
@@ -913,7 +833,6 @@ void string_insert_cstr_full_fast(String *string, size_t index,
     string->len += len;
 }
 
-inline
 bool string_insert_cstr_full(String *string, size_t index, const char *cs,
                                                            size_t len,
                                                            size_t byte_len,
@@ -932,7 +851,6 @@ bool string_insert_cstr_full(String *string, size_t index, const char *cs,
     return status_ok(status);
 }
 
-inline
 bool string_insert_cstr(String *string, size_t index, const char *cs,
                                                       Status *status) {
     size_t len = 0;
@@ -949,7 +867,6 @@ bool string_insert_cstr(String *string, size_t index, const char *cs,
     return status_ok(status);
 }
 
-inline
 void string_insert_utf8_data_full_fast(String *string, size_t index,
                                                        const char *data,
                                                        size_t len,
@@ -959,7 +876,6 @@ void string_insert_utf8_data_full_fast(String *string, size_t index,
     string->len += len;
 }
 
-inline
 bool string_insert_utf8_data_full(String *string, size_t index,
                                                   const char *data,
                                                   size_t len,
@@ -980,7 +896,6 @@ bool string_insert_utf8_data_full(String *string, size_t index,
     return status_ok(status);
 }
 
-inline
 void string_insert_utf8_data_fast(String *string, size_t index,
                                                   const char *data,
                                                   size_t byte_len) {
@@ -995,7 +910,6 @@ void string_insert_utf8_data_fast(String *string, size_t index,
     );
 }
 
-inline
 bool string_insert_utf8_data(String *string, size_t index, const char *data,
                                                            size_t byte_len,
                                                            Status *status) {
@@ -1011,14 +925,12 @@ bool string_insert_utf8_data(String *string, size_t index, const char *data,
     );
 }
 
-inline
 void string_insert_sslice_fast(String *string, size_t index, SSlice *sslice) {
     string_insert_utf8_data_full_fast(string, index, sslice->data,
                                                      sslice->len,
                                                      sslice->byte_len);
 }
 
-inline
 bool string_insert_sslice(String *string, size_t index, SSlice *sslice,
                                                         Status *status) {
     return string_insert_utf8_data_full(string, index, sslice->data,
@@ -1027,14 +939,12 @@ bool string_insert_sslice(String *string, size_t index, SSlice *sslice,
                                                        status);
 }
 
-inline
 void string_insert_string_fast(String *dst, size_t index, String *src) {
     return string_insert_cstr_full_fast(dst, index, src->buffer.array.elements,
                                                     src->len,
                                                     src->buffer.array.len);
 }
 
-inline
 bool string_insert_string(String *dst, size_t index, String *src,
                                                      Status *status) {
     return string_insert_cstr_full(dst, index, src->buffer.array.elements,
@@ -1043,7 +953,6 @@ bool string_insert_string(String *dst, size_t index, String *src,
                                                status);
 }
 
-inline
 bool string_insert_slice_fast(String *string, size_t index,
                                               Slice *slice,
                                               const char *encoding,
@@ -1067,7 +976,6 @@ bool string_insert_slice_fast(String *string, size_t index,
     return status_ok(status);
 }
 
-inline
 bool string_insert_slice(String *string, size_t index, Slice *slice,
                                                        const char *encoding,
                                                        Status *status) {
@@ -1089,7 +997,6 @@ bool string_insert_slice(String *string, size_t index, Slice *slice,
     return status_ok(status);
 }
 
-inline
 void string_insert_utf8_slice_fast(String *string, size_t index,
                                                    Slice *slice) {
     return string_insert_utf8_data_fast(
@@ -1097,27 +1004,23 @@ void string_insert_utf8_slice_fast(String *string, size_t index,
     );
 }
 
-inline
 bool string_insert_utf8_slice(String *string, size_t index, Slice *slice,
                                                             Status *status) {
     return string_insert_utf8_data(string, index, slice->data, slice->len,
                                                                status);
 }
 
-inline
 bool string_insert_local_slice_fast(String *string, size_t index,
                                                     Slice *slice,
                                                     Status *status) {
     return string_insert_slice_fast(string, index, slice, "wchar_t", status);
 }
 
-inline
 bool string_insert_local_slice(String *string, size_t index, Slice *slice,
                                                              Status *status) {
     return string_insert_slice(string, index, slice, "wchar_t", status);
 }
 
-inline
 bool string_insert_buffer_fast(String *string, size_t index,
                                                Buffer *buffer,
                                                const char *encoding,
@@ -1141,7 +1044,6 @@ bool string_insert_buffer_fast(String *string, size_t index,
     return status_ok(status);
 }
 
-inline
 bool string_insert_buffer(String *string, size_t index, Buffer *buffer,
                                                         const char *encoding,
                                                         Status *status) {
@@ -1163,7 +1065,6 @@ bool string_insert_buffer(String *string, size_t index, Buffer *buffer,
     return status_ok(status);
 }
 
-inline
 bool string_insert_utf8_buffer_fast(String *string, size_t index,
                                                     Buffer *buffer,
                                                     Status *status) {
@@ -1172,7 +1073,6 @@ bool string_insert_utf8_buffer_fast(String *string, size_t index,
                                                   status);
 }
 
-inline
 bool string_insert_utf8_buffer(String *string, size_t index, Buffer *buffer,
                                                              Status *status) {
     return string_insert_utf8_data(string, index, buffer->array.elements,
@@ -1180,20 +1080,17 @@ bool string_insert_utf8_buffer(String *string, size_t index, Buffer *buffer,
                                                   status);
 }
 
-inline
 bool string_insert_local_buffer_fast(String *string, size_t index,
                                                      Buffer *buffer,
                                                      Status *status) {
     return string_insert_buffer_fast(string, index, buffer, "wchar_t", status);
 }
 
-inline
 bool string_insert_local_buffer(String *string, size_t index, Buffer *buffer,
                                                               Status *status) {
     return string_insert_buffer(string, index, buffer, "wchar_t", status);
 }
 
-inline
 bool string_insert_data_fast(String *string, size_t index,
                                              const char *data,
                                              size_t byte_len,
@@ -1207,7 +1104,6 @@ bool string_insert_data_fast(String *string, size_t index,
     return string_insert_slice_fast(string, index, &slice, encoding, status);
 }
 
-inline
 bool string_insert_data(String *string, size_t index, const char *data,
                                                       size_t byte_len,
                                                       const char *encoding,
@@ -1220,7 +1116,6 @@ bool string_insert_data(String *string, size_t index, const char *data,
     return string_insert_slice(string, index, &slice, encoding, status);
 }
 
-inline
 bool string_insert_local_data_fast(String *string, size_t index,
                                                    const char *data,
                                                    size_t byte_len,
@@ -1229,7 +1124,6 @@ bool string_insert_local_data_fast(String *string, size_t index,
                                                                   status);
 }
 
-inline
 bool string_insert_local_data(String *string, size_t index, const char *data,
                                                             size_t byte_len,
                                                             Status *status) {
@@ -1237,33 +1131,28 @@ bool string_insert_local_data(String *string, size_t index, const char *data,
                                                              status);
 }
 
-inline
 void string_prepend_cstr_full_fast(String *string, const char *cs,
                                                    size_t len,
                                                    size_t byte_len) {
     string_insert_cstr_full_fast(string, 0, cs, len, byte_len);
 }
 
-inline
 bool string_prepend_cstr_full(String *string, const char *cs, size_t len,
                                                               size_t byte_len,
                                                               Status *status) {
     return string_insert_cstr_full(string, 0, cs, len, byte_len, status);
 }
 
-inline
 bool string_prepend_cstr(String *string, const char *cs, Status *status) {
     return string_insert_cstr(string, 0, cs, status);
 }
 
-inline
 void string_prepend_utf8_data_full_fast(String *string, const char *data,
                                                         size_t len,
                                                         size_t byte_len) {
     string_insert_utf8_data_full_fast(string, 0, data, len, byte_len);
 }
 
-inline
 bool string_prepend_utf8_data_full(String *string, const char *data,
                                                    size_t len,
                                                    size_t byte_len,
@@ -1272,105 +1161,87 @@ bool string_prepend_utf8_data_full(String *string, const char *data,
                                                               status);
 }
 
-inline
 bool string_prepend_utf8_data(String *string, const char *data,
                                               size_t byte_len,
                                               Status *status) {
     return string_insert_utf8_data(string, 0, data, byte_len, status);
 }
 
-inline
 void string_prepend_sslice_fast(String *string, SSlice *sslice) {
     string_insert_sslice_fast(string, 0, sslice);
 }
 
-inline
 bool string_prepend_sslice(String *string, SSlice *sslice, Status *status) {
     return string_insert_sslice(string, 0, sslice, status);
 }
 
-inline
 void string_prepend_string_fast(String *dst, String *src) {
     string_insert_string_fast(dst, 0, src);
 }
 
-inline
 bool string_prepend_string(String *dst, String *src, Status *status) {
     return string_insert_string(dst, 0, src, status);
 }
 
-inline
 bool string_prepend_slice_fast(String *string, Slice *slice,
                                                const char *encoding,
                                                Status *status) {
     return string_insert_slice_fast(string, 0, slice, encoding, status);
 }
 
-inline
 bool string_prepend_slice(String *string, Slice *slice, const char *encoding,
                                                         Status *status) {
     return string_insert_slice(string, 0, slice, encoding, status);
 }
 
-inline
 void string_prepend_utf8_slice_fast(String *string, Slice *slice) {
     string_insert_utf8_slice_fast(string, 0, slice);
 }
 
-inline
 bool string_prepend_utf8_slice(String *string, Slice *slice, Status *status) {
     return string_insert_utf8_slice(string, 0, slice, status);
 }
 
-inline
 bool string_prepend_local_slice_fast(String *string, Slice *slice,
                                                      Status *status) {
     return string_insert_local_slice_fast(string, 0, slice, status);
 }
 
-inline
 bool string_prepend_local_slice(String *string, Slice *slice, Status *status) {
     return string_insert_local_slice(string, 0, slice, status);
 }
 
-inline
 bool string_prepend_buffer_fast(String *string, Buffer *buffer,
                                                 const char *encoding,
                                                 Status *status) {
     return string_insert_buffer_fast(string, 0, buffer, encoding, status);
 }
 
-inline
 bool string_prepend_buffer(String *string, Buffer *buffer, const char *encoding,
                                                            Status *status) {
     return string_insert_buffer(string, 0, buffer, encoding, status);
 }
 
-inline
 bool string_prepend_utf8_buffer_fast(String *string, Buffer *buffer,
                                                      Status *status) {
     return string_insert_utf8_buffer_fast(string, 0, buffer, status);
 }
 
-inline
 bool string_prepend_utf8_buffer(String *string, Buffer *buffer,
                                                 Status *status) {
     return string_insert_utf8_buffer(string, 0, buffer, status);
 }
 
-inline
 bool string_prepend_local_buffer_fast(String *string, Buffer *buffer,
                                                       Status *status) {
     return string_insert_local_buffer_fast(string, 0, buffer, status);
 }
 
-inline
 bool string_prepend_local_buffer(String *string, Buffer *buffer,
                                                  Status *status) {
     return string_insert_local_buffer(string, 0, buffer, status);
 }
 
-inline
 bool string_prepend_data_fast(String *string, const char *data,
                                               size_t byte_len,
                                               const char *encoding,
@@ -1380,7 +1251,6 @@ bool string_prepend_data_fast(String *string, const char *data,
     );
 }
 
-inline
 bool string_prepend_data(String *string, const char *data,
                                          size_t byte_len,
                                          const char *encoding,
@@ -1388,47 +1258,40 @@ bool string_prepend_data(String *string, const char *data,
     return string_insert_data(string, 0, data, byte_len, encoding, status);
 }
 
-inline
 bool string_prepend_local_data_fast(String *string, const char *data,
                                                     size_t byte_len,
                                                     Status *status) {
     return string_insert_local_data_fast(string, 0, data, byte_len, status);
 }
 
-inline
 bool string_prepend_local_data(String *string, const char *data,
                                                size_t byte_len,
                                                Status *status) {
     return string_insert_local_data(string, 0, data, byte_len, status);
 }
 
-inline
 void string_append_cstr_full_fast(String *string, const char *cs,
                                                   size_t len,
                                                   size_t byte_len) {
     string_insert_cstr_full_fast(string, 0, cs, len, byte_len);
 }
 
-inline
 bool string_append_cstr_full(String *string, const char *cs, size_t len,
                                                              size_t byte_len,
                                                              Status *status) {
     return string_insert_cstr_full(string, 0, cs, len, byte_len, status);
 }
 
-inline
 bool string_append_cstr(String *string, const char *cs, Status *status) {
     return string_insert_cstr(string, 0, cs, status);
 }
 
-inline
 void string_append_utf8_data_full_fast(String *string, const char *data,
                                                        size_t len,
                                                        size_t byte_len) {
     string_insert_utf8_data_full_fast(string, 0, data, len, byte_len);
 }
 
-inline
 bool string_append_utf8_data_full(String *string, const char *data,
                                                   size_t len,
                                                   size_t byte_len,
@@ -1437,105 +1300,87 @@ bool string_append_utf8_data_full(String *string, const char *data,
                                                               status);
 }
 
-inline
 bool string_append_utf8_data(String *string, const char *data,
                                              size_t byte_len,
                                              Status *status) {
     return string_insert_utf8_data(string, 0, data, byte_len, status);
 }
 
-inline
 void string_append_sslice_fast(String *string, SSlice *sslice) {
     string_insert_sslice_fast(string, 0, sslice);
 }
 
-inline
 bool string_append_sslice(String *string, SSlice *sslice, Status *status) {
     return string_insert_sslice(string, 0, sslice, status);
 }
 
-inline
 void string_append_string_fast(String *dst, String *src) {
     return string_insert_string_fast(dst, 0, src);
 }
 
-inline
 bool string_append_string(String *dst, String *src, Status *status) {
     return string_insert_string(dst, 0, src, status);
 }
 
-inline
 bool string_append_slice_fast(String *string, Slice *slice,
                                               const char *encoding,
                                               Status *status) {
     return string_insert_slice_fast(string, 0, slice, encoding, status);
 }
 
-inline
 bool string_append_slice(String *string, Slice *slice, const char *encoding,
                                                        Status *status) {
     return string_insert_slice(string, 0, slice, encoding, status);
 }
 
-inline
 void string_append_utf8_slice_fast(String *string, Slice *slice) {
     string_insert_utf8_slice_fast(string, 0, slice);
 }
 
-inline
 bool string_append_utf8_slice(String *string, Slice *slice, Status *status) {
     return string_insert_utf8_slice(string, 0, slice, status);
 }
 
-inline
 bool string_append_local_slice_fast(String *string, Slice *slice,
                                                     Status *status) {
     return string_insert_local_slice_fast(string, 0, slice, status);
 }
 
-inline
 bool string_append_local_slice(String *string, Slice *slice, Status *status) {
     return string_insert_local_slice(string, 0, slice, status);
 }
 
-inline
 bool string_append_buffer_fast(String *string, Buffer *buffer,
                                                const char *encoding,
                                                Status *status) {
     return string_insert_buffer_fast(string, 0, buffer, encoding, status);
 }
 
-inline
 bool string_append_buffer(String *string, Buffer *buffer, const char *encoding,
                                                           Status *status) {
     return string_insert_buffer(string, 0, buffer, encoding, status);
 }
 
-inline
 bool string_append_utf8_buffer_fast(String *string, Buffer *buffer,
                                                     Status *status) {
     return string_insert_utf8_buffer_fast(string, 0, buffer, status);
 }
 
-inline
 bool string_append_utf8_buffer(String *string, Buffer *buffer,
                                                Status *status) {
     return string_insert_utf8_buffer(string, 0, buffer, status);
 }
 
-inline
 bool string_append_local_buffer_fast(String *string, Buffer *buffer,
                                                      Status *status) {
     return string_insert_local_buffer_fast(string, 0, buffer, status);
 }
 
-inline
 bool string_append_local_buffer(String *string, Buffer *buffer,
                                                 Status *status) {
     return string_insert_local_buffer(string, 0, buffer, status);
 }
 
-inline
 bool string_append_data_fast(String *string, const char *data,
                                              size_t byte_len,
                                              const char *encoding,
@@ -1544,7 +1389,6 @@ bool string_append_data_fast(String *string, const char *data,
                                                               status);
 }
 
-inline
 bool string_append_data(String *string, const char *data,
                                         size_t byte_len,
                                         const char *encoding,
@@ -1552,14 +1396,12 @@ bool string_append_data(String *string, const char *data,
     return string_insert_data(string, 0, data, byte_len, encoding, status);
 }
 
-inline
 bool string_append_local_data_fast(String *string, const char *data,
                                                    size_t byte_len,
                                                    Status *status) {
     return string_insert_local_data_fast(string, 0, data, byte_len, status);
 }
 
-inline
 bool string_append_local_data(String *string, const char *data,
                                               size_t byte_len,
                                               Status *status) {
@@ -1569,7 +1411,6 @@ bool string_append_local_data(String *string, const char *data,
 bool string_replace_cstr(String *s, const char *cs, const char *replacement,
                                                     Status *status);
 
-inline
 bool string_encode(String *string, const char *encoding, Buffer *out,
                                                          Status *status) {
     return strbase_encode(
@@ -1581,7 +1422,6 @@ bool string_encode(String *string, const char *encoding, Buffer *out,
     );
 }
 
-inline
 bool string_localize(String *string, Buffer *out, Status *status) {
     return strbase_localize(
         string->buffer.array.elements,
@@ -1591,19 +1431,16 @@ bool string_localize(String *string, Buffer *out, Status *status) {
     );
 }
 
-inline
 void string_clear(String *string) {
     buffer_clear(&string->buffer);
     strbase_clear(&string->len, &string->buffer.array.len);
 }
 
-inline
 void string_free(String *string) {
     buffer_free(&string->buffer);
     strbase_clear(&string->len, &string->buffer.array.len);
 }
 
-inline
 bool string_insert_printf(String *string, size_t index, Status *status,
                                                         const char *fmt,
                                                         ...) {
@@ -1621,14 +1458,12 @@ bool string_insert_printf(String *string, size_t index, Status *status,
     return status_ok(status);
 }
 
-inline
 bool string_vprintf(String *string, Status *status, const char *fmt,
                                                     va_list args) {
     string_clear(string);
     return string_insert_vprintf(string, 0, status, fmt, args);
 }
 
-inline
 bool string_printf(String *string, Status *status, const char *fmt, ...) {
     va_list args;
     bool res;
@@ -1644,14 +1479,12 @@ bool string_printf(String *string, Status *status, const char *fmt, ...) {
     return status_ok(status);
 }
 
-inline
 bool string_init_vprintf(String *string, Status *status, const char *fmt,
                                                          va_list args) {
     string_init(string);
     return string_vprintf(string, status, fmt, args);
 }
 
-inline
 bool string_init_printf(String *string, Status *status, const char *fmt, ...) {
     bool res;
     va_list args;
@@ -1667,7 +1500,6 @@ bool string_init_printf(String *string, Status *status, const char *fmt, ...) {
     return status_ok(status);
 }
 
-inline
 bool string_new_vprintf(String **string, Status *status, const char *fmt,
                                                          va_list args) {
     return (
@@ -1676,7 +1508,6 @@ bool string_new_vprintf(String **string, Status *status, const char *fmt,
     );
 }
 
-inline
 bool string_new_printf(String **string, Status *status, const char *fmt, ...) {
     va_list args;
     bool res;
@@ -1692,13 +1523,11 @@ bool string_new_printf(String **string, Status *status, const char *fmt, ...) {
     return status_ok(status);
 }
 
-inline
 bool string_prepend_vprintf(String *string, Status *status, const char *fmt,
                                                             va_list args) {
     return string_insert_vprintf(string, 0, status, fmt, args);
 }
 
-inline
 bool string_prepend_printf(String *string, Status *status, const char *fmt,
                                                            ...) {
     va_list args;
@@ -1715,13 +1544,11 @@ bool string_prepend_printf(String *string, Status *status, const char *fmt,
     return status_ok(status);
 }
 
-inline
 bool string_append_vprintf(String *string, Status *status, const char *fmt,
                                                            va_list args) {
     return string_insert_vprintf(string, string->len, status, fmt, args);
 }
 
-inline
 bool string_append_printf(String *string, Status *status, const char *fmt,
                                                           ...) {
     va_list args;

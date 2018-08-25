@@ -51,7 +51,7 @@ bool buffer_equals_data_at(Buffer *buffer, size_t index, const void *data,
 
 bool buffer_equals_data(Buffer *buffer, const char *data, size_t len);
 
-bool buffer_equals(Buffer *b1, Buffer *b2);
+bool buffer_equals_buffer(Buffer *b1, Buffer *b2);
 
 bool buffer_starts_with_data_fast(Buffer *buffer, const void *data,
                                                   size_t len);
