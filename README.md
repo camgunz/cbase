@@ -9,7 +9,6 @@ cbase is an application library for C applications.  It provides:
   - Pointer array
   - Single/Double linked list
   - Hash table
-- Decimal arithmetic (mpdecimal)
 - Unicode handling (utf8proc)
 - Charset converstion (libiconv)
 - Byte swapping
@@ -44,7 +43,6 @@ cbase requires:
 ## Dependencies
 
 cbase depends on:
-- [mpdecimal](http://www.bytereef.org/mpdecimal/)
 - [utf8proc](https://julialang.org/utf8proc/)
 - [libiconv](https://www.gnu.org/software/libiconv/)
 
@@ -99,20 +97,6 @@ would be `array` (cbase's hash tables use arrays).
 `int` error codes are also insufficient for tracing errors to their source.
 `Status` has `file` and `line` fields for just this purpose.
 
-Finally, `Status` can be handled via provided macros.  The `Status` API
-provides the ability to set handlers for any returned status.  This is most
-helpful for allocation failures -- typically due to fragmented or exhausted
-memory -- but there are other uses.  However, exercise care when using this
-feature.  Status handlers have some of the issues exceptions have, particularly
-non-locality.  Ex:
-
-```c
-if (!call_a_function_that_returns_handled_status(&thing, status)) {
-    /* Status handler ran here, but there's no way of knowing from this code */
-    return definitely_nothing_ran(status);
-}
-```
-
 ### Status Performance
 
 The performance burden of `Status` is very, very small.  Most cases are success
@@ -138,7 +122,7 @@ In the error case, `Status` is still relatively quick:
 
 ## General Philosophy
 
-### Security is the default
+### Safety is the default
 
 cbase's basic functions perform checks by default; usually these are bounds and
 overflow checks.  cbase always checks return values and never swallows errors.
