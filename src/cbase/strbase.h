@@ -16,8 +16,11 @@ enum {
     "String data is empty"                       \
 )
 
-void strbase_assign_full(char *dst_data, size_t dst_len, size_t dst_byte_len,
-                         char *src_data, size_t src_len, size_t src_byte_len);
+void strbase_assign_full(char **dst_data, size_t *dst_len,
+                                          size_t *dst_byte_len,
+                                          char *src_data,
+                                          size_t src_len,
+                                          size_t src_byte_len);
 
 bool strbase_assign_cstr(char **dst_data, size_t *len, size_t *byte_len,
                                                        char *cs,

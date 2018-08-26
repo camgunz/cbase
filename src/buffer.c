@@ -38,7 +38,7 @@ void buffer_init(Buffer *buffer) {
 }
 
 bool buffer_init_alloc(Buffer *buffer, size_t alloc, Status *status) {
-    return array_init_alloc(&buffer->array, sizeof(char), alloc, status);
+    return array_init_alloc(&buffer->array, alloc, sizeof(char), status);
 }
 
 bool buffer_init_from_data(Buffer *buffer, const char *data, size_t len,
@@ -183,7 +183,7 @@ void buffer_clear_no_zero(Buffer *buffer) {
 }
 
 void buffer_clear(Buffer *buffer) {
-    return array_clear(&buffer->array);
+    array_clear(&buffer->array);
 }
 
 void buffer_free(Buffer *buffer) {

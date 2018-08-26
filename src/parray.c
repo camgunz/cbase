@@ -17,7 +17,7 @@ void parray_init(PArray *parray) {
 }
 
 bool parray_init_alloc(PArray *parray, size_t alloc, Status *status) {
-    return array_init_alloc(&parray->array, sizeof(void *), alloc, status);
+    return array_init_alloc(&parray->array, alloc, sizeof(void *), status);
 }
 
 bool parray_new(PArray **parray, Status *status) {

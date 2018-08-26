@@ -127,7 +127,7 @@ void* array_insert_fast(Array *array, size_t index) {
     if (index < array->len) {
         cbbase_memmove(array_index_fast(array, index + 1),
                        array_index_fast(array, index),
-                       array->len - index * array->element_size);
+                       (array->len - index) * array->element_size);
     }
 
     array->len++;
@@ -135,9 +135,11 @@ void* array_insert_fast(Array *array, size_t index) {
     return array_index_fast(array, index);
 }
 
+#include <stdio.h>
+
 bool array_insert(Array *array, size_t index, void **new_element,
                                               Status *status) {
-    if (index >= array->len) {
+    if (index > array->len) {
         return index_out_of_bounds(status);
     }
 
@@ -152,7 +154,7 @@ bool array_insert(Array *array, size_t index, void **new_element,
 
 bool array_insert_no_zero(Array *array, size_t index, void **new_element,
                                                       Status *status) {
-    if (index >= array->len) {
+    if (index > array->len) {
         return index_out_of_bounds(status);
     }
 
@@ -170,7 +172,7 @@ void array_insert_many_fast(Array *array, size_t index, const void *elements,
     if (index < array->len) {
         cbbase_memmove(array_index_fast(array, index + element_count),
                        array_index_fast(array, index),
-                       array->len - index * array->element_size);
+                       (array->len - index) * array->element_size);
     }
 
     cbbase_memmove(array_index_fast(array, index),
@@ -202,7 +204,7 @@ void array_shift_elements_down_fast_no_zero(Array *array,
     if (index < array->len) {
         cbbase_memmove(array_index_fast(array, index + element_count),
                        array_index_fast(array, index),
-                       array->len - index * array->element_size);
+                       (array->len - index) * array->element_size);
     }
 
     array->len += element_count;
@@ -344,8 +346,9 @@ void array_append_many_fast(Array *array, const void *elements,
 bool array_append_many(Array *array, const void *elements,
                                      size_t element_count,
                                      Status *status) {
-    return array_insert_many(array, array->len, elements, element_count,
-                                                          status);
+    return array_insert_many(
+        array, array->len, elements, element_count, status
+    );
 }
 
 void array_append_array_same_fast(Array *dst, Array *src) {
@@ -489,7 +492,7 @@ bool array_truncate_no_zero(Array *array, size_t len, Status *status) {
         return index_out_of_bounds(status);
     }
 
-    if (array->len != len) {
+    if (array->len == len) {
         return status_ok(status);
     }
 

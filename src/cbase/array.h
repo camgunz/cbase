@@ -8,9 +8,9 @@ enum {
 };
 
 typedef struct ArrayStruct {
+    size_t element_size;
     size_t len;
     size_t alloc;
-    size_t element_size;
     void *elements;
 } Array;
 
@@ -33,8 +33,8 @@ bool array_init_alloc_zero(Array *array, size_t element_count,
 
 bool array_new(Array **array, size_t element_size, Status *status);
 
-bool array_new_alloc(Array **array, size_t element_count, size_t element_size,
-                                                          Status *status);
+bool array_new_alloc(Array **array, size_t element_size, size_t element_count,
+                                                         Status *status);
 
 bool array_new_alloc_zero(Array **array, size_t element_count,
                                          size_t element_size,

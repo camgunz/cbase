@@ -15,25 +15,44 @@ void test_array(void **state) {
 
     status_init(&status);
 
-    assert_true(array_new_alloc(&array, sizeof(Person), 3, &status));
+    assert_true(array_new_alloc(&array, 3, sizeof(Person), &status));
+    assert_int_equal(array->len, 0);
+    assert_int_equal(array->alloc, 3);
+    assert_int_equal(array->element_size, sizeof(Person));
+
     assert_true(array_ensure_capacity_zero(array, 5, &status));
+    assert_int_equal(array->len, 0);
+    assert_int_equal(array->alloc, 5);
+    assert_int_equal(array->element_size, sizeof(Person));
+
     assert_true(array_new(&array2, sizeof(Person), &status));
+    assert_int_equal(array2->len, 0);
+    assert_int_equal(array2->alloc, 0);
+    assert_int_equal(array2->element_size, sizeof(Person));
 
     assert_true(array_append(array, (void **)&person, &status));
     person->name = "John";
     person->age = 43;
+    assert_int_equal(array->len, 1);
+    assert_int_equal(array->alloc, 5);
 
     assert_true(array_append(array, (void **)&person, &status));
     person->name = "Lyndon";
     person->age = 55;
+    assert_int_equal(array->len, 2);
+    assert_int_equal(array->alloc, 5);
 
     assert_true(array_append(array2, (void **)&person, &status));
     person->name = "James";
     person->age = 53;
+    assert_int_equal(array2->len, 1);
+    assert_int_equal(array2->alloc, 1);
 
     assert_true(array_append(array2, (void **)&person, &status));
     person->name = "William";
     person->age = 47;
+    assert_int_equal(array2->len, 2);
+    assert_int_equal(array2->alloc, 2);
 
     assert_true(array_append(array, (void **)&person, &status));
     person->name = "Barack";
@@ -116,7 +135,7 @@ void test_array(void **state) {
     array_free(array2);
     cbfree(array2);
 
-    assert_true(array_new_alloc_zero(&array, sizeof(Person), 3, &status));
+    assert_true(array_new_alloc_zero(&array, 3, sizeof(Person), &status));
     assert_non_null(array);
     assert_non_null(array->elements);
     assert_int_equal(array->len, 0);
@@ -223,9 +242,11 @@ void test_array(void **state) {
     Array stack_array;
     Array stack_array2;
 
-    assert_true(array_init_alloc_zero(&stack_array2, sizeof(Person), 3, &status));
+    assert_true(array_init_alloc_zero(
+        &stack_array2, 3, sizeof(Person), &status
+    ));
 
-    assert_true(array_init_alloc(&stack_array, sizeof(Person), 3, &status));
+    assert_true(array_init_alloc(&stack_array, 3, sizeof(Person), &status));
 
     assert_true(array_append(&stack_array, (void **)&person, &status));
     person->name = "Lyndon";
@@ -259,7 +280,7 @@ void test_array(void **state) {
     assert_true(array_append_array(array, &stack_array, &status));
     assert_int_equal(array->len, 7);
     assert_int_equal(array->alloc, 7);
-    assert_int_equal(stack_array.len, 0);
+    assert_int_equal(stack_array.len, 2);
     assert_int_equal(stack_array.alloc, 3);
 
     array_free(&stack_array);

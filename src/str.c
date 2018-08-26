@@ -105,15 +105,11 @@ bool string_assign_data_fast(String *string, const char *data,
                                              Status *status) {
     Buffer input;
 
-    /*
-     * [TODO] Would be better to use *data instead of copying it.
-     */
-
     if (!buffer_init_from_data(&input, data, byte_len, status)) {
         return status_propagate(status);
     }
 
-    if ((!buffer_encode(&string->buffer, encoding, "utf-8", &input, status))) {
+    if ((!buffer_encode(&input, encoding, "utf-8", &string->buffer, status))) {
         buffer_free(&input);
         return status_propagate(status);
     }
@@ -132,13 +128,11 @@ bool string_assign_data(String *string, const char *data,
                                         Status *status) {
     Buffer input;
 
-    /* [TODO] Would be better to use *data instead of copying it. */
-
     if (!buffer_init_from_data(&input, data, byte_len, status)) {
         return status_propagate(status);
     }
 
-    if ((!buffer_encode(&string->buffer, encoding, "utf-8", &input, status)) ||
+    if ((!buffer_encode(&input, encoding, "utf-8", &string->buffer, status)) ||
         (!string_assign_utf8_data(string, input.array.elements,
                                           input.array.len,
                                           status))) {

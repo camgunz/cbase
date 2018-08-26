@@ -80,7 +80,7 @@ bool __cbmemdup(const void *ptr, size_t byte_count, Status *status) {
 bool __cbstrndup(const char *cs, size_t len, char **ptr, Status *status) {
     char *new_str = NULL;
     
-    if (!cbmalloc(len + 1, sizeof(char), new_str, status)) {
+    if (!cbmalloc(len + 1, sizeof(char), &new_str, status)) {
         return false;
     }
 

@@ -11,39 +11,21 @@
 - Add a better allocator; probably necessary to get competitive table
   performance.
 - Wrap any function taking a `void **` with a macro to make the cast
-
-## Consistency
-
-cbase currently contains several inconsistencies, which are documented here as
-the first step towards resolving them.
-
-### NULL output parameters
-
-Some functions handle `NULL` output parameters and don't write to them, but
-many don't.  Rather than branching to check if they're `NULL` though, I think
-there should just be different functions.
-
-### Using output parameters internally
-
-Most functions only modify output parameters on success, but a few don't follow
-this rule.  This probably makes sense for `strbase`, which is more or less
-internal, but everything else should follow the rule.
-
-### `ptrdiff_t`
-
-`ptrdiff_t` is probably a bad idea in general; it's better to check for
-potential "whoops that's actually behind" and then use `size_t` to avoid
-overflow.  Might merit a macro/util function.
-
-### `status_propagate`
-
-`status_propagate` was recently added and not everything's switched over.  This
-might also merit a macro or something in the status module.
+- The `*_assign` functions should take ownership of their arguments
+- Look for `ptrdiff_t` and replace with `positive_ptrdiff` calls
+- Switch `return false` with `status_propagate` calls
+- Find functions that check if their output arguments are `NULL` and make
+  alternative functions when possible
+- Ensure everything besides `strbase` modifies their output parameters only on
+  success
+- Consider adding an allocation size strategy for functions that auto-resize,
+  i.e. `*_encode` or even `*_append_*`.  Currently it's ad-hoc and almost
+  certainly non-optimal.
+- Iterators
 
 ## Benchmarks
 
-- Devise some benchmarks
-- Find some other libs...?
+- Other libs:
   - GLib
   - APR
   - hash table libraries
@@ -51,6 +33,7 @@ might also merit a macro or something in the status module.
     - uthash
   - sds
   - libcperciva
+  - Fraggle's C algorithms
   - tommyds
   - C++ STL
 
@@ -59,6 +42,12 @@ might also merit a macro or something in the status module.
 - Check for consistency, i.e. when accepting a length, should an error occur if
   len is longer than the data structure, or should it... clear, for example in
   the case of truncation.
+  - Some functions are implicitly "do this is it's possible, otherwise I don't
+    care", but the downside of that is that if you do care, you might end up
+    performing the check twice -- once to do the check and once implicitly in
+    the operation itself.  Some have "fast" variants but many don't.
+  - I think the best thing is to push this into a naming convention... which I
+    think should be `*_quiet`?
 
 ## Tests
 

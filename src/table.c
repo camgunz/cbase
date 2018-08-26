@@ -147,8 +147,8 @@ bool table_init(Table *table, TableGetHashFromKey *key_to_hash,
     table->len = 0;
     
     if (!array_init_alloc(&table->buckets,
-                          sizeof(TArrayNode),
                           table->bucket_max,
+                          sizeof(TArrayNode),
                           status)) {
         return false;
     }

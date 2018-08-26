@@ -1,10 +1,13 @@
 #include "cbase.h"
 
-void strbase_assign_full(char *dst_data, size_t dst_len, size_t dst_byte_len,
-                         char *src_data, size_t src_len, size_t src_byte_len) {
-    dst_data = src_data;
-    dst_len = src_len;
-    dst_byte_len = src_byte_len;
+void strbase_assign_full(char **dst_data, size_t *dst_len,
+                                          size_t *dst_byte_len,
+                                          char *src_data,
+                                          size_t src_len,
+                                          size_t src_byte_len) {
+    *dst_data = src_data;
+    *dst_len = src_len;
+    *dst_byte_len = src_byte_len;
 }
 
 bool strbase_assign_cstr(char **dst_data, size_t *len, size_t *byte_len,
