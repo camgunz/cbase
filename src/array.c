@@ -1,7 +1,5 @@
 #include "cbase.h"
 
-/* [TODO] Add checks for element_size when running array/array functions */
-
 #define array_element_size_mismatch(status) status_failure( \
     status,                                                 \
     "array",                                                \
@@ -12,7 +10,7 @@
 bool array_ensure_capacity(Array *array, size_t len, Status *status) {
     if (array->alloc < len) {
         if (!cbrealloc(len, array->element_size, &array->elements, status)) {
-            return false;
+            return status_propagate(status);
         }
 
         array->alloc = len;
@@ -26,13 +24,13 @@ bool array_ensure_capacity_zero(Array *array, size_t len, Status *status) {
         if (!array->elements) {
             if (!cbcalloc(len, array->element_size, &array->elements,
                                                     status)) {
-                return false;
+                return status_propagate(status);
             }
 
         }
         else if (!cbrealloc(len, array->element_size, &array->elements,
                                                       status)) {
-            return false;
+            return status_propagate(status);
         }
 
         array->alloc = len;
@@ -48,7 +46,7 @@ bool array_set_size(Array *array, size_t len, Status *status) {
 
     if (array->alloc > len) {
         if (!cbrealloc(len, array->element_size, &array->elements, status)) {
-            return false;
+            return status_propagate(status);
         }
 
         array->alloc = len;
@@ -84,7 +82,7 @@ bool array_init_alloc_zero(Array *array, size_t element_count,
 
 bool array_new(Array **array, size_t element_size, Status *status) {
     if (!cbmalloc(1, sizeof(Array), array, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     array_init(*array, element_size);
@@ -113,7 +111,7 @@ void* array_index_fast(Array *array, size_t index) {
     return (void *)(((char *)array->elements) + (array->element_size * index));
 }
 
-bool array_index(Array *array, size_t index, void **element, Status *status) {
+bool _array_index(Array *array, size_t index, void **element, Status *status) {
     if (index >= array->len) {
         return index_out_of_bounds(status);
     }
@@ -123,57 +121,81 @@ bool array_index(Array *array, size_t index, void **element, Status *status) {
     return status_ok(status);
 }
 
-void* array_insert_fast(Array *array, size_t index) {
-    if (index < array->len) {
-        cbbase_memmove(array_index_fast(array, index + 1),
-                       array_index_fast(array, index),
-                       (array->len - index) * array->element_size);
+void array_set_fast(Array *array, size_t index, void *element) {
+    void *new_slot = array_index_fast(array, index);
+
+    cbbase_memmove(new_slot, element, array->element_size);
+}
+
+bool array_set(Array *array, size_t index, void *element, Status *status) {
+    if (index >= array->len) {
+        return index_out_of_bounds(status);
     }
+
+    array_set_fast(array, index, element);
+
+    return status_ok(status);
+}
+
+bool array_insert(Array *array, size_t index, void *element, Status *status) {
+    if (index > array->len) {
+        return index_out_of_bounds(status);
+    }
+
+    if (!array_ensure_capacity_zero(array, array->len + 1, status)) {
+        return status_propagate(status);
+    }
+
+    array_set_fast(array, index, element);
+
+    return status_ok(status);
+}
+
+void* array_insert_slot_fast(Array *array, size_t index) {
+    cbbase_memmove(array_index_fast(array, index + 1),
+                   array_index_fast(array, index),
+                   (array->len - index) * array->element_size);
 
     array->len++;
 
     return array_index_fast(array, index);
 }
 
-#include <stdio.h>
-
-bool array_insert(Array *array, size_t index, void **new_element,
-                                              Status *status) {
+bool _array_insert_slot(Array *array, size_t index, void **new_slot,
+                                                    Status *status) {
     if (index > array->len) {
         return index_out_of_bounds(status);
     }
 
     if (!array_ensure_capacity_zero(array, array->len + 1, status)) {
-        return false;
+        return status_propagate(status);
     }
 
-    *new_element = array_insert_fast(array, index);
+    *new_slot = array_insert_slot_fast(array, index);
 
     return status_ok(status);
 }
 
-bool array_insert_no_zero(Array *array, size_t index, void **new_element,
-                                                      Status *status) {
+bool _array_insert_slot_no_zero(Array *array, size_t index, void **new_slot,
+                                                            Status *status) {
     if (index > array->len) {
         return index_out_of_bounds(status);
     }
 
     if (!array_ensure_capacity(array, array->len + 1, status)) {
-        return false;
+        return status_propagate(status);
     }
 
-    *new_element = array_insert_fast(array, index);
+    *new_slot = array_insert_slot_fast(array, index);
 
     return status_ok(status);
 }
 
 void array_insert_many_fast(Array *array, size_t index, const void *elements,
                                                         size_t element_count) {
-    if (index < array->len) {
-        cbbase_memmove(array_index_fast(array, index + element_count),
-                       array_index_fast(array, index),
-                       (array->len - index) * array->element_size);
-    }
+    cbbase_memmove(array_index_fast(array, index + element_count),
+                   array_index_fast(array, index),
+                   (array->len - index) * array->element_size);
 
     cbbase_memmove(array_index_fast(array, index),
                    elements,
@@ -190,7 +212,7 @@ bool array_insert_many(Array *array, size_t index, const void *elements,
     }
 
     if (!array_ensure_capacity(array, array->len + element_count, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     array_insert_many_fast(array, index, elements, element_count);
@@ -201,11 +223,9 @@ bool array_insert_many(Array *array, size_t index, const void *elements,
 void array_shift_elements_down_fast_no_zero(Array *array,
                                             size_t index,
                                             size_t element_count) {
-    if (index < array->len) {
-        cbbase_memmove(array_index_fast(array, index + element_count),
-                       array_index_fast(array, index),
-                       (array->len - index) * array->element_size);
-    }
+    cbbase_memmove(array_index_fast(array, index + element_count),
+                   array_index_fast(array, index),
+                   (array->len - index) * array->element_size);
 
     array->len += element_count;
 }
@@ -226,7 +246,7 @@ bool array_shift_elements_down_no_zero(Array *array, size_t index,
     }
 
     if (!array_ensure_capacity(array, array->len + element_count, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     array_shift_elements_down_fast_no_zero(array, index, element_count);
@@ -241,7 +261,7 @@ bool array_shift_elements_down(Array *array, size_t index, size_t element_count,
     }
 
     if (!array_ensure_capacity(array, array->len + element_count, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     array_shift_elements_down_fast(array, index, element_count);
@@ -277,16 +297,25 @@ bool array_insert_array(Array *dst, size_t index, Array *src, Status *status) {
     return array_insert_array_same(dst, index, src, status);
 }
 
-void* array_prepend_fast(Array *array) {
-    return array_insert_fast(array, 0);
+void array_prepend_fast(Array *array, void *element) {
+    array_set_fast(array, 0, element);
 }
 
-bool array_prepend(Array *array, void **element, Status *status) {
+bool array_prepend(Array *array, void *element, Status *status) {
     return array_insert(array, 0, element, status);
 }
 
-bool array_prepend_no_zero(Array *array, void **element, Status *status) {
-    return array_insert_no_zero(array, 0, element, status);
+void* array_prepend_slot_fast(Array *array) {
+    return array_insert_slot_fast(array, 0);
+}
+
+bool _array_prepend_slot(Array *array, void **new_slot, Status *status) {
+    return array_insert_slot(array, 0, new_slot, status);
+}
+
+bool _array_prepend_slot_no_zero(Array *array, void **new_slot,
+                                               Status *status) {
+    return array_insert_slot_no_zero(array, 0, new_slot, status);
 }
 
 bool array_prepend_many(Array *array, const void *elements,
@@ -326,16 +355,25 @@ bool array_prepend_array(Array *dst, Array *src, Status *status) {
     return array_prepend_array_same(dst, src, status);
 }
 
-void* array_append_fast(Array *array) {
-    return array_insert_fast(array, array->len);
+void array_append_fast(Array *array, void *element) {
+    array_set_fast(array, array->len, element);
 }
 
-bool array_append(Array *array, void **element, Status *status) {
+bool array_append(Array *array, void *element, Status *status) {
     return array_insert(array, array->len, element, status);
 }
 
-bool array_append_no_zero(Array *array, void **element, Status *status) {
-    return array_insert_no_zero(array, array->len, element, status);
+void* array_append_slot_fast(Array *array) {
+    return array_insert_slot_fast(array, array->len);
+}
+
+bool _array_append_slot(Array *array, void **new_slot, Status *status) {
+    return array_insert(array, array->len, new_slot, status);
+}
+
+bool _array_append_slot_no_zero(Array *array, void **new_slot,
+                                              Status *status) {
+    return array_insert_slot_no_zero(array, array->len, new_slot, status);
 }
 
 void array_append_many_fast(Array *array, const void *elements,
@@ -406,7 +444,7 @@ bool array_overwrite_many(Array *array, size_t index, const void *elements,
                                                       size_t element_count,
                                                       Status *status) {
     if (!array_ensure_capacity(array, index + element_count, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     array_overwrite_many_fast(array, index, elements, element_count);
@@ -479,7 +517,7 @@ bool array_truncate(Array *array, size_t len, Status *status) {
     }
 
     if (!array_zero_elements(array, len, array->len - len, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     array_truncate_fast(array, len);
@@ -510,7 +548,7 @@ void array_assign_fast(Array *array, const void *elements,
 bool array_assign(Array *array, const void *elements, size_t element_count,
                                                       Status *status) {
     if (!array_overwrite_many(array, 0, elements, element_count, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     array_truncate_fast(array, element_count);

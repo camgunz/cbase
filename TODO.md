@@ -22,6 +22,8 @@
   i.e. `*_encode` or even `*_append_*`.  Currently it's ad-hoc and almost
   certainly non-optimal.
 - Iterators
+- Zero deleted array elements
+  - Add `*_no_zero` functions
 
 ## Benchmarks
 

@@ -110,7 +110,7 @@ ADD_CFLAG(-Wconversion CONVERSION_FLAG_SUPPORTED)
 ADD_CFLAG(-Wno-sign-conversion NO_SIGN_CONVERSION_FLAG_SUPPORTED)
 ADD_CFLAG(-Wmissing-format-attribute MISSING_FORMAT_ATTRIBUTE_FLAG_SUPPORTED)
 ADD_CFLAG(-Wpointer-arith POINTER_ARITH_FLAG_SUPPORTED)
-ADD_CFLAG(-Wformat-nonliteral FORMAT_NONLITERAL_FLAG_SUPPORTED)
+# ADD_CFLAG(-Wformat-nonliteral FORMAT_NONLITERAL_FLAG_SUPPORTED)
 ADD_CFLAG(-Winit-self INIT_SELF_FLAG_SUPPORTED)
 ADD_CFLAG(-Wwrite-strings WRITE_STRINGS_FLAG_SUPPORTED)
 ADD_CFLAG(-Wshadow SHADOW_FLAG_SUPPORTED)
@@ -123,18 +123,25 @@ ADD_CFLAG(--pedantic-errors PEDANTIC_ERRORS_FLAG_SUPPORTED)
 
 IF(DEBUGGING)
   ADD_CFLAG(-Werror WARNINGS_ARE_ERRORS_FLAG_SUPPORTED)
-  ADD_CFLAG(-fprofile-arcs PROFILE_ARCS_FLAG_SUPPORTED)
   ADD_CFLAG(-ftest-coverage TEST_COVERAGE_FLAG_SUPPORTED)
   IF(GCC)
+    ADD_CFLAG(-fprofile-arcs PROFILE_ARCS_FLAG_SUPPORTED)
     ADD_CFLAG(-fstack-check STACK_CHECK_FLAG_SUPPORTED)
   ELSEIF(CLANG)
-    ADD_CFLAG(-fsanitize=address ASAN_FLAG_SUPPORTED)
-    # ADD_CFLAG(-fsanitize=address,thread,undefined
-    #   ADDRESS_THREAD_UB_SANITIZATION_SUPPORTED)
-    ADD_CFLAG(--coverage COVERAGE_SUPPORTED)
+    IF(SANITIZE_ADDRESS)
+      ADD_CFLAG(-fsanitize=address ASAN_FLAG_SUPPORTED)
+      IF (NOT ASAN_FLAG_SUPPORTED)
+        MESSAGE(FATAL_ERROR "Could not enable address sanitizer")
+      ENDIF()
+    ELSEIF(SANITIZE_UNDEFINED)
+      ADD_CFLAG(-fsanitize=undefined USAN_FLAG_SUPPORTED)
+      IF (NOT USAN_FLAG_SUPPORTED)
+        MESSAGE(FATAL_ERROR "Could not enable undefined behavior  sanitizer")
+      ENDIF()
+    ENDIF()
   ENDIF()
   ADD_CFLAG(-fstack-protector-all STACK_PROTECTOR_ALL_FLAG_SUPPORTED)
-  ADD_CFLAG(-Og Og_FLAG_SUPPORTED)
+  ADD_CFLAG(-O0 O0_FLAG_SUPPORTED)
 ELSE()
   ADD_CFLAG(-O3 O3_FLAG_SUPPORTED)
 ENDIF()
@@ -194,7 +201,6 @@ SET(LIBCBASE_SOURCE_FILES
   ${CMAKE_SOURCE_DIR}/src/hash.c
   ${CMAKE_SOURCE_DIR}/src/list.c
   ${CMAKE_SOURCE_DIR}/src/log.c
-  ${CMAKE_SOURCE_DIR}/src/parray.c
   ${CMAKE_SOURCE_DIR}/src/rune.c
   ${CMAKE_SOURCE_DIR}/src/slice.c
   ${CMAKE_SOURCE_DIR}/src/sslice.c
@@ -217,7 +223,6 @@ SET(INCLUDE_FILES
   ${CMAKE_SOURCE_DIR}/src/cbase/hash.h
   ${CMAKE_SOURCE_DIR}/src/cbase/list.h
   ${CMAKE_SOURCE_DIR}/src/cbase/log.h
-  ${CMAKE_SOURCE_DIR}/src/cbase/parray.h
   ${CMAKE_SOURCE_DIR}/src/cbase/rune.h
   ${CMAKE_SOURCE_DIR}/src/cbase/slice.h
   ${CMAKE_SOURCE_DIR}/src/cbase/sslice.h
@@ -256,7 +261,6 @@ ADD_EXECUTABLE(cbase_test ${LIBCBASE_SOURCE_FILES}
   ${CMAKE_SOURCE_DIR}/test/dlist.c
   ${CMAKE_SOURCE_DIR}/test/list.c
   ${CMAKE_SOURCE_DIR}/test/main.c
-  ${CMAKE_SOURCE_DIR}/test/parray.c
   ${CMAKE_SOURCE_DIR}/test/path.c
   ${CMAKE_SOURCE_DIR}/test/sslice.c
   ${CMAKE_SOURCE_DIR}/test/status.c

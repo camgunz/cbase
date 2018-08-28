@@ -9,7 +9,7 @@ size_t positive_ptrdiff(void *p1, void *p2) {
         return 0;
     }
 
-    return p2 - p1;
+    return ((char *)p2) - ((char *)p1);
 }
 
 static inline

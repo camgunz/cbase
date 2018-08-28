@@ -9,7 +9,6 @@ void test_array(void **state);
 void test_charset(void **state);
 void test_dlist(void **state);
 void test_list(void **state);
-void test_parray(void **state);
 void test_path(void **state);
 void test_sslice(void **state);
 void test_status(void **state);
@@ -26,7 +25,6 @@ int main(void) {
         cmocka_unit_test(test_charset),
         cmocka_unit_test(test_dlist),
         cmocka_unit_test(test_list),
-        cmocka_unit_test(test_parray),
         cmocka_unit_test(test_path),
         cmocka_unit_test(test_sslice),
         cmocka_unit_test(test_status),

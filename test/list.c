@@ -21,28 +21,28 @@ void test_list(void **state) {
 
     assert_true(list_new_alloc(&list, sizeof(Person), 10, &status));
 
-    assert_true(list_push(list, (void **)&person, &status));
+    assert_true(list_push(list, &person, &status));
     person->name = "John";
     person->age = 43;
 
-    assert_true(list_push(list, (void **)&person, &status));
+    assert_true(list_push(list, &person, &status));
     person->name = "Lyndon";
     person->age = 55;
 
-    assert_true(list_push(list, (void **)&person, &status));
+    assert_true(list_push(list, &person, &status));
     person->name = "James";
     person->age = 53;
 
-    assert_true(list_push(list, (void **)&person, &status));
+    assert_true(list_push(list, &person, &status));
     person->name = "William";
     person->age = 47;
 
-    assert_true(list_push(list, (void **)&person, &status));
+    assert_true(list_push(list, &person, &status));
     person->name = "Barack";
     person->age = 46;
 
     i = 0;
-    while (list_iterate(list, &node, (void **)&person)) {
+    while (list_iterate(list, &node, &person)) {
         switch (i) {
             case 0:
                 assert_string_equal(person->name, "Barack");
@@ -70,23 +70,23 @@ void test_list(void **state) {
 
     person = NULL;
 
-    assert_true(list_pop(list, (void **)&person, &status));
+    assert_true(list_pop(list, &person, &status));
     assert_string_equal(person->name, "Barack");
     assert_int_equal(person->age, 46);
 
-    assert_true(list_pop(list, (void **)&person, &status));
+    assert_true(list_pop(list, &person, &status));
     assert_string_equal(person->name, "William");
     assert_int_equal(person->age, 47);
 
-    assert_true(list_pop(list, (void **)&person, &status));
+    assert_true(list_pop(list, &person, &status));
     assert_string_equal(person->name, "James");
     assert_int_equal(person->age, 53);
 
-    assert_true(list_pop(list, (void **)&person, &status));
+    assert_true(list_pop(list, &person, &status));
     assert_string_equal(person->name, "Lyndon");
     assert_int_equal(person->age, 55);
 
-    assert_true(list_pop(list, (void **)&person, &status));
+    assert_true(list_pop(list, &person, &status));
     assert_string_equal(person->name, "John");
     assert_int_equal(person->age, 43);
 

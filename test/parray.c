@@ -10,18 +10,6 @@ void test_parray(void **state) {
     PArray *parray2;
     Status status;
     Person *person = NULL;
-    Person *john = NULL;
-    Person *lyndon = NULL;
-    Person *james = NULL;
-    Person *william = NULL;
-    Person *barack = NULL;
-
-    assert_true(cbmalloc(1, sizeof(Person), &john, &status));
-    assert_true(cbmalloc(1, sizeof(Person), &lyndon, &status));
-    assert_true(cbmalloc(1, sizeof(Person), &james, &status));
-    assert_true(cbmalloc(1, sizeof(Person), &william, &status));
-    assert_true(cbmalloc(1, sizeof(Person), &barack, &status));
-
     (void)state;
 
     status_init(&status);

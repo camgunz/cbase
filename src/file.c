@@ -1429,7 +1429,7 @@ bool file_read(File *file, Buffer *buffer, size_t count, size_t size,
     }
 
     bytes_read = fread(
-        buffer->array.elements + buffer->array.len, size, count, fobj
+        ((char *)buffer->array.elements) + buffer->array.len, size, count, fobj
     );
 
     buffer->array.len += bytes_read;

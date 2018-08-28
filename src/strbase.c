@@ -131,7 +131,7 @@ bool strbase_encode(const char *data, size_t byte_len, const char *encoding,
                 return status_propagate(status);
             }
 
-            outsl.data = out->array.elements + bytes_written;
+            outsl.data = ((char *)out->array.elements) + bytes_written;
             outsl.len = out->array.alloc - bytes_written;
         }
         else if (status_match(status, "charset",

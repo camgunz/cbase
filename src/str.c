@@ -899,7 +899,7 @@ void string_insert_utf8_data_fast(String *string, size_t index,
         utf8_len(data, byte_len, &len);
     }
 
-    return string_insert_utf8_data_full_fast(
+    string_insert_utf8_data_full_fast(
         string, index, data, len, byte_len
     );
 }
@@ -934,9 +934,9 @@ bool string_insert_sslice(String *string, size_t index, SSlice *sslice,
 }
 
 void string_insert_string_fast(String *dst, size_t index, String *src) {
-    return string_insert_cstr_full_fast(dst, index, src->buffer.array.elements,
-                                                    src->len,
-                                                    src->buffer.array.len);
+    string_insert_cstr_full_fast(dst, index, src->buffer.array.elements,
+                                             src->len,
+                                             src->buffer.array.len);
 }
 
 bool string_insert_string(String *dst, size_t index, String *src,
@@ -993,9 +993,7 @@ bool string_insert_slice(String *string, size_t index, Slice *slice,
 
 void string_insert_utf8_slice_fast(String *string, size_t index,
                                                    Slice *slice) {
-    return string_insert_utf8_data_fast(
-        string, index, slice->data, slice->len
-    );
+    string_insert_utf8_data_fast(string, index, slice->data, slice->len);
 }
 
 bool string_insert_utf8_slice(String *string, size_t index, Slice *slice,
@@ -1309,7 +1307,7 @@ bool string_append_sslice(String *string, SSlice *sslice, Status *status) {
 }
 
 void string_append_string_fast(String *dst, String *src) {
-    return string_insert_string_fast(dst, 0, src);
+    string_insert_string_fast(dst, 0, src);
 }
 
 bool string_append_string(String *dst, String *src, Status *status) {

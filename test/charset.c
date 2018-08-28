@@ -134,7 +134,7 @@ void test_charset(void **state) {
                 &sout, &out, to_encoding->name, &status
             ));
 
-            // assert_int_equal(sout.buffer.array.len, strlen(utf8_phrase) + 1);
+            assert_int_equal(sout.buffer.array.len, strlen(utf8_phrase) + 1);
             assert_memory_equal(
                 sout.buffer.array.elements, utf8_phrase, sout.buffer.array.len
             );

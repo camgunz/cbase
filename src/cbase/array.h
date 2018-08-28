@@ -42,15 +42,30 @@ bool array_new_alloc_zero(Array **array, size_t element_count,
 
 void* array_index_fast(Array *array, size_t index);
 
-bool  array_index(Array *array, size_t index, void **element, Status *status);
+bool  _array_index(Array *array, size_t index, void **element, Status *status);
 
-void* array_insert_fast(Array *array, size_t index);
+#define array_index(array, index, element, status) \
+    _array_index(array, index, (void **)element, status)
 
-bool  array_insert(Array *array, size_t index, void **new_element,
-                                               Status *status);
+void  array_set_fast(Array *array, size_t index, void *element);
 
-bool  array_insert_no_zero(Array *array, size_t index, void **new_element,
-                                                       Status *status);
+bool  array_set(Array *array, size_t index, void *element, Status *status);
+
+bool  array_insert(Array *array, size_t index, void *element, Status *status);
+
+void  array_insert_fast(Array *array, size_t index, void *element);
+
+void* array_insert_slot_fast(Array *array, size_t index);
+
+bool  _array_insert_slot(Array *array, size_t index, void **new_slot,
+                                                     Status *status);
+#define array_insert_slot(array, index, new_slot, status) \
+    _array_insert_slot(array, index, (void **)new_slot, status)
+
+bool  _array_insert_slot_no_zero(Array *array, size_t index, void **new_slot,
+                                                             Status *status);
+#define array_insert_slot_no_zero(array, index, new_slot, status) \
+    _array_insert_slot_no_zero(array, index, (void **)new_slot, status)
 
 void  array_insert_many_fast(Array *array, size_t index, const void *elements,
                                                          size_t element_count);
@@ -84,11 +99,27 @@ bool  array_insert_array_fast(Array *dst, size_t index, Array *src,
 
 bool  array_insert_array(Array *dst, size_t index, Array *src, Status *status);
 
-void* array_prepend_fast(Array *array);
+void  array_prepend_fast(Array *array, void *element);
 
-bool  array_prepend(Array *array, void **element, Status *status);
+bool  array_prepend(Array *array, void *element, Status *status);
 
-bool  array_prepend_no_zero(Array *array, void **element, Status *status);
+void* array_prepend_slot_fast(Array *array);
+
+bool  _array_prepend_slot(Array *array, void **new_slot, Status *status);
+
+#define array_prepend_slot(array, new_slot, status) \
+    _array_prepend_slot(array, (void **)new_slot, status)
+
+bool  _array_prepend_slot(Array *array, void **new_slot, Status *status);
+
+#define array_prepend_slot(array, new_slot, status) \
+    _array_prepend_slot(array, (void **)new_slot, status)
+
+bool  _array_prepend_slot_no_zero(Array *array, void **new_slot,
+                                                Status *status);
+
+#define array_prepend_slot_no_zero(array, new_slot, status) \
+    _array_prepend_slot_no_zero(array, (void **)new_slot, status)
 
 bool  array_prepend_many(Array *array, const void *elements,
                                        size_t element_count,
@@ -105,11 +136,22 @@ bool  array_prepend_array_fast(Array *dst, Array *src, Status *status);
 
 bool  array_prepend_array(Array *dst, Array *src, Status *status);
 
-void* array_append_fast(Array *array);
+void  array_append_fast(Array *array, void *element);
 
-bool  array_append(Array *array, void **element, Status *status);
+bool  array_append(Array *array, void *element, Status *status);
 
-bool  array_append_no_zero(Array *array, void **element, Status *status);
+void* array_append_slot_fast(Array *array);
+
+bool  _array_append_slot(Array *array, void **new_slot, Status *status);
+
+#define array_append_slot(array, new_slot, status) \
+    _array_append_slot(array, (void **)new_slot, status)
+
+bool  _array_append_slot_no_zero(Array *array, void **new_slot,
+                                               Status *status);
+
+#define array_append_slot_no_zero(array, new_slot, status) \
+    _array_append_slot_no_zero(array, (void **)new_slot, status)
 
 void  array_append_many_fast(Array *array, const void *elements,
                                            size_t element_count);

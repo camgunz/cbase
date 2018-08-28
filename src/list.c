@@ -138,7 +138,7 @@ bool list_ensure_capacity(List *list, size_t length, Status *status) {
     return status_ok(status);
 }
 
-bool list_push(List *list, void **obj, Status *status) {
+bool _list_push(List *list, void **obj, Status *status) {
     if (!list_ensure_capacity(list, list->len + 1, status)) {
         return false;
     }
@@ -155,7 +155,7 @@ bool list_push(List *list, void **obj, Status *status) {
     return status_ok(status);
 }
 
-bool list_pop(List *list, void **obj, Status *status) {
+bool _list_pop(List *list, void **obj, Status *status) {
     if (!list->used_nodes) {
         return list_empty(status);
     }
@@ -172,7 +172,7 @@ bool list_pop(List *list, void **obj, Status *status) {
     return status_ok(status);
 }
 
-bool list_iterate(List *list, ListNode **node, void **obj) {
+bool _list_iterate(List *list, ListNode **node, void **obj) {
     if (!*node) {
         *node = list->used_nodes;
     }
@@ -252,7 +252,7 @@ bool dlist_ensure_capacity(DList *dlist, size_t length, Status *status) {
     return status_ok(status);
 }
 
-bool dlist_push_head(DList *dlist, void **obj, Status *status) {
+bool _dlist_push_head(DList *dlist, void **obj, Status *status) {
     if (!dlist_ensure_capacity(dlist, dlist->len + 1, status)) {
         return false;
     }
@@ -270,7 +270,7 @@ bool dlist_push_head(DList *dlist, void **obj, Status *status) {
     return status_ok(status);
 }
 
-bool dlist_push_tail(DList *dlist, void **obj, Status *status) {
+bool _dlist_push_tail(DList *dlist, void **obj, Status *status) {
     if (!dlist_ensure_capacity(dlist, dlist->len + 1, status)) {
         return false;
     }
@@ -288,7 +288,7 @@ bool dlist_push_tail(DList *dlist, void **obj, Status *status) {
     return status_ok(status);
 }
 
-bool dlist_pop_head(DList *dlist, void **obj, Status *status) {
+bool _dlist_pop_head(DList *dlist, void **obj, Status *status) {
     DListNode *node = NULL;
 
     if (!dlist_node_pop_head(&dlist->used_nodes, &node)) {
@@ -302,7 +302,7 @@ bool dlist_pop_head(DList *dlist, void **obj, Status *status) {
     return status_ok(status);
 }
 
-bool dlist_pop_tail(DList *dlist, void **obj, Status *status) {
+bool _dlist_pop_tail(DList *dlist, void **obj, Status *status) {
     DListNode *node = NULL;
 
     if (!dlist_node_pop_tail(&dlist->used_nodes, &node)) {
@@ -316,7 +316,7 @@ bool dlist_pop_tail(DList *dlist, void **obj, Status *status) {
     return status_ok(status);
 }
 
-bool dlist_iterate(DList *dlist, DListNode **node, void **obj) {
+bool _dlist_iterate(DList *dlist, DListNode **node, void **obj) {
     if (!*node) {
         *node = dlist->used_nodes;
     }

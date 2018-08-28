@@ -85,7 +85,7 @@ void test_table(void **state) {
     assert_true(table_insert(&table, &barack, &status));
     assert_int_equal(table.len, 6);
 
-    if (!table_lookup(&table, "John", (void **)&person, &status)) {
+    if (!table_lookup(&table, "John", &person, &status)) {
         printf("Error [%s - %d, %s:%d] %s\n",
             status.domain,
             status.code,
@@ -94,37 +94,37 @@ void test_table(void **state) {
             status.message
         );
     }
-    assert_true(table_lookup(&table, "John", (void **)&person, &status));
+    assert_true(table_lookup(&table, "John", &person, &status));
     assert_string_equal(person->name, "John");
     assert_int_equal(person->age, 43);
 
-    assert_true(table_lookup(&table, "Lyndon", (void **)&person, &status));
+    assert_true(table_lookup(&table, "Lyndon", &person, &status));
     assert_string_equal(person->name, "Lyndon");
     assert_int_equal(person->age, 55);
 
-    assert_true(table_lookup(&table, "James", (void **)&person, &status));
+    assert_true(table_lookup(&table, "James", &person, &status));
     assert_string_equal(person->name, "James");
     assert_int_equal(person->age, 53);
 
-    assert_true(table_lookup(&table, "William", (void **)&person, &status));
+    assert_true(table_lookup(&table, "William", &person, &status));
     assert_string_equal(person->name, "William");
     assert_int_equal(person->age, 47);
 
-    assert_true(table_lookup(&table, "Barack", (void **)&person, &status));
+    assert_true(table_lookup(&table, "Barack", &person, &status));
     assert_string_equal(person->name, "Barack");
     assert_int_equal(person->age, 46);
 
-    assert_true(table_remove(&table, "William", (void **)&person, &status));
+    assert_true(table_pop(&table, "William", &person, &status));
     assert_string_equal(person->name, "William");
     assert_int_equal(person->age, 47);
     assert_int_equal(table.len, 5);
 
-    assert_true(table_remove(&table, "Barack", (void **)&person, &status));
+    assert_true(table_pop(&table, "Barack", &person, &status));
     assert_string_equal(person->name, "Barack");
     assert_int_equal(person->age, 46);
     assert_int_equal(table.len, 4);
 
-    assert_true(table_remove(&table, "Barack", (void **)&person, &status));
+    assert_true(table_pop(&table, "Barack", &person, &status));
     assert_string_equal(person->name, "Barack");
     assert_int_equal(person->age, 46);
     assert_int_equal(table.len, 3);
@@ -161,23 +161,23 @@ void test_table(void **state) {
     Character umaro = {"Umaro", "Berserker"};
     Character *cha = NULL;
 
-    assert_true(table_insert(&table, (void **)&banon, &status));
-    assert_true(table_insert(&table, (void **)&celes, &status));
-    assert_true(table_insert(&table, (void **)&cyan, &status));
-    assert_true(table_insert(&table, (void **)&edgar, &status));
-    assert_true(table_insert(&table, (void **)&gau, &status));
-    assert_true(table_insert(&table, (void **)&ghost, &status));
-    assert_true(table_insert(&table, (void **)&gogo, &status));
-    assert_true(table_insert(&table, (void **)&leo, &status));
-    assert_true(table_insert(&table, (void **)&locke, &status));
-    assert_true(table_insert(&table, (void **)&mog, &status));
-    assert_true(table_insert(&table, (void **)&relm, &status));
-    assert_true(table_insert(&table, (void **)&sabin, &status));
-    assert_true(table_insert(&table, (void **)&setzer, &status));
-    assert_true(table_insert(&table, (void **)&shadow, &status));
+    assert_true(table_insert(&table, &banon, &status));
+    assert_true(table_insert(&table, &celes, &status));
+    assert_true(table_insert(&table, &cyan, &status));
+    assert_true(table_insert(&table, &edgar, &status));
+    assert_true(table_insert(&table, &gau, &status));
+    assert_true(table_insert(&table, &ghost, &status));
+    assert_true(table_insert(&table, &gogo, &status));
+    assert_true(table_insert(&table, &leo, &status));
+    assert_true(table_insert(&table, &locke, &status));
+    assert_true(table_insert(&table, &mog, &status));
+    assert_true(table_insert(&table, &relm, &status));
+    assert_true(table_insert(&table, &sabin, &status));
+    assert_true(table_insert(&table, &setzer, &status));
+    assert_true(table_insert(&table, &shadow, &status));
     assert_int_equal(table.len, 14);
 
-    assert_true(table_insert(&table, (void **)&strago, &status));
+    assert_true(table_insert(&table, &strago, &status));
 
     assert_int_equal(table.len, 15);
     assert_int_equal(table.bucket_bit, 5);
@@ -191,10 +191,10 @@ void test_table(void **state) {
     assert_int_equal(table2.bucket_max, 32);
     assert_int_equal(table2.bucket_mask, 0x1F);
 
-    assert_true(table_insert(&table, (void **)&terra, &status));
-    assert_true(table_insert(&table, (void **)&umaro, &status));
-    assert_true(table_insert(&table, (void **)&umaro, &status));
-    assert_true(table_insert(&table, (void **)&umaro, &status));
+    assert_true(table_insert(&table, &terra, &status));
+    assert_true(table_insert(&table, &umaro, &status));
+    assert_true(table_insert(&table, &umaro, &status));
+    assert_true(table_insert(&table, &umaro, &status));
     assert_int_equal(table.len, 19);
 
     size_t i;
@@ -202,7 +202,7 @@ void test_table(void **state) {
 
     cha = NULL;
 
-    while (table_iterate(&table, &i, (void **)&cha)) {
+    while (table_iterate(&table, &i, &cha)) {
         count++;
     }
 
@@ -210,51 +210,49 @@ void test_table(void **state) {
 
     assert_int_equal(count, table.len);
 
-    assert_true(table_remove(&table, (void *)umaro.name, NULL, &status));
+    assert_true(table_remove(&table, umaro.name, &status));
     assert_int_equal(table.len, 18);
 
-    assert_true(table_remove(&table, (void *)umaro.name, NULL, &status));
+    assert_true(table_remove(&table, umaro.name, &status));
     assert_int_equal(table.len, 17);
 
-    assert_true(table_remove(&table, (void *)gogo.name, NULL, &status));
-    assert_true(table_remove(&table, (void *)leo.name, NULL, &status));
-    assert_true(table_remove(&table, (void *)locke.name, NULL, &status));
-    assert_true(table_remove(&table, (void *)mog.name, NULL, &status));
-    assert_true(table_remove(&table, (void *)relm.name, NULL, &status));
-    assert_true(table_remove(&table, (void *)sabin.name, NULL, &status));
-    assert_true(table_remove(&table, (void *)setzer.name, NULL, &status));
-    assert_true(table_remove(&table, (void *)shadow.name, NULL, &status));
-    assert_true(table_remove(&table, (void *)strago.name, NULL, &status));
-    assert_true(table_remove(&table, (void *)terra.name, NULL, &status));
+    assert_true(table_remove(&table, gogo.name, &status));
+    assert_true(table_remove(&table, leo.name, &status));
+    assert_true(table_remove(&table, locke.name, &status));
+    assert_true(table_remove(&table, mog.name, &status));
+    assert_true(table_remove(&table, relm.name, &status));
+    assert_true(table_remove(&table, sabin.name, &status));
+    assert_true(table_remove(&table, setzer.name, &status));
+    assert_true(table_remove(&table, shadow.name, &status));
+    assert_true(table_remove(&table, strago.name, &status));
+    assert_true(table_remove(&table, terra.name, &status));
 
     assert_int_equal(table.len, 7);
 
-    assert_true(table_remove(&table, (void *)umaro.name, NULL, &status));
+    assert_true(table_remove(&table, umaro.name, &status));
 
     assert_int_equal(table.len, 6);
     assert_int_equal(table.bucket_bit, 4);
     assert_int_equal(table.bucket_max, 16);
     assert_int_equal(table.bucket_mask, 0xF);
 
-    assert_false(table_remove(&table, (void *)strago.name, NULL, &status));
+    assert_false(table_remove(&table, strago.name, &status));
     assert_int_equal(status.code, ERROR_NOT_FOUND);
     assert_string_equal(status.message, "search term not found");
 
     status_clear(&status);
 
-    assert_true(table_remove(
-        &table, (void *)banon.name, (void **)&cha, &status
-    ));
+    assert_true(table_pop(&table, banon.name, &cha, &status));
 
     assert_non_null(cha);
     assert_string_equal(cha->name, "Banon");
     assert_string_equal(cha->job, "Oracle");
 
-    assert_true(table_remove(&table, (void *)celes.name, NULL, &status));
-    assert_true(table_remove(&table, (void *)cyan.name, NULL, &status));
-    assert_true(table_remove(&table, (void *)edgar.name, NULL, &status));
-    assert_true(table_remove(&table, (void *)gau.name, NULL, &status));
-    assert_true(table_remove(&table, (void *)ghost.name, NULL, &status));
+    assert_true(table_remove(&table, celes.name, &status));
+    assert_true(table_remove(&table, cyan.name, &status));
+    assert_true(table_remove(&table, edgar.name, &status));
+    assert_true(table_remove(&table, gau.name, &status));
+    assert_true(table_remove(&table, ghost.name, &status));
 
     table_free(&table);
 

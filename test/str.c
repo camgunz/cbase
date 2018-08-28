@@ -30,7 +30,9 @@ void test_string(void **state) {
     assert_true(string_starts_with_cstr(s, "We are", &starts_with, &status));
     assert_true(starts_with);
 
-    assert_true(string_starts_with_cstr(s, "We are great", &starts_with, &status));
+    assert_true(string_starts_with_cstr(
+        s, "We are great", &starts_with, &status
+    ));
     assert_true(starts_with);
 
     assert_true(string_starts_with_cstr(s, "We sre", &starts_with, &status));
@@ -144,7 +146,7 @@ void test_string(void **state) {
     assert_int_equal(strnlen(s2->buffer.array.elements, 32), 31);
     assert_true(string_equals_cstr(s2, "We are greatbecause we are good"));
 
-    ss.data = " ";
+    ss.data = (char *)" ";
     ss.len = 1;
     ss.byte_len = 1;
 

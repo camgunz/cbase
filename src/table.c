@@ -204,7 +204,7 @@ bool table_insert(Table *table, void *obj, Status *status) {
     return table_full(status);
 }
 
-bool table_remove(Table *table, void *key, void **obj, Status *status) {
+bool table_remove(Table *table, const void *key, Status *status) {
     Array *buckets = &table->buckets;
     size_t hash = table->key_to_hash(key, table->seed);
     size_t start = hash;
@@ -225,10 +225,37 @@ bool table_remove(Table *table, void *key, void **obj, Status *status) {
             continue;
         }
 
-        if (obj) {
-            *obj = node->obj;
+        node->distance = SIZE_MAX;
+        table->len--;
+
+        return table_check_shrink(table, status);
+    }
+
+    return not_found(status);
+}
+
+bool _table_pop(Table *table, const void *key, void **obj, Status *status) {
+    Array *buckets = &table->buckets;
+    size_t hash = table->key_to_hash(key, table->seed);
+    size_t start = hash;
+
+    for (size_t distance = 0; distance < buckets->len; distance++) {
+        size_t i = (start + distance) & table->bucket_mask;
+        TArrayNode *node = (TArrayNode *)array_index_fast(buckets, i);
+
+        if (table_node_empty(node)) {
+            continue;
         }
 
+        if (node->hash != hash) {
+            continue;
+        }
+
+        if (!table->key_equal(table->obj_to_key(node->obj), key)) {
+            continue;
+        }
+
+        *obj = node->obj;
         node->distance = SIZE_MAX;
         table->len--;
 
@@ -253,7 +280,7 @@ bool table_copy(Table *dst, Table *src, Status *status) {
     return status_ok(status);
 }
 
-bool table_lookup(Table *table, void *key, void **obj, Status *status) {
+bool _table_lookup(Table *table, const void *key, void **obj, Status *status) {
     Array *buckets = &table->buckets;
     size_t hash = table->key_to_hash(key, table->seed);
     size_t start = hash;
@@ -284,7 +311,7 @@ bool table_lookup(Table *table, void *key, void **obj, Status *status) {
     return not_found(status);
 }
 
-bool table_iterate(Table *table, size_t *index, void **obj) {
+bool _table_iterate(Table *table, size_t *index, void **obj) {
     size_t i = 0;
 
     if (*obj) {
