@@ -35,7 +35,7 @@ static bool table_resize(Table *table, size_t new_bucket_bit, Status *status) {
 
     if (new_bucket_bit > table->bucket_bit) {
         if (!array_ensure_capacity(&table->buckets, new_bucket_max, status)) {
-            return false;
+            return status_propagate(status);
         }
 
         table->buckets.len = new_bucket_max;
@@ -97,7 +97,7 @@ static bool table_resize(Table *table, size_t new_bucket_bit, Status *status) {
 
     if (new_bucket_bit < table->bucket_bit) {
         if (!array_set_size(&table->buckets, new_bucket_max, status)) {
-            return false;
+            return status_propagate(status);
         }
     }
 
@@ -150,7 +150,7 @@ bool table_init(Table *table, TableGetHashFromKey *key_to_hash,
                           table->bucket_max,
                           sizeof(TArrayNode),
                           status)) {
-        return false;
+        return status_propagate(status);
     }
 
     table->buckets.len = table->bucket_max;
@@ -273,7 +273,7 @@ bool table_copy(Table *dst, Table *src, Status *status) {
 
     while (table_iterate(src, &index, &obj)) {
         if (!table_insert(dst, obj, status)) {
-            return false;
+            return status_propagate(status);
         }
     }
 
@@ -333,7 +333,7 @@ bool _table_iterate(Table *table, size_t *index, void **obj) {
 
     *index = 0;
 
-    return false;
+    return status_propagate(status);
 }
 
 void table_clear(Table *table) {

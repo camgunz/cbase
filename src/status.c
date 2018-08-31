@@ -8,7 +8,7 @@ bool _status_new(StatusLevel level, const char *domain, int code,
                                                         Status **new_status,
                                                         Status *status) {
     if (!cbmalloc(1, sizeof(Status), new_status, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     _status_set((*new_status), level, domain, code, message, file, func, line);

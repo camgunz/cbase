@@ -105,11 +105,11 @@ bool slice_encode(Slice *src, const char *src_encoding,
 
         if (status_match(status, "charset", CHARSET_OUTPUT_BUFFER_TOO_SMALL)) {
             if (!buffer_ensure_capacity(dst, dst->array.alloc * 2, status)) {
-                return false;
+                return status_propagate(status);
             }
         }
         else {
-            return false;
+            return status_propagate(status);
         }
     }
 

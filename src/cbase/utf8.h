@@ -67,9 +67,14 @@ bool utf8_cstr_equal_fast(const char *s1, const char *s2);
 bool utf8_cstr_equal(const char *s1, const char *s2, bool *equal,
                                                      Status *status);
 
-void utf8_decode(const char *data, rune *r);
+void utf8_decode_fast(const char *data, rune *r);
 
-void utf8_decode_len(const char *data, rune *r, size_t *rune_byte_len);
+bool utf8_decode(const char *data, rune *r, Status *status);
+
+void utf8_decode_len_fast(const char *data, rune *r, size_t *rune_byte_len);
+
+bool utf8_decode_len(const char *data, rune *r, size_t *rune_byte_len,
+                                                Status *status);
 
 void utf8_index_fast(const char *data, size_t byte_len, size_t index,
                                                         char **cursor);

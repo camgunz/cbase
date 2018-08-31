@@ -51,7 +51,7 @@ bool buffer_init_from_data(Buffer *buffer, const char *data, size_t len,
 
 bool buffer_new(Buffer **buffer, Status *status) {
     if (!cbmalloc(1, sizeof(Buffer), buffer, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     buffer_init(*buffer);
@@ -323,12 +323,13 @@ bool buffer_encode(Buffer *src, const char *src_encoding,
             break;
         }
 
-        if (!status_match(status, "charset", CHARSET_OUTPUT_BUFFER_TOO_SMALL)) {
-            return false;
+        if (!status_match(status, "charset",
+                                  CHARSET_OUTPUT_BUFFER_TOO_SMALL)) {
+            return status_propagate(status);
         }
 
         if (!buffer_ensure_capacity(dst, dst->array.alloc * 2, status)) {
-            return false;
+            return status_propagate(status);
         }
     }
 

@@ -81,11 +81,11 @@ bool __cbstrndup(const char *cs, size_t len, char **ptr, Status *status) {
     char *new_str = NULL;
     
     if (!cbmalloc(len + 1, sizeof(char), &new_str, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     if (!cbmemmove(new_str, cs, len, sizeof(char), status)) {
-        return false;
+        return status_propagate(status);
     }
 
     *(new_str + len) = '\0';

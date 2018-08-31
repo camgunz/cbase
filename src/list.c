@@ -46,7 +46,7 @@ static inline void dlist_node_push_head(DListNode **node_list,
 static inline bool dlist_node_pop_head(DListNode **node_list,
                                        DListNode **node) {
     if (!(*node_list)) {
-        return false;
+        return status_propagate(status);
     }
 
     *node = (*node_list);
@@ -65,7 +65,7 @@ static inline bool dlist_node_pop_head(DListNode **node_list,
 static inline bool dlist_node_pop_tail(DListNode **node_list,
                                        DListNode **node) {
     if (!(*node_list)) {
-        return false;
+        return status_propagate(status);
     }
 
     *node = (*node_list)->prev;
@@ -95,7 +95,7 @@ bool list_init_alloc(List *list, size_t element_size, size_t length,
 
 bool list_new(List **list, size_t element_size, Status *status) {
     if (!cbmalloc(1, sizeof(List), list, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     list_init(*list, element_size);
@@ -106,11 +106,11 @@ bool list_new(List **list, size_t element_size, Status *status) {
 bool list_new_alloc(List **list, size_t element_size, size_t length,
                                                       Status *status) {
     if (!cbmalloc(1, sizeof(List), list, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     if (!list_init_alloc(*list, element_size, length, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     return status_ok(status);
@@ -120,7 +120,7 @@ bool list_ensure_capacity(List *list, size_t length, Status *status) {
     size_t saved_len = list->nodes.len;
 
     if (!array_ensure_capacity(&list->nodes, length, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     list->nodes.len = list->nodes.alloc;
@@ -140,7 +140,7 @@ bool list_ensure_capacity(List *list, size_t length, Status *status) {
 
 bool _list_push(List *list, void **obj, Status *status) {
     if (!list_ensure_capacity(list, list->len + 1, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     ListNode *node = list->spare_nodes;
@@ -181,7 +181,7 @@ bool _list_iterate(List *list, ListNode **node, void **obj) {
     }
 
     if (!*node) {
-        return false;
+        return status_propagate(status);
     }
 
     *obj = (*node)->obj;
@@ -210,7 +210,7 @@ bool dlist_init_alloc(DList *dlist, size_t element_size, size_t length,
 
 bool dlist_new(DList **dlist, size_t element_size, Status *status) {
     if (!cbmalloc(1, sizeof(DList), dlist, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     dlist_init(*dlist, element_size);
@@ -221,11 +221,11 @@ bool dlist_new(DList **dlist, size_t element_size, Status *status) {
 bool dlist_new_alloc(DList **dlist, size_t element_size, size_t length,
                                                          Status *status) {
     if (!cbmalloc(1, sizeof(DList), dlist, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     if (!dlist_init_alloc(*dlist, element_size, length, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     return status_ok(status);
@@ -235,7 +235,7 @@ bool dlist_ensure_capacity(DList *dlist, size_t length, Status *status) {
     size_t saved_len = dlist->nodes.len;
 
     if (!array_ensure_capacity(&dlist->nodes, length, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     dlist->nodes.len = dlist->nodes.alloc;
@@ -254,7 +254,7 @@ bool dlist_ensure_capacity(DList *dlist, size_t length, Status *status) {
 
 bool _dlist_push_head(DList *dlist, void **obj, Status *status) {
     if (!dlist_ensure_capacity(dlist, dlist->len + 1, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     DListNode *node = NULL;
@@ -272,7 +272,7 @@ bool _dlist_push_head(DList *dlist, void **obj, Status *status) {
 
 bool _dlist_push_tail(DList *dlist, void **obj, Status *status) {
     if (!dlist_ensure_capacity(dlist, dlist->len + 1, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     DListNode *node = NULL;
@@ -324,17 +324,17 @@ bool _dlist_iterate(DList *dlist, DListNode **node, void **obj) {
         *node = (*node)->next;
 
         if (*node == dlist->used_nodes) {
-            return false;
+            return status_propagate(status);
         }
     }
 
     if (!*node) {
-        return false;
+        return status_propagate(status);
     }
 
     *obj = (*node)->obj;
 
-    return true;
+    return status_ok(status);
 }
 
 void dlist_free(DList *dlist) {

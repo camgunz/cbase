@@ -73,39 +73,6 @@ void strbase_copy(char **dst_data, size_t *dst_len, size_t *dst_byte_len,
     *dst_byte_len = src_byte_len;
 }
 
-#define strbase_index_fast utf8_index_fast
-#define strbase_index utf8_index
-#define strbase_index_rune_fast utf8_index_rune_fast
-#define strbase_index_rune utf8_index_rune
-#define strbase_index_rune_len_fast utf8_index_rune_len_fast
-#define strbase_index_rune_len utf8_index_rune_len
-#define strbase_index_reverse_fast utf8_index_reverse_fast
-#define strbase_index_reverse utf8_index_reverse
-#define strbase_index_rune_reverse_fast utf8_index_rune_reverse_fast
-#define strbase_index_rune_reverse utf8_index_rune_reverse
-#define strbase_index_rune_len_reverse_fast utf8_index_rune_len_reverse_fast
-#define strbase_index_rune_len_reverse utf8_index_rune_len_reverse
-#define strbase_get_first_rune_fast utf8_get_first_rune_fast
-#define strbase_get_first_rune utf8_get_first_rune
-#define strbase_get_first_rune_len_fast utf8_get_first_rune_len_fast
-#define strbase_get_first_rune_len utf8_get_first_rune_len
-#define strbase_get_last_rune_len_fast utf8_get_last_rune_len_fast
-#define strbase_get_last_rune_len utf8_get_last_rune_len
-#define strbase_starts_with_data_fast utf8_starts_with_data_fast
-#define strbase_starts_with_data utf8_starts_with_data
-#define strbase_starts_with_cstr_fast utf8_starts_with_cstr_fast
-#define strbase_starts_with_cstr utf8_starts_with_cstr
-#define strbase_starts_with_rune_fast utf8_starts_with_rune_fast
-#define strbase_starts_with_rune utf8_starts_with_rune
-#define strbase_ends_with_data_fast utf8_ends_with_data_fast
-#define strbase_ends_with_data utf8_ends_with_data
-#define strbase_ends_with_cstr_fast utf8_ends_with_cstr_fast
-#define strbase_ends_with_cstr utf8_ends_with_cstr
-#define strbase_ends_with_rune_fast utf8_ends_with_rune_fast
-#define strbase_ends_with_rune utf8_ends_with_rune
-#define strbase_iterate utf8_iterate
-#define strbase_iterate_fast utf8_iterate_fast
-
 bool strbase_encode(const char *data, size_t byte_len, const char *encoding,
                                                        Buffer *out,
                                                        Status *status) {
@@ -420,7 +387,9 @@ bool strbase_seek_to_utf8_data(char **data, size_t *len, size_t *byte_len,
         rune r2 = 0;
         size_t rune_byte_len = 0;
 
-        strbase_get_first_rune_len_fast(cursor, &r2, &rune_byte_len);
+        if (!strbase_get_first_rune_len(cursor, &r2, &rune_byte_len, status)) {
+            return status_propagate(status);
+        }
 
         if (memcmp(*data + i, data2 + i, byte_len2) == 0) {
             *byte_len -= (cursor - *data);

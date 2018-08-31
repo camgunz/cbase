@@ -20,7 +20,7 @@ bool sslice_assign_cstr(SSlice *sslice, char *cs, Status *status) {
         sslice->byte_len = 0;
     }
     else if (!utf8_process_cstr(cs, &sslice->len, &sslice->byte_len, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     sslice->data = cs;
@@ -44,12 +44,12 @@ void sslice_assign_sslice(SSlice *dst, SSlice *src) {
 
 bool sslice_new_from_cstr(SSlice **sslice, char *cs, Status *status) {
     if (!cbmalloc(1, sizeof(SSlice), sslice, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     if (!sslice_assign_cstr(*sslice, cs, status)) {
         cbfree(*sslice);
-        return false;
+        return status_propagate(status);
     }
 
     return status_ok(status);
@@ -59,7 +59,7 @@ bool sslice_new_full(SSlice **sslice, char *data, size_t len,
                                                   size_t byte_len,
                                                   Status *status) {
     if (!cbmalloc(1, sizeof(SSlice), sslice, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     sslice_assign_full(*sslice, data, len, byte_len);
@@ -166,7 +166,7 @@ bool sslice_skip_rune_if_equals(SSlice *sslice, rune r, Status *status) {
     size_t bytes_read;
 
     if (!utf8_get_first_rune_len(sslice->data, &r2, &bytes_read, status)) {
-        return false;
+        return status_propagate(status);
     }
 
     if (r2 != r) {

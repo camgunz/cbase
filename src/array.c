@@ -147,6 +147,7 @@ bool array_insert(Array *array, size_t index, void *element, Status *status) {
     }
 
     array_set_fast(array, index, element);
+    array->len++;
 
     return status_ok(status);
 }
@@ -299,6 +300,7 @@ bool array_insert_array(Array *dst, size_t index, Array *src, Status *status) {
 
 void array_prepend_fast(Array *array, void *element) {
     array_set_fast(array, 0, element);
+    array->len++;
 }
 
 bool array_prepend(Array *array, void *element, Status *status) {
@@ -357,6 +359,7 @@ bool array_prepend_array(Array *dst, Array *src, Status *status) {
 
 void array_append_fast(Array *array, void *element) {
     array_set_fast(array, array->len, element);
+    array->len++;
 }
 
 bool array_append(Array *array, void *element, Status *status) {
@@ -368,7 +371,7 @@ void* array_append_slot_fast(Array *array) {
 }
 
 bool _array_append_slot(Array *array, void **new_slot, Status *status) {
-    return array_insert(array, array->len, new_slot, status);
+    return array_insert_slot(array, array->len, new_slot, status);
 }
 
 bool _array_append_slot_no_zero(Array *array, void **new_slot,
