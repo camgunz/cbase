@@ -2,3 +2,4 @@
 *.swo
 *.o
 cbuild/
+compile_commands.json
