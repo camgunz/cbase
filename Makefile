@@ -1,4 +1,4 @@
-.PHONY: all clean debug test debugtest coverage
+.PHONY: all clean debug test debugtest coverage help
 
 all: release
 
@@ -28,3 +28,6 @@ coverage: test
 	 lcov -q -a base_coverage.info -a test_coverage.info -o total_coverage.info; \
 	 lcov -q --summary total_coverage.info; \
 	 genhtml -q -o coverage total_coverage.info
+
+help:
+	@echo "Targets: all | clean | debug | release | test | debugtest | coverage"
