@@ -2,9 +2,8 @@
 
 ## General
 
-- Remove decimal support
-  - There should be an associated library (named, say, cbase-mpfr) that
-    essentially wraps the calls using `Status`.
+- Array can't use `void *` for its elements because it breaks alignment for
+  scalars.
 - Bounds checking in `utf8.c`
 - Paramterize string encoding
   - Not super clear on how to do this
@@ -12,8 +11,6 @@
   performance.
 - Wrap any function taking a `void **` with a macro to make the cast
 - The `*_assign` functions should take ownership of their arguments
-- Look for `ptrdiff_t` and replace with `positive_ptrdiff` calls
-- Switch `return false` with `status_propagate` calls
 - Find functions that check if their output arguments are `NULL` and make
   alternative functions when possible
 - Ensure everything besides `strbase` modifies their output parameters only on
@@ -22,8 +19,7 @@
   i.e. `*_encode` or even `*_append_*`.  Currently it's ad-hoc and almost
   certainly non-optimal.
 - Iterators
-- Zero deleted array elements
-  - Add `*_no_zero` functions
+- Add `*_no_zero` pop functions
 
 ## Benchmarks
 
@@ -70,3 +66,10 @@
   kind of thing and should maybe be used if found; `recallocarray` is tricky
   though.
 
+## Add-on Library Ideas
+
+- cbase-mpfr
+- cbase-gmp
+- cbase-json
+- cbase-regex
+- cbase-msgpack
