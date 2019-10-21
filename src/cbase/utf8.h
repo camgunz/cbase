@@ -3,6 +3,12 @@
 #ifndef UTF8_H__
 #define UTF8_H__
 
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include "cbase/rune.h"
+#include "cbase/status.h"
+
 enum {
     UTF8_TOO_LONG = 1,
     UTF8_INVALID_UTF8,

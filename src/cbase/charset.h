@@ -3,6 +3,11 @@
 #ifndef CHARSET_H__
 #define CHARSET_H__
 
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include "cbase/status.h"
+
 enum {
     CHARSET_UNSUPPORTED_CONVERSION = 1,
     CHARSET_INVALID_CHARACTER_SEQUENCE,

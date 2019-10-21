@@ -3,6 +3,8 @@
 #ifndef STATUS_H__
 #define STATUS_H__
 
+#include <stdbool.h>
+
 #define status_ok(status) true
 
 #define status_propagate(status) false

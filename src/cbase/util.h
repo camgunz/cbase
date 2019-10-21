@@ -3,13 +3,20 @@
 #ifndef UTIL_H__
 #define UTIL_H__
 
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+#include "cbase/errors.h"
+#include "cbase/status.h"
+
 static inline
 size_t positive_ptrdiff(void *p1, void *p2) {
-    if (p2 <= p1) { /* [TODO] Maybe warn here? */
+    if (p1 > p2) { /* [TODO] Maybe warn here? */
         return 0;
     }
 
-    return ((char *)p2) - ((char *)p1);
+    return ((char *)p1) - ((char *)p2);
 }
 
 static inline

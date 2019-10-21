@@ -1,4 +1,11 @@
-#include "cbase.h"
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "cbase/alloc.h"
+#include "cbase/errors.h"
+#include "cbase/status.h"
+#include "cbase/util.h"
 
 bool __cbmalloc(size_t count, size_t size, void **ptr, Status *status) {
     void *new_ptr = NULL;
@@ -68,13 +75,22 @@ bool __cbmemcpy(void *dest, const void *src, size_t count, size_t size,
     return cbmemmove(dest, src, count, size, status);
 }
 
-bool __cbmemdup(const void *ptr, size_t byte_count, Status *status) {
-    void *buf = NULL;
+bool __cbmemdup(const void *ptr, size_t byte_count, void **out,
+                                                    Status *status) {
+    void *new_ptr = NULL;
 
-    return (
-        cbmalloc(byte_count, 1, &buf, status) &&
-        cbmemmove(buf, ptr, byte_count, 1, status)
-    );
+    if (!cbmalloc(byte_count, 1, &new_ptr, status)) {
+        return status_propagate(status);
+    }
+
+    if (!cbmemmove(new_ptr, ptr, byte_count, 1, status)) {
+        cbfree(new_ptr);
+        return status_propagate(status);
+    }
+
+    *out = new_ptr;
+
+    return status_ok(status);
 }
 
 bool __cbstrndup(const char *cs, size_t len, char **ptr, Status *status) {

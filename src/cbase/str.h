@@ -3,6 +3,15 @@
 #ifndef STR_H__
 #define STR_H__
 
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include "cbase/buffer.h"
+#include "cbase/slice.h"
+#include "cbase/sslice.h"
+#include "cbase/status.h"
+
 enum {
     STRING_VSNPRINTF_FAILED,
 };

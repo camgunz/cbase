@@ -1433,6 +1433,7 @@ void string_free(String *string) {
     strbase_clear(&string->len, &string->buffer.array.len);
 }
 
+__attribute__((format(printf, 4, 5)))
 bool string_insert_printf(String *string, size_t index, Status *status,
                                                         const char *fmt,
                                                         ...) {
@@ -1450,12 +1451,14 @@ bool string_insert_printf(String *string, size_t index, Status *status,
     return status_ok(status);
 }
 
+__attribute__((format(printf, 3, 0)))
 bool string_vprintf(String *string, Status *status, const char *fmt,
                                                     va_list args) {
     string_clear(string);
     return string_insert_vprintf(string, 0, status, fmt, args);
 }
 
+__attribute__((format(printf, 3, 4)))
 bool string_printf(String *string, Status *status, const char *fmt, ...) {
     va_list args;
     bool res;
@@ -1471,12 +1474,14 @@ bool string_printf(String *string, Status *status, const char *fmt, ...) {
     return status_ok(status);
 }
 
+__attribute__((format(printf, 3, 0)))
 bool string_init_vprintf(String *string, Status *status, const char *fmt,
                                                          va_list args) {
     string_init(string);
     return string_vprintf(string, status, fmt, args);
 }
 
+__attribute__((format(printf, 3, 4)))
 bool string_init_printf(String *string, Status *status, const char *fmt, ...) {
     bool res;
     va_list args;
@@ -1492,6 +1497,7 @@ bool string_init_printf(String *string, Status *status, const char *fmt, ...) {
     return status_ok(status);
 }
 
+__attribute__((format(printf, 3, 0)))
 bool string_new_vprintf(String **string, Status *status, const char *fmt,
                                                          va_list args) {
     return (
@@ -1500,6 +1506,7 @@ bool string_new_vprintf(String **string, Status *status, const char *fmt,
     );
 }
 
+__attribute__((format(printf, 3, 4)))
 bool string_new_printf(String **string, Status *status, const char *fmt, ...) {
     va_list args;
     bool res;
@@ -1515,11 +1522,13 @@ bool string_new_printf(String **string, Status *status, const char *fmt, ...) {
     return status_ok(status);
 }
 
+__attribute__((format(printf, 3, 0)))
 bool string_prepend_vprintf(String *string, Status *status, const char *fmt,
                                                             va_list args) {
     return string_insert_vprintf(string, 0, status, fmt, args);
 }
 
+__attribute__((format(printf, 3, 4)))
 bool string_prepend_printf(String *string, Status *status, const char *fmt,
                                                            ...) {
     va_list args;
@@ -1536,11 +1545,13 @@ bool string_prepend_printf(String *string, Status *status, const char *fmt,
     return status_ok(status);
 }
 
+__attribute__((format(printf, 3, 0)))
 bool string_append_vprintf(String *string, Status *status, const char *fmt,
                                                            va_list args) {
     return string_insert_vprintf(string, string->len, status, fmt, args);
 }
 
+__attribute__((format(printf, 3, 4)))
 bool string_append_printf(String *string, Status *status, const char *fmt,
                                                           ...) {
     va_list args;
@@ -1557,6 +1568,7 @@ bool string_append_printf(String *string, Status *status, const char *fmt,
     return status_ok(status);
 }
 
+__attribute__((format(printf, 4, 0)))
 bool string_insert_vprintf(String *string, size_t index, Status *status,
                                                          const char *fmt,
                                                          va_list args) {

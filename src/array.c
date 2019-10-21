@@ -142,23 +142,17 @@ bool array_insert(Array *array, size_t index, void *element, Status *status) {
         return index_out_of_bounds(status);
     }
 
-    if (!array_ensure_capacity_zero(array, array->len + 1, status)) {
+    if (!array_shift_elements_down_no_zero(array, index, 1, status)) {
         return status_propagate(status);
     }
 
     array_set_fast(array, index, element);
-    array->len++;
 
     return status_ok(status);
 }
 
 void* array_insert_slot_fast(Array *array, size_t index) {
-    cbbase_memmove(array_index_fast(array, index + 1),
-                   array_index_fast(array, index),
-                   (array->len - index) * array->element_size);
-
-    array->len++;
-
+    array_shift_elements_down_fast_no_zero(array, index, 1);
     return array_index_fast(array, index);
 }
 
@@ -194,15 +188,11 @@ bool _array_insert_slot_no_zero(Array *array, size_t index, void **new_slot,
 
 void array_insert_many_fast(Array *array, size_t index, const void *elements,
                                                         size_t element_count) {
-    cbbase_memmove(array_index_fast(array, index + element_count),
-                   array_index_fast(array, index),
-                   (array->len - index) * array->element_size);
+    array_shift_elements_down_fast_no_zero(array, index, element_count);
 
     cbbase_memmove(array_index_fast(array, index),
                    elements,
                    element_count * array->element_size);
-
-    array->len += element_count;
 }
 
 bool array_insert_many(Array *array, size_t index, const void *elements,
@@ -242,7 +232,9 @@ void array_shift_elements_down_fast(Array *array, size_t index,
 bool array_shift_elements_down_no_zero(Array *array, size_t index,
                                                      size_t element_count,
                                                      Status *status) {
-    if (index >= array->len) {
+    bool has_existing_elements = array->len > 0;
+
+    if (index > array->len) {
         return index_out_of_bounds(status);
     }
 
@@ -250,7 +242,12 @@ bool array_shift_elements_down_no_zero(Array *array, size_t index,
         return status_propagate(status);
     }
 
-    array_shift_elements_down_fast_no_zero(array, index, element_count);
+    if (has_existing_elements) {
+        array_shift_elements_down_fast_no_zero(array, index, element_count);
+    }
+    else {
+        array->len += element_count;
+    }
 
     return status_ok(status);
 }
@@ -510,6 +507,20 @@ void array_truncate_fast(Array *array, size_t len) {
     array->len = len;
 }
 
+bool array_truncate_no_zero(Array *array, size_t len, Status *status) {
+    if (len > array->len) {
+        return index_out_of_bounds(status);
+    }
+
+    if (array->len == len) {
+        return status_ok(status);
+    }
+
+    array_truncate_fast(array, len);
+
+    return status_ok(status);
+}
+
 bool array_truncate(Array *array, size_t len, Status *status) {
     if (len > array->len) {
         return index_out_of_bounds(status);
@@ -521,20 +532,6 @@ bool array_truncate(Array *array, size_t len, Status *status) {
 
     if (!array_zero_elements(array, len, array->len - len, status)) {
         return status_propagate(status);
-    }
-
-    array_truncate_fast(array, len);
-
-    return status_ok(status);
-}
-
-bool array_truncate_no_zero(Array *array, size_t len, Status *status) {
-    if (len > array->len) {
-        return index_out_of_bounds(status);
-    }
-
-    if (array->len == len) {
-        return status_ok(status);
     }
 
     array_truncate_fast(array, len);
@@ -564,10 +561,7 @@ void array_assign_array_same_fast(Array *dst, Array *src) {
 }
 
 bool array_assign_array_same(Array *dst, Array *src, Status *status) {
-    return (
-        array_assign(dst, src->elements, src->len, status) &&
-        array_truncate(dst, src->len, status)
-    );
+    return array_assign(dst, src->elements, src->len, status);
 }
 
 bool array_assign_array_fast(Array *dst, Array *src, Status *status) {
@@ -589,15 +583,17 @@ bool array_assign_array(Array *dst, Array *src, Status *status) {
 }
 
 void array_delete_many_fast(Array *array, size_t index, size_t count) {
-    cbbase_memmove(array_index_fast(array, index),
-                   array_index_fast(array, index + count),
-                   ((array->len - index) - count) * array->element_size);
+    if ((index + count) < array->len) {
+        cbbase_memmove(array_index_fast(array, index),
+                       array_index_fast(array, index + count),
+                       ((array->len - index) - count) * array->element_size);
+    }
 
     array->len -= count;
 }
 
-bool array_delete_many(Array *array, size_t index, size_t count,
-                                                   Status *status) {
+bool array_delete_many_no_zero(Array *array, size_t index, size_t count,
+                                                           Status *status) {
     if ((index + count) > array->len) {
         return index_out_of_bounds(status);
     }
@@ -607,8 +603,24 @@ bool array_delete_many(Array *array, size_t index, size_t count,
     return status_ok(status);
 }
 
+bool array_delete_many(Array *array, size_t index, size_t count,
+                                                   Status *status) {
+    if ((index + count) > array->len) {
+        return index_out_of_bounds(status);
+    }
+
+    array_delete_many_fast(array, index, count);
+    array_zero_elements_fast(array, array->len, count);
+
+    return status_ok(status);
+}
+
 void array_delete_fast(Array *array, size_t index) {
     array_delete_many_fast(array, index, 1);
+}
+
+bool array_delete_no_zero(Array *array, size_t index, Status *status) {
+    return array_delete_many_no_zero(array, index, 1, status);
 }
 
 bool array_delete(Array *array, size_t index, Status *status) {
@@ -625,12 +637,23 @@ void array_delete_unordered_fast(Array *array, size_t index) {
     array->len--;
 }
 
+bool array_delete_unordered_no_zero(Array *array, size_t index, Status *status) {
+    if (index >= array->len) {
+        return index_out_of_bounds(status);
+    }
+
+    array_delete_unordered_fast(array, index);
+
+    return status_ok(status);
+}
+
 bool array_delete_unordered(Array *array, size_t index, Status *status) {
     if (index >= array->len) {
         return index_out_of_bounds(status);
     }
 
     array_delete_unordered_fast(array, index);
+    array_zero_element_fast(array, array->len);
 
     return status_ok(status);
 }
@@ -679,12 +702,25 @@ void array_pop_fast(Array *array, size_t index, void *element) {
     array_delete_fast(array, index);
 }
 
+bool array_pop_no_zero(Array *array, size_t index, void *element, Status *status) {
+    if (index >= array->len) {
+        return index_out_of_bounds(status);
+    }
+
+    array_copy_element_fast(array, index, element);
+    array_delete_fast(array, index);
+
+    return status_ok(status);
+}
+
 bool array_pop(Array *array, size_t index, void *element, Status *status) {
     if (index >= array->len) {
         return index_out_of_bounds(status);
     }
 
-    array_pop_fast(array, index, element);
+    array_copy_element_fast(array, index, element);
+    array_zero_element_fast(array, index);
+    array_delete_fast(array, index);
 
     return status_ok(status);
 }
@@ -694,13 +730,27 @@ void array_pop_unordered_fast(Array *array, size_t index, void *element) {
     array_delete_unordered_fast(array, index);
 }
 
+bool array_pop_unordered_no_zero(Array *array, size_t index, void *element,
+                                                             Status *status) {
+    if (index >= array->len) {
+        return index_out_of_bounds(status);
+    }
+
+    array_copy_element_fast(array, index, element);
+    array_delete_unordered_fast(array, index);
+
+    return status_ok(status);
+}
+
 bool array_pop_unordered(Array *array, size_t index, void *element,
                                                      Status *status) {
     if (index >= array->len) {
         return index_out_of_bounds(status);
     }
 
-    array_pop_unordered_fast(array, index, element);
+    array_copy_element_fast(array, index, element);
+    array_zero_element_fast(array, index);
+    array_delete_unordered_fast(array, index);
 
     return status_ok(status);
 }
@@ -738,7 +788,7 @@ bool array_pop_right_unordered(Array *array, void *element, Status *status) {
 }
 
 void array_clear_no_zero(Array *array) {
-    array->len = 0;
+    array_truncate_fast(array, 0);
 }
 
 void array_clear(Array *array) {
@@ -746,9 +796,26 @@ void array_clear(Array *array) {
     array_clear_no_zero(array);
 }
 
-void array_free(Array *array) {
+void array_free_no_zero(Array *array) {
     cbfree(array->elements);
     array_init(array, array->element_size);
+}
+
+void array_free(Array *array) {
+    array_zero_elements_fast(array, 0, array->len);
+    array_free_no_zero(array);
+}
+
+void array_destroy_no_zero(Array **array) {
+    array_free_no_zero(*array);
+    cbfree(*array);
+    *array = NULL;
+}
+
+void array_destroy(Array **array) {
+    array_free(*array);
+    cbfree(*array);
+    *array = NULL;
 }
 
 /* vi: set et ts=4 sw=4: */

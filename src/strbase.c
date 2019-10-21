@@ -92,7 +92,8 @@ bool strbase_encode(const char *data, size_t byte_len, const char *encoding,
         }
 
         if (status_match(status, "charset", CHARSET_OUTPUT_BUFFER_TOO_SMALL)) {
-            ptrdiff_t bytes_written = outsl.data - (char *)out->array.elements;
+            ptrdiff_t bytes_written = positive_ptrdiff(outsl.data,
+                                                       (char *)out->array.elements);
 
             if (!buffer_ensure_capacity(out, out->array.alloc * 2, status)) {
                 return status_propagate(status);

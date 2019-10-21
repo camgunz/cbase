@@ -3,6 +3,13 @@
 #ifndef SSLICE_H__
 #define SSLICE_H__
 
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include "cbase/buffer.h"
+#include "cbase/rune.h"
+#include "cbase/slice.h"
+
 enum {
     SSLICE_EMPTY = 1,
     SSLICE_NOT_SUBSLICE,

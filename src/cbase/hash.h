@@ -3,6 +3,12 @@
 #ifndef HASH_H__
 #define HASH_H__
 
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+#include "cbase/status.h"
+
 #include "xxhash.h"
 
 enum {

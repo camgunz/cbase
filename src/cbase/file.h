@@ -3,6 +3,13 @@
 #ifndef FILE_H__
 #define FILE_H__
 
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include "cbase/sslice.h"
+#include "cbase/status.h"
+#include "cbase/str.h"
+
 enum {
     PATH_PERMISSION_DENIED,
     PATH_INVALID_FILE_DESCRIPTOR,

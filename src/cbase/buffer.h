@@ -3,6 +3,13 @@
 #ifndef BUFFER_H__
 #define BUFFER_H__
 
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include "cbase/array.h"
+#include "cbase/slice.h"
+#include "cbase/status.h"
+
 typedef struct BufferStruct {
     Array array;
 } Buffer;

@@ -3,6 +3,11 @@
 #ifndef SLICE_H__
 #define SLICE_H__
 
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include "cbase/status.h"
+
 struct BufferStruct;
 
 typedef struct SliceStruct {

@@ -3,6 +3,11 @@
 #ifndef ARRAY_H__
 #define ARRAY_H__
 
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include "cbase/status.h"
+
 enum {
     ARRAY_ELEMENT_SIZE_MISMATCH = 1,
 };
@@ -204,9 +209,9 @@ bool  array_zero_element(Array *array, size_t index, Status *status);
 
 void  array_truncate_fast(Array *array, size_t len);
 
-bool  array_truncate(Array *array, size_t len, Status *status);
-
 bool  array_truncate_no_zero(Array *array, size_t len, Status *status);
+
+bool  array_truncate(Array *array, size_t len, Status *status);
 
 void  array_assign_fast(Array *array, const void *elements,
                                      size_t element_count);
@@ -224,14 +229,22 @@ bool  array_assign_array(Array *dst, Array *src, Status *status);
 
 void  array_delete_many_fast(Array *array, size_t index, size_t count);
 
+bool  array_delete_many_no_zero(Array *array, size_t index, size_t count,
+                                                            Status *status);
+
 bool  array_delete_many(Array *array, size_t index, size_t count,
                                                     Status *status);
 
 void  array_delete_fast(Array *array, size_t index);
 
+bool  array_delete_no_zero(Array *array, size_t index, Status *status);
+
 bool  array_delete(Array *array, size_t index, Status *status);
 
 void  array_delete_unordered_fast(Array *array, size_t index);
+
+bool  array_delete_unordered_no_zero(Array *array, size_t index,
+                                                   Status *status);
 
 bool  array_delete_unordered(Array *array, size_t index, Status *status);
 
@@ -249,9 +262,14 @@ bool  array_copy_elements(Array *array, size_t index, size_t count,
 
 void  array_pop_fast(Array *array, size_t index, void *element);
 
+bool  array_pop_no_zero(Array *array, size_t index, void *element,
+                                                    Status *status);
 bool  array_pop(Array *array, size_t index, void *element, Status *status);
 
 void  array_pop_unordered_fast(Array *array, size_t index, void *element);
+
+bool  array_pop_unordered_no_zero(Array *array, size_t index, void *element,
+                                                              Status *status);
 
 bool  array_pop_unordered(Array *array, size_t index, void *element,
                                                       Status *status);
@@ -276,7 +294,13 @@ void  array_clear_no_zero(Array *array);
 
 void  array_clear(Array *array);
 
+void  array_free_no_zero(Array *array);
+
 void  array_free(Array *array);
+
+void  array_destroy_no_zero(Array **array);
+
+void  array_destroy(Array **array);
 
 #endif
 

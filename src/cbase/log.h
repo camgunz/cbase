@@ -3,6 +3,8 @@
 #ifndef LOG_H__
 #define LOG_H__
 
+#include <stdarg.h>
+
 typedef enum {
     LOG_DEBUG = 1,
     LOG_INFO,

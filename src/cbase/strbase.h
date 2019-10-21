@@ -3,6 +3,14 @@
 #ifndef STRBASE_H__
 #define STRBASE_H__
 
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include "cbase/buffer.h"
+#include "cbase/rune.h"
+#include "cbase/slice.h"
+#include "cbase/status.h"
+
 struct SSliceStruct;
 
 enum {

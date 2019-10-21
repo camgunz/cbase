@@ -119,7 +119,7 @@ static bool table_check_grow(Table *table, Status *status) {
 }
 
 static bool table_check_shrink(Table *table, Status *status) {
-    float load_level = (float)table->len / table->bucket_max;
+    float load_level = (float)table->len / (float)table->bucket_max;
 
     if (load_level >= (LOAD_LEVEL_MAX / 2.0f)) {
         return status_ok(status);

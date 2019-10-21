@@ -3,6 +3,12 @@
 #ifndef TABLE_H__
 #define TABLE_H__
 
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include "cbase/array.h"
+#include "cbase/status.h"
+
 #define table_node_empty(n) ((n)->distance == SIZE_MAX)
 
 typedef struct TArrayNodeStruct {

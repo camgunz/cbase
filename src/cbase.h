@@ -7,12 +7,16 @@
 #define UNICODE
 #endif
 
+#ifndef __GNUC__
+#define __attribute__()
+#endif
+
 #include <errno.h>
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
 

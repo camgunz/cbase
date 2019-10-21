@@ -3,6 +3,11 @@
 #ifndef LIST_H__
 #define LIST_H__
 
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include "cbase/array.h"
+
 enum {
     LIST_EMPTY = 1,
     DLIST_EMPTY,

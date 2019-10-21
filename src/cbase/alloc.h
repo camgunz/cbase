@@ -3,6 +3,12 @@
 #ifndef ALLOC_H__
 #define ALLOC_H__
 
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "cbase/status.h"
+
 #define _cbmalloc(count, size, ptr, status) \
     __cbmalloc(count, size, (void **)ptr, status)
 
@@ -78,7 +84,8 @@ bool __cbmemmove(void *dest, const void *src, size_t count, size_t size,
 bool __cbmemcpy(void *dest, const void *src, size_t count, size_t size,
                                                            Status *status);
 
-bool __cbmemdup(const void *ptr, size_t byte_count, Status *status);
+bool __cbmemdup(const void *ptr, size_t byte_count, void **out,
+                                                    Status *status);
 
 bool __cbstrndup(const char *cs, size_t len, char **ptr, Status *status);
 
