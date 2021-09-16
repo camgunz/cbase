@@ -1,9 +1,11 @@
+#pragma once
+
 #ifndef CBASE_TEST_H__
 #define CBASE_TEST_H__
 
 typedef struct {
     const char *name;
-    int age;
+    int         age;
 } Person;
 
 typedef struct {

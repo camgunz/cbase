@@ -3,11 +3,24 @@
 #ifndef SWAP_H__
 #define SWAP_H__
 
-#ifdef HAVE_BYTEORDER_H
+#include "cbase/internal.h"
+
+#if defined(HAVE_ASM_BYTEORDER_H)
+#include <asm/byteorder.h>
+
 #define cbswap16 bswap_16
 #define cbswap32 bswap_32
 #define cbswap64 bswap_64
+
+#elif defined(HAVE_BYTESWAP_H)
+#include <byteswap.h>
+
+#define cbswap16 bswap_16
+#define cbswap32 bswap_32
+#define cbswap64 bswap_64
+
 #else
+
 #define cbswap16(x) \
     ((uint16_t)((((x) >> 8) & 0xFFU) | \
                 (((x      ) & 0xFFU) << 8)))

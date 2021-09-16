@@ -1,0 +1,191 @@
+option(
+  'inlining',
+  type : 'combo',
+  choices : [
+    'CBASE_FLATTEN_FUNCTIONS',
+    'CBASE_INLINE_FUNCTIONS',
+    'CBASE_NORMAL_INLINE_FUNCTIONS',
+    'CBASE_NEVER_INLINE_FUNCTIONS',
+  ],
+  value : 'CBASE_FLATTEN_FUNCTIONS',
+  description : 'Level of inlining to apply to qualifying cbase functions'
+)
+
+option(
+  'dump_logging_errors_to_stderr',
+  type : 'boolean',
+  value : true,
+  description : 'Dump logging errors to STDERR'
+)
+
+option(
+  'default_logger',
+  type : 'combo',
+  choices : ['CBASE_LOG_STDERR', 'CBASE_LOG_CUSTOM'],
+  value : 'CBASE_LOG_CUSTOM',
+  description : 'Enable the default log and either output to STDERR or ' +
+                'enable customization'
+)
+
+option(
+  'default_logger_log_level',
+  type : 'combo',
+  choices : [
+    'CBASE_LOG_LEVEL_DEBUG',
+    'CBASE_LOG_LEVEL_INFO',
+    'CBASE_LOG_LEVEL_WARNING',
+    'CBASE_LOG_LEVEL_FAILURE',
+    'CBASE_LOG_LEVEL_ERROR',
+    'CBASE_LOG_LEVEL_CRITICAL',
+    'CBASE_LOG_LEVEL_FATAL',
+    'CBASE_LOG_LEVEL_RUNTIME'
+  ],
+  value : 'CBASE_LOG_LEVEL_RUNTIME',
+  description : 'Hardcode the default logger\'s log level, or allow it to ' +
+                'be set at runtime'
+)
+
+option(
+  'internal_logger',
+  type : 'combo',
+  choices : [
+    'CBASE_LOG_DEFAULT',
+    'CBASE_LOG_STDERR',
+    'CBASE_LOG_CUSTOM'
+  ],
+  value : 'CBASE_LOG_CUSTOM',
+  description : 'Enable the default log and either output to the default ' +
+                'log, output to STDERR or enable customization'
+)
+
+option(
+  'internal_logger_log_level',
+  type : 'combo',
+  choices : [
+    'CBASE_LOG_LEVEL_DEBUG',
+    'CBASE_LOG_LEVEL_INFO',
+    'CBASE_LOG_LEVEL_WARNING',
+    'CBASE_LOG_LEVEL_FAILURE',
+    'CBASE_LOG_LEVEL_ERROR',
+    'CBASE_LOG_LEVEL_CRITICAL',
+    'CBASE_LOG_LEVEL_FATAL',
+    'CBASE_LOG_LEVEL_RUNTIME'
+  ],
+  value : 'CBASE_LOG_LEVEL_RUNTIME',
+  description : 'Hardcode the internal logger\'s log level, or allow it to ' +
+                'be set at runtime'
+)
+
+option(
+  'logger',
+  type : 'combo',
+  choices : [
+    'CBASE_LOG_DEFAULT',
+    'CBASE_LOG_STDERR',
+    'CBASE_LOG_CUSTOM'
+  ],
+  value : 'CBASE_LOG_CUSTOM',
+  description : 'Enable the log and either output to the default log, ' +
+                'output to STDERR or enable customization'
+)
+
+option(
+  'logger_log_level',
+  type : 'combo',
+  choices : [
+    'CBASE_LOG_LEVEL_DEBUG',
+    'CBASE_LOG_LEVEL_INFO',
+    'CBASE_LOG_LEVEL_WARNING',
+    'CBASE_LOG_LEVEL_FAILURE',
+    'CBASE_LOG_LEVEL_ERROR',
+    'CBASE_LOG_LEVEL_CRITICAL',
+    'CBASE_LOG_LEVEL_FATAL',
+    'CBASE_LOG_LEVEL_RUNTIME'
+  ],
+  value : 'CBASE_LOG_LEVEL_RUNTIME',
+  description : 'Hardcode the logger\'s log level, or allow it to be set at' +
+                'be set at runtime'
+)
+
+option(
+  'error_handling',
+  type : 'combo',
+  choices : [
+    'CBASE_ERROR_LEVELS_DEFAULT',
+    'CBASE_ERROR_LEVELS_CONFIGURABLE',
+    'CBASE_ERRORS_CONFIGURABLE'
+  ],
+  value : 'CBASE_ERRORS_CONFIGURABLE',
+  description : 'Use default log levels for error handling, or allow them ' +
+                'to be configurable, or enable full configuration of error ' +
+                'handlers'
+)
+option(
+  'disable_index_bounds_checks',
+  type : 'boolean',
+  value : false,
+  description : 'Disables index argument bounds checking'
+)
+
+option(
+  'disable_length_bounds_checks',
+  type : 'boolean',
+  value : false,
+  description : 'Disables length argument bounds checking'
+)
+
+option(
+  'disable_indexed_length_bounds_checks',
+  type : 'boolean',
+  value : false,
+  description : 'Disables indexed length argument bounds checking'
+)
+
+option(
+  'disable_overlapping_memory_corruption_checks',
+  type : 'boolean',
+  value : false,
+  description : 'Disables overlapping memory corruption checks'
+)
+
+option(
+  'disable_input_object_argument_pointer_checks',
+  type : 'boolean',
+  value : false,
+  description : 'Disable input object pointer argument non-null checks'
+)
+
+option(
+  'disable_input_argument_pointer_checks',
+  type : 'boolean',
+  value : false,
+  description : 'Disable input pointer argument non-null checks'
+)
+
+option(
+  'disable_output_argument_pointer_checks',
+  type : 'boolean',
+  value : false,
+  description : 'Disable output pointer argument non-null checks'
+)
+
+option(
+  'disable_checked_math',
+  type : 'boolean',
+  value : false,
+  description : 'Disable overflow checking for add/sub/mul'
+)
+
+option(
+  'disable_checked_math_in_allocations',
+  type : 'boolean',
+  value : false,
+  description : 'Disable checked math in allocations'
+)
+
+option(
+  'disable_pointer_arithmetic_checks',
+  type : 'boolean',
+  value : false,
+  description : 'Disable pointer arithmetic checks'
+)

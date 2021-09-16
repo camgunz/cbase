@@ -3,6 +3,8 @@
 #ifndef FILE_H__
 #define FILE_H__
 
+#include "cbase/internal.h"
+
 #include <stdbool.h>
 #include <stdlib.h>
 

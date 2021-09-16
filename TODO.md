@@ -1,25 +1,48 @@
 # To Do
 
+## Next time
+
+## Defines
+
+CONFIGURABLE becomes RUNTIME
+
 ## General
 
-- Array can't use `void *` for its elements because it breaks alignment for
-  scalars.
-- Bounds checking in `utf8.c`
+- byte_len -> len in utf8
+- Get list.h and dlist.h up to par
+- Many `string_*` functions need fast variants based on their utf8 counterparts
+- Expand `utf8_pop_*` to `pop_left` and `pop_right`
+  - Build on this to `string_pop_*` to `pop_left` and `pop_right`
+- Add `cstr` functions to str.h
+- Pull out common defs between array.h and slice.h
+
+- Find all ` + ` instances and wrap in `check_overflow` or something
+- Find all ` - ` instances that are pointer arithmetic, and replace it with
+  `positive_ptrdiff`
+- Many `*_equals` functions return `bool`, but other predicates use output
+  parameters. This... feels inconsistent?
 - Paramterize string encoding
   - Not super clear on how to do this
-- Add a better allocator; probably necessary to get competitive table
-  performance.
-- Wrap any function taking a `void **` with a macro to make the cast
-- The `*_assign` functions should take ownership of their arguments
-- Find functions that check if their output arguments are `NULL` and make
-  alternative functions when possible
-- Ensure everything besides `strbase` modifies their output parameters only on
-  success
+- All `*_assign` functions should take ownership of their arguments
+  - n.b. this doesn't make sense for slices
+- Ensure everything modifies their output parameters only on success
 - Consider adding an allocation size strategy for functions that auto-resize,
-  i.e. `*_encode` or even `*_append_*`.  Currently it's ad-hoc and almost
-  certainly non-optimal.
+  i.e. `*_encode` or even `*_append_*`.  Currently it's "always double" which
+  almost certainly non-optimal.
 - Iterators
-- Add `*_no_zero` pop functions
+- `*_free` functions need an accompanying `*_zero_free` that zeros the data
+  before freeing it.  OpenBSD provides `freezero` and `recallocarray` for this
+  kind of thing and should maybe be used if found; `recallocarray` is tricky
+  though.
+- Switch table to https://github.com/martinus/robin-hood-hashing
+- Function attributes:
+  - GCC: `malloc`
+  - GCC: `nonnull`
+  - GCC: `access`
+  - GCC: `assume_aligned`
+  - GCC: `returns_nonnull`
+  - GCC: `warn_unused_result`
+  - GCC: `fallthrough`
 
 ## Benchmarks
 
@@ -27,7 +50,7 @@
   - GLib
   - APR
   - hash table libraries
-    - khash
+    - Look at https://github.com/attractivechaos/klib/
     - uthash
   - sds
   - libcperciva
@@ -35,41 +58,23 @@
   - tommyds
   - C++ STL
 
-## APIs
-
-- Check for consistency, i.e. when accepting a length, should an error occur if
-  len is longer than the data structure, or should it... clear, for example in
-  the case of truncation.
-  - Some functions are implicitly "do this is it's possible, otherwise I don't
-    care", but the downside of that is that if you do care, you might end up
-    performing the check twice -- once to do the check and once implicitly in
-    the operation itself.  Some have "fast" variants but many don't.
-  - I think the best thing is to push this into a naming convention... which I
-    think should be `*_quiet`?
-
 ## Tests
 
-- Buffer
-  - Slice
 - Log
 - Charset
-- Path
 
 ## Docs
 
-- cldoc
-
-## Misc.
-
-- `*_free` functions need an accompanying `*_zero_free` that zeros the data
-  before freeing it.  OpenBSD provides `freezero` and `recallocarray` for this
-  kind of thing and should maybe be used if found; `recallocarray` is tricky
-  though.
+I think this will be hard because of the preprocessor-ness of things. But
+current fave tool is `cldoc`.
 
 ## Add-on Library Ideas
 
+- cbase-path/file/stream
+  - Break this out
 - cbase-mpfr
 - cbase-gmp
+- cbase-event
 - cbase-json
 - cbase-regex
 - cbase-msgpack

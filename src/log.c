@@ -1,114 +1,158 @@
+#include "cbase/internal.h"
+
 #include <stdio.h>
 
-#include "cbase.h"
+#include "cbase/logbase.h"
 
-__attribute__((format(printf, 2, 3)))
-void log_msg(LogLevel level, const char *msg, ...) {
-    va_list args;
+#if DEFAULT_LOGGER_LOG_LEVEL == LOG_LEVEL_RUNTIME
+static LogLevel _default_log_level = CBASE_LOG_LEVEL_INFO;
 
-    va_start(args, msg);
-    log_vmsg(level, msg, args);
-    va_end(args);
+LogLevel _default_log_get_level(void) {
+    return _default_log_level;
 }
 
-__attribute__((format(printf, 2, 0)))
-void log_vmsg(LogLevel level, const char *msg, va_list args) {
-    switch(level) {
-        case LOG_DEBUG:
-        case LOG_INFO:
-            vprintf(msg, args);
-            break;
-        case LOG_WARNING:
-        case LOG_ERROR:
-        case LOG_CRITICAL:
-        case LOG_FATAL:
-            vfprintf(stderr, msg, args);
-            break;
-    }
+void _default_log_set_level(LogLevel level) {
+    _default_log_level = level;
+}
+#endif
+
+#if DEFAULT_LOGGER == LOG_CUSTOM
+static LoggerFunc* _default_loggers[CBASE_LOG_LEVEL_MAX] = {
+    _printf_to_stderr,
+    _printf_to_stderr,
+    _printf_to_stderr,
+    _printf_to_stderr,
+    _printf_to_stderr,
+    _printf_to_stderr,
+    _printf_to_stderr,
+};
+
+static VLoggerFunc* _default_vloggers[CBASE_LOG_LEVEL_MAX] = {
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+};
+
+LoggerFunc* _default_log_get_logger(LogLevel level) {
+    return _default_loggers[level];
 }
 
-__attribute((format(printf, 1, 2)))
-void log_debug(const char *msg, ...) {
-    va_list args;
-
-    va_start(args, msg);
-    log_vmsg(LOG_DEBUG, msg, args);
-    va_end(args);
+void _default_set_logger(LogLevel level, LoggerFunc log) {
+    _default_loggers[level] = log;
 }
 
-__attribute__((format(printf, 1, 0)))
-void log_vdebug(const char *msg, va_list args) {
-    log_vmsg(LOG_DEBUG, msg, args);
+VLoggerFunc* _default_log_get_vlogger(LogLevel level) {
+    return _default_vloggers[level];
 }
 
-__attribute((format(printf, 1, 2)))
-void log_info(const char *msg, ...) {
-    va_list args;
-
-    va_start(args, msg);
-    log_vmsg(LOG_INFO, msg, args);
-    va_end(args);
+void _default_log_set_vlogger(LogLevel level, VLoggerFunc vlog) {
+    _default_vloggers[level] = vlog;
 }
 
-__attribute__((format(printf, 1, 0)))
-void log_vinfo(const char *msg, va_list args) {
-    log_vmsg(LOG_INFO, msg, args);
+#endif
+
+#if INTERNAL_LOGGER_LOG_LEVEL == LOG_LEVEL_RUNTIME
+static LogLevel _internal_log_level = CBASE_LOG_LEVEL_INFO;
+
+LogLevel _internal_log_get_level(void) {
+    return _internal_log_level;
 }
 
-__attribute((format(printf, 1, 2)))
-void log_warning(const char *msg, ...) {
-    va_list args;
+void _internal_log_set_level(LogLevel level) {
+    _internal_log_level = level;
+}
+#endif
 
-    va_start(args, msg);
-    log_vmsg(LOG_WARNING, msg, args);
-    va_end(args);
+#if INTERNAL_LOGGER == LOG_CUSTOM
+static LoggerFunc* _internal_loggers[CBASE_LOG_LEVEL_MAX] = {
+    _printf_to_stderr,
+    _printf_to_stderr,
+    _printf_to_stderr,
+    _printf_to_stderr,
+    _printf_to_stderr,
+    _printf_to_stderr,
+    _printf_to_stderr,
+};
+
+static VLoggerFunc* _internal_vloggers[CBASE_LOG_LEVEL_MAX] = {
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+};
+
+LoggerFunc* _internal_log_get_logger(LogLevel level) {
+    return _internal_loggers[level];
 }
 
-__attribute__((format(printf, 1, 0)))
-void log_vwarning(const char *msg, va_list args) {
-    log_vmsg(LOG_WARNING, msg, args);
+void _internal_set_logger(LogLevel level, LoggerFunc log) {
+    _internal_loggers[level] = log;
 }
 
-__attribute((format(printf, 1, 2)))
-void log_error(const char *msg, ...) {
-    va_list args;
-
-    va_start(args, msg);
-    log_vmsg(LOG_ERROR, msg, args);
-    va_end(args);
+VLoggerFunc* _internal_log_get_vlogger(LogLevel level) {
+    return _internal_vloggers[level];
 }
 
-__attribute__((format(printf, 1, 0)))
-void log_verror(const char *msg, va_list args) {
-    log_vmsg(LOG_ERROR, msg, args);
+void _internal_log_set_vlogger(LogLevel level, VLoggerFunc vlog) {
+    _internal_vloggers[level] = vlog;
+}
+#endif
+
+#if LOG_LEVEL == LOG_LEVEL_RUNTIME
+static LogLevel _log_level = CBASE_LOG_LEVEL_INFO;
+
+LogLevel log_get_level(void) {
+    return _log_level;
 }
 
-__attribute((format(printf, 1, 2)))
-void log_critical(const char *msg, ...) {
-    va_list args;
+void log_set_level(LogLevel level) {
+    _log_level = level;
+}
+#endif
 
-    va_start(args, msg);
-    log_vmsg(LOG_CRITICAL, msg, args);
-    va_end(args);
+#if LOGGER == LOG_CUSTOM
+static LoggerFunc* loggers[CBASE_LOG_LEVEL_MAX] = {
+    _printf_to_stderr,
+    _printf_to_stderr,
+    _printf_to_stderr,
+    _printf_to_stderr,
+    _printf_to_stderr,
+    _printf_to_stderr,
+    _printf_to_stderr,
+};
+
+static VLoggerFunc* vloggers[CBASE_LOG_LEVEL_MAX] = {
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+    _vprintf_to_stderr,
+};
+
+LoggerFunc* log_get_logger(LogLevel level) {
+    return loggers[level];
 }
 
-__attribute__((format(printf, 1, 0)))
-void log_vcritical(const char *msg, va_list args) {
-    log_vmsg(LOG_CRITICAL, msg, args);
+void log_set_logger(LogLevel level, LoggerFunc log) {
+    loggers[level] = log;
 }
 
-__attribute((format(printf, 1, 2)))
-void log_fatal(const char *msg, ...) {
-    va_list args;
-
-    va_start(args, msg);
-    log_vmsg(LOG_FATAL, msg, args);
-    va_end(args);
+VLoggerFunc* log_get_vlogger(LogLevel level) {
+    return vloggers[level];
 }
 
-__attribute__((format(printf, 1, 0)))
-void log_vfatal(const char *msg, va_list args) {
-    log_vmsg(LOG_FATAL, msg, args);
+void log_set_vlogger(LogLevel level, VLoggerFunc vlog) {
+    vloggers[level] = vlog;
 }
+#endif
 
 /* vi: set et ts=4 sw=4: */

@@ -1,87 +1,40 @@
-#include "cbase.h"
+#include "cbase/internal.h"
+
+#include <string.h>
 
 #include <utf8proc.h>
 
-#define utf8_too_long(status) status_critical( \
-    status,                                    \
-    "utf8",                                    \
-    UTF8_TOO_LONG,                             \
-    "UTF-8 data is too long"                   \
-)
+#include "cbase/errors.h"
+#include "cbase/readable_data.h"
+#include "cbase/writable_data.h"
+#include "cbase/utf8.h"
+#include "cbase/util.h"
 
-#define no_data_passed(status) status_critical( \
-    status,                                     \
-    "utf8",                                     \
-    UTF8_EMPTY,                                 \
-    "No data passed"                            \
-)
-
-#define invalid_utf8(status) status_critical( \
-    status,                                   \
-    "utf8",                                   \
-    UTF8_INVALID_UTF8,                        \
-    "UTF-8 data is invalid"                   \
-)
-
-#define unassigned_codepoint_found(status) status_critical( \
-    status,                                                 \
-    "utf8",                                                 \
-    UTF8_UNASSIGNED_CODEPOINT,                              \
-    "Found unassigned codepoint in UTF-8 data"              \
-)
-
-#define invalid_options(status) status_critical( \
-    status,                                      \
-    "utf8",                                      \
-    UTF8_INVALID_OPTIONS,                        \
-    "Invalid options passed to utf8proc"         \
-)
-
-#define unknown_error(status) status_critical( \
-    status,                                    \
-    "utf8",                                    \
-    UTF8_UNKNOWN_ERROR,                        \
-    "Unknown utf8proc error"                   \
-)
-
-/* [TODO] Bounds checking */
-
-bool utf8_handle_error_code(ssize_t error_code, Status *status) {
-    switch (error_code) {
-        case UTF8PROC_ERROR_NOMEM:
-            return alloc_failure(status);
-        case UTF8PROC_ERROR_OVERFLOW:
-            return utf8_too_long(status);
-        case UTF8PROC_ERROR_INVALIDUTF8:
-            return invalid_utf8(status);
-        case UTF8PROC_ERROR_NOTASSIGNED:
-            return unassigned_codepoint_found(status);
-        case UTF8PROC_ERROR_INVALIDOPTS:
-            return invalid_options(status);
-        default:
-            return unknown_error(status);
-    }
-
-    return status_ok(status);
-}
+/*
+ * [TODO]
+ * - Rebase on readable/writable/dynamic_data
+ * - There should be utf8_find_* versions of the utf8_seek_* functions, and the
+ *   utf8_seek_* functions should be defined in terms of those, just like
+ *   utf8_find_data -> utf8_seek_to_data
+ * - Expand `utf8_pop_*` to `pop_left` and `pop_right`
+ * - Namespace everything here
+ */
 
 bool utf8_byte_is_sequence_start(char b) {
     return (b & 0xC0) != 0x80;
 }
 
-bool utf8_process_fast(const char *data, size_t byte_len, size_t *len,
-                                                          ssize_t *error) {
+int utf8_validate_len_fast(const char *data, size_t byte_len, size_t *len) {
     const unsigned char *cursor = (const unsigned char *)data;
-    size_t total_bytes_read = 0;
-    size_t local_len = 0;
+    size_t total_bytes_read     = 0;
+    size_t local_len            = 0;
 
-    while ((!cstr_end(data)) && (total_bytes_read < byte_len)) {
+    while (total_bytes_read < byte_len) {
         rune r;
         ssize_t bytes_read = utf8proc_iterate(cursor, -1, &r);
 
         if (bytes_read < 1) {
-            *error = bytes_read;
-            return false;
+            CBASE_ERROR(utf8_handle_error_code(bytes_read));
         }
 
         local_len++;
@@ -89,105 +42,43 @@ bool utf8_process_fast(const char *data, size_t byte_len, size_t *len,
         cursor = (const unsigned char *)(data + total_bytes_read);
     }
 
-    if (len) {
-        *len = local_len;
-    }
+    *len = local_len;
 
-    return true;
+    return 0;
 }
 
-bool utf8_process(const char *data, size_t byte_len, size_t *len,
-                                                     Status *status) {
-    ssize_t error = 0;
+int utf8_validate_len(const char *data, size_t byte_len, size_t *len) {
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
-    if (!utf8_process_fast(data, byte_len, len, &error)) {
-        return utf8_handle_error_code(error, status);
-    }
-
-    return status_ok(status);
+    return utf8_validate_len_fast(data, byte_len, len);
 }
 
-bool utf8_process_cstr_fast(const char *data, size_t *len, size_t *byte_len,
-                                                           ssize_t *error) {
+int utf8_validate_fast(const char *data, size_t byte_len) {
     const unsigned char *cursor = (const unsigned char *)data;
-    size_t local_byte_len = 0;
-    size_t local_len = 0;
+    size_t total_bytes_read     = 0;
 
-    while (!cstr_end((const char *)cursor)) {
+    while (total_bytes_read < byte_len) {
         rune r;
         ssize_t bytes_read = utf8proc_iterate(cursor, -1, &r);
 
         if (bytes_read < 1) {
-            *error = bytes_read;
-            return false;
+            CBASE_ERROR(utf8_handle_error_code(bytes_read));
         }
 
-        local_len++;
-        local_byte_len += bytes_read;
-        cursor = (const unsigned char *)(data + local_byte_len);
+        total_bytes_read += bytes_read;
+        cursor = (const unsigned char *)(data + total_bytes_read);
     }
 
-    if (len) {
-        *len = local_len;
-    }
-
-    if (byte_len) {
-        *byte_len = local_byte_len;
-    }
-
-    return true;
+    return 0;
 }
 
-bool utf8_process_cstr(const char *data, size_t *len, size_t *byte_len,
-                                                      Status *status) {
-    ssize_t error = 0;
+int utf8_validate(const char *data, size_t byte_len) {
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
-    if (!utf8_process_cstr_fast(data, len, byte_len, &error)) {
-        return utf8_handle_error_code(error, status);
-    }
-
-    return status_ok(status);
+    return utf8_validate_fast(data, byte_len);
 }
 
-bool utf8_validate_fast(const char *data, size_t byte_len, ssize_t *error) {
-    return utf8_process_fast(data, byte_len, NULL, error);
-}
-
-bool utf8_validate(const char *data, size_t byte_len, Status *status) {
-    return utf8_process(data, byte_len, NULL, status);
-}
-
-bool utf8_validate_cstr_fast(const char *data, ssize_t *error) {
-    return utf8_process_cstr_fast(data, NULL, NULL, error);
-}
-
-bool utf8_validate_cstr(const char *data, Status *status) {
-    return utf8_process_cstr(data, NULL, NULL, status);
-}
-
-bool utf8_validate_len_fast(const char *data, size_t byte_len,
-                                              size_t *len,
-                                              ssize_t *error) {
-    return utf8_process_fast(data, byte_len, len, error);
-}
-
-bool utf8_validate_len(const char *data, size_t byte_len, size_t *len,
-                                                          Status *status) {
-    return utf8_process(data, byte_len, len, status);
-}
-
-bool utf8_cstr_validate_len_fast(const char *data, size_t *len,
-                                                   size_t *byte_len,
-                                                   ssize_t *error) {
-    return utf8_process_cstr_fast(data, len, byte_len, error);
-}
-
-bool utf8_cstr_validate_len(const char *data, size_t *len, size_t *byte_len,
-                                                           Status *status) {
-    return utf8_process_cstr(data, len, byte_len, status);
-}
-
-void utf8_len(const char *data, size_t byte_len, size_t *len) {
+void utf8_len_fast(const char *data, size_t byte_len, size_t *len) {
     size_t rune_count = 0;
 
     for (size_t i = 0; i < byte_len; i++) {
@@ -199,575 +90,371 @@ void utf8_len(const char *data, size_t byte_len, size_t *len) {
     *len = rune_count;
 }
 
-void utf8_cstr_len(const char *data, size_t *len) {
-    size_t rune_count = 0;
+int utf8_len(const char *data, size_t byte_len, size_t *len) {
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
-    for (const char *cursor = data; (cursor) && (*cursor); cursor++) {
-        if (utf8_byte_is_sequence_start(*cursor)) {
-            rune_count++;
-        }
-    }
+    utf8_len_fast(data, byte_len, len);
 
-    *len = rune_count;
+    return 0;
 }
 
-bool utf8_equal_fast(const char *s1, const char *s2, size_t byte_len) {
-    return memcmp(s1, s2, byte_len) == 0;
-}
+void utf8_calc_rune_byte_len_fast(const char *data, size_t *rune_byte_len) {
+    const unsigned char ubyte = *(const unsigned char *)data;
 
-bool utf8_equal(const char *s1, const char *s2, size_t byte_len,
-                                                bool *equal,
-                                                Status *status) {
-    if (cstr_end(s1) || cstr_end(s2)) {
-        return no_data_passed(status);
-    }
-
-    *equal = utf8_equal_fast(s1, s2, byte_len);
-
-    return status_ok(status);
-}
-
-bool utf8_cstr_equal_fast(const char *s1, const char *s2) {
-    return strcmp(s1, s2) == 0;
-}
-
-bool utf8_cstr_equal(const char *s1, const char *s2, bool *equal,
-                                                     Status *status) {
-    if (cstr_end(s1) || cstr_end(s2)) {
-        return no_data_passed(status);
-    }
-
-    *equal = utf8_cstr_equal_fast(s1, s2);
-
-    return status_ok(status);
-}
-
-void utf8_decode_fast(const char *data, rune *r) {
-    const unsigned char *udata = (const unsigned char *)data;
-
-    if (udata[0] < 0x80) {
-        *r = udata[0];
-    }
-    else if (udata[0] < 0xE0) {
-        *r = ((udata[0] & 0x1F) << 6) | (udata[1] & 0x3F);
-    }
-    else if (udata[0] < 0xF0) {
-        *r = ((udata[0] & 0xF) << 12) | ((udata[1] & 0x3F) << 6)
-                                      |  (udata[2] & 0x3F);
-    }
-    else {
-        *r = ((udata[0] & 7) << 18) | ((udata[1] & 0x3F) << 12)
-                                    | ((udata[2] & 0x3F) << 6)
-                                    |  (udata[3] & 0x3F);
-    }
-}
-
-bool utf8_decode(const char *data, rune *r, Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    utf8_decode_fast(data, r);
-
-    return status_ok(status);
-}
-
-void utf8_decode_len_fast(const char *data, rune *r, size_t *rune_byte_len) {
-    const unsigned char *udata = (const unsigned char *)data;
-
-    if (udata[0] < 0x80) {
-        *r = udata[0];
+    if (ubyte < 0x80) {
         *rune_byte_len = 1;
-    }
-    else if (udata[0] < 0xE0) {
-        *r = ((udata[0] & 0x1F) << 6) | (udata[1] & 0x3F);
+    } else if (ubyte < 0xE0) {
         *rune_byte_len = 2;
-    }
-    else if (udata[0] < 0xF0) {
-        *r = ((udata[0] & 0xF) << 12) | ((udata[1] & 0x3F) << 6)
-                                      |  (udata[2] & 0x3F);
+    } else if (ubyte < 0xF0) {
         *rune_byte_len = 3;
-    }
-    else {
-        *r = ((udata[0] & 7) << 18) | ((udata[1] & 0x3F) << 12)
-                                    | ((udata[2] & 0x3F) << 6)
-                                    |  (udata[3] & 0x3F);
+    } else {
         *rune_byte_len = 4;
     }
 }
 
-bool utf8_decode_len(const char *data, rune *r, size_t *rune_byte_len,
-                                                Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
+void utf8_decode_fast(const char *data, rune *r) {
+    const unsigned char *udata = (const unsigned char *)data;
+    const unsigned char ubyte  = *udata;
+
+    if (ubyte < 0x80) {
+        *r = ubyte;
+    } else if (ubyte < 0xE0) {
+        *r = ((ubyte & 0x1F) << 6) | (udata[1] & 0x3F);
+    } else if (ubyte < 0xF0) {
+        *r = ((ubyte & 0xF) << 12) | ((udata[1] & 0x3F) << 6) |
+             (udata[2] & 0x3F);
+    } else {
+        *r = ((ubyte & 7) << 18) | ((udata[1] & 0x3F) << 12) |
+             ((udata[2] & 0x3F) << 6) | (udata[3] & 0x3F);
     }
-
-    utf8_decode_len_fast(data, r, rune_byte_len);
-
-    return status_ok(status);
 }
 
-void utf8_index_fast(const char *data, size_t byte_len, size_t index,
-                                                        char **cursor) {
-    char *local_cursor = (char *)data;
+int utf8_decode(const char *data, size_t byte_len, rune *r) {
+    CBASE_ERROR_IF(byte_len == 0, CBASE_UTF8_EMPTY);
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
-    while (true) {
-        size_t delta = local_cursor - data;
-
-        if (delta >= byte_len) {
-            break;
-        }
-
-        if (!index) {
-            break;
-        }
-
-        if (utf8_byte_is_sequence_start(*local_cursor)) {
-            index--;
-        }
-
-        local_cursor++;
-    }
-
-    *cursor = local_cursor;
-}
-
-bool utf8_index(const char *data, size_t byte_len, size_t index,
-                                                   char **cursor,
-                                                   Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    utf8_index_fast(data, byte_len, index, cursor);
-
-    return status_ok(status);
-}
-
-void utf8_index_rune_fast(const char *data, size_t byte_len, size_t index,
-                                                             rune *r) {
-    char *cursor = NULL;
-
-    utf8_index_fast(data, byte_len, index, &cursor);
     utf8_decode_fast(data, r);
+
+    return 0;
 }
 
-bool utf8_index_rune(const char *data, size_t byte_len, size_t index,
-                                                        rune *r,
-                                                        Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
+void utf8_decode_len_fast(const char *data, rune *r, size_t *rune_byte_len) {
+    const unsigned char *udata = (const unsigned char *)data;
+    const unsigned char ubyte  = *udata;
+
+    if (ubyte < 0x80) {
+        *r             = ubyte;
+        *rune_byte_len = 1;
+    } else if (ubyte < 0xE0) {
+        *r             = ((ubyte & 0x1F) << 6) | (udata[1] & 0x3F);
+        *rune_byte_len = 2;
+    } else if (ubyte < 0xF0) {
+        *r = ((ubyte & 0xF) << 12) | ((udata[1] & 0x3F) << 6) |
+             (udata[2] & 0x3F);
+        *rune_byte_len = 3;
+    } else {
+        *r = ((ubyte & 7) << 18) | ((udata[1] & 0x3F) << 12) |
+             ((udata[2] & 0x3F) << 6) | (udata[3] & 0x3F);
+        *rune_byte_len = 4;
+    }
+}
+
+int utf8_decode_len(
+    const char *data, size_t byte_len, rune *r, size_t *rune_byte_len) {
+    CBASE_ERROR_IF(byte_len == 0, CBASE_UTF8_EMPTY);
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
+
+    utf8_decode_len_fast(data, r, rune_byte_len);
+
+    return 0;
+}
+
+void utf8_index_fast(
+    const char *data, size_t byte_len, size_t index, char **cursor) {
+    char *cursor2 = (char *)data;
+    size_t clen   = byte_len;
+
+    while (index-- >= 0) {
+        utf8_iterate_fast(&cursor2, &clen);
     }
 
-    utf8_index_rune_fast(data, byte_len, index, r);
-
-    return status_ok(status);
+    *cursor = cursor2;
 }
 
-void utf8_index_rune_len_fast(const char *data, size_t byte_len,
-                                                size_t index,
-                                                rune *r,
-                                                size_t *rune_byte_len) {
-    char *cursor = NULL;
+int utf8_index(const char *data, size_t byte_len, size_t index, char **cursor) {
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
-    utf8_index_fast(data, byte_len, index, &cursor);
+    char *cursor2 = (char *)data;
+    size_t clen   = byte_len;
+
+    while (index-- >= 0) {
+        CBASE_PROPAGATE_ERROR(utf8_iterate(&cursor2, &clen));
+    }
+
+    *cursor = cursor2;
+
+    return 0;
+}
+
+void utf8_index_rune_len_fast(
+    const char *data,
+    size_t byte_len,
+    size_t index,
+    rune *r,
+    size_t *rune_byte_len) {
+    char *cursor = (char *)data;
+    size_t clen  = byte_len;
+
+    while (index-- > 0) {
+        utf8_iterate_fast(&cursor, &clen);
+    }
+
+    utf8_iterate_rune_len_fast(&cursor, &clen, r, rune_byte_len);
+}
+
+int utf8_index_rune_len(
+    const char *data,
+    size_t byte_len,
+    size_t index,
+    rune *r,
+    size_t *rune_byte_len) {
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
+
+    char *cursor          = (char *)data;
+    size_t clen           = byte_len;
+    rune r2               = 0;
+    size_t rune_byte_len2 = 0;
+
+    while (index-- > 0) {
+        CBASE_PROPAGATE_ERROR(utf8_iterate(&cursor, &clen));
+    }
+
+    CBASE_PROPAGATE_ERROR(
+        utf8_iterate_rune_len(&cursor, &clen, &r2, &rune_byte_len2));
+
+    *r             = r2;
+    *rune_byte_len = rune_byte_len2;
+
+    return 0;
+}
+
+void utf8_index_rune_fast(
+    const char *data, size_t byte_len, size_t index, rune *r) {
+    char *cursor = (char *)data;
+    size_t clen  = byte_len;
+
+    while (index-- > 0) {
+        utf8_iterate_fast(&cursor, &clen);
+    }
+
+    utf8_iterate_rune_fast(&cursor, &clen, r);
+}
+
+int utf8_index_rune(const char *data, size_t byte_len, size_t index, rune *r) {
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
+
+    char *cursor = (char *)data;
+    size_t clen  = byte_len;
+    rune r2      = 0;
+
+    while (index-- > 0) {
+        CBASE_PROPAGATE_ERROR(utf8_iterate(&cursor, &clen));
+    }
+
+    CBASE_PROPAGATE_ERROR(utf8_iterate_rune(&cursor, &clen, &r2));
+
+    *r = r2;
+
+    return 0;
+}
+
+void utf8_index_reverse_fast(
+    const char *data, size_t byte_len, size_t index, char **cursor) {
+    char *cursor2 = (char *)data;
+    size_t clen   = byte_len;
+
+    while (index-- >= 0) {
+        utf8_iterate_reverse_fast(&cursor2, &clen);
+    }
+
+    *cursor = cursor2;
+}
+
+int utf8_index_reverse(
+    const char *data, size_t byte_len, size_t index, char **cursor) {
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
+
+    char *cursor2 = (char *)data;
+    size_t clen   = byte_len;
+
+    while (index-- >= 0) {
+        CBASE_PROPAGATE_ERROR(utf8_iterate_reverse(&cursor2, &clen));
+    }
+
+    *cursor = cursor2;
+
+    return 0;
+}
+
+void utf8_index_rune_len_reverse_fast(
+    const char *data,
+    size_t byte_len,
+    size_t index,
+    rune *r,
+    size_t *rune_byte_len) {
+    char *cursor = (char *)data;
+    size_t clen  = byte_len;
+
+    while (index-- > 0) {
+        utf8_iterate_reverse_fast(&cursor, &clen);
+    }
+
+    utf8_iterate_rune_len_reverse_fast(&cursor, &clen, r, rune_byte_len);
+}
+
+int utf8_index_rune_len_reverse(
+    const char *data,
+    size_t byte_len,
+    size_t index,
+    rune *r,
+    size_t *rune_byte_len) {
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
+
+    char *cursor          = (char *)data;
+    size_t clen           = byte_len;
+    rune r2               = 0;
+    size_t rune_byte_len2 = 0;
+
+    while (index-- > 0) {
+        CBASE_PROPAGATE_ERROR(utf8_iterate_reverse(&cursor, &clen));
+    }
+
+    CBASE_PROPAGATE_ERROR(
+        utf8_iterate_rune_len_reverse(&cursor, &clen, &r2, &rune_byte_len2));
+
+    *r             = r2;
+    *rune_byte_len = rune_byte_len2;
+
+    return 0;
+}
+
+void utf8_index_rune_reverse_fast(
+    const char *data, size_t byte_len, size_t index, rune *r) {
+    char *cursor = (char *)data;
+    size_t clen  = byte_len;
+
+    while (index-- > 0) {
+        utf8_iterate_reverse_fast(&cursor, &clen);
+    }
+
+    utf8_iterate_rune_reverse_fast(&cursor, &clen, r);
+}
+
+int utf8_index_rune_reverse(
+    const char *data, size_t byte_len, size_t index, rune *r) {
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
+
+    char *cursor = (char *)data;
+    size_t clen  = byte_len;
+    rune r2      = 0;
+
+    while (index-- > 0) {
+        CBASE_PROPAGATE_ERROR(utf8_iterate_reverse(&cursor, &clen));
+    }
+
+    CBASE_PROPAGATE_ERROR(utf8_iterate_rune_reverse(&cursor, &clen, &r2));
+
+    *r = r2;
+
+    return 0;
+}
+
+void utf8_get_first_rune_len_fast(
+    const char *data, rune *r, size_t *rune_byte_len) {
     utf8_decode_len_fast(data, r, rune_byte_len);
 }
 
-bool utf8_index_rune_len(const char *data, size_t byte_len,
-                                           size_t index,
-                                           rune *r,
-                                           size_t *rune_byte_len,
-                                           Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
+int utf8_get_first_rune_len(
+    const char *data, size_t byte_len, rune *r, size_t *rune_byte_len) {
+    CBASE_ERROR_IF(byte_len == 0, CBASE_UTF8_EMPTY);
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
-    utf8_index_rune_len_fast(data, byte_len, index, r, rune_byte_len);
+    utf8_get_first_rune_len_fast(data, r, rune_byte_len);
 
-    return status_ok(status);
-}
-
-void utf8_cstr_index_fast(const char *data, size_t index, char **cursor) {
-    char *local_cursor = (char *)data;
-
-    for (; !cstr_end(local_cursor); local_cursor++) {
-        if (utf8_byte_is_sequence_start(*local_cursor)) {
-            index--;
-        }
-    }
-
-    *cursor = local_cursor;
-}
-
-bool utf8_cstr_index(const char *data, size_t index, char **cursor,
-                                                     Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    utf8_cstr_index_fast(data, index, cursor);
-
-    return status_ok(status);
-}
-
-void utf8_cstr_index_rune_fast(const char *data, size_t index, rune *r) {
-    char *cursor = NULL;
-
-    utf8_cstr_index_fast(data, index, &cursor);
-    utf8_decode_fast(data, r);
-}
-
-bool utf8_cstr_index_rune(const char *data, size_t index, rune *r,
-                                                          Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    utf8_cstr_index_rune_fast(data, index, r);
-
-    return status_ok(status);
-}
-
-void utf8_cstr_index_rune_len_fast(const char *data, size_t index,
-                                                     rune *r,
-                                                     size_t *rune_byte_len) {
-    utf8_cstr_index_rune_fast(data, index, r);
-    utf8_decode_len_fast(data, r, rune_byte_len);
-}
-
-bool utf8_cstr_index_rune_len(const char *data, size_t index,
-                                                rune *r,
-                                                size_t *rune_byte_len,
-                                                Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    utf8_cstr_index_rune_len_fast(data, index, r, rune_byte_len);
-
-    return status_ok(status);
-}
-
-void utf8_index_reverse_fast(const char *data, size_t byte_len,
-                                               size_t index,
-                                               char **cursor) {
-    char *local_cursor = (char *)data + (byte_len - 1);
-
-    while (true) {
-        if (local_cursor == data) {
-            break;
-        }
-
-        if (!index) {
-            break;
-        }
-
-        if (utf8_byte_is_sequence_start(*local_cursor)) {
-            index--;
-        }
-
-        local_cursor--;
-    }
-
-    *cursor = local_cursor;
-}
-
-bool utf8_index_reverse(const char *data, size_t byte_len, size_t index,
-                                                           char **cursor,
-                                                           Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    utf8_index_reverse_fast(data, byte_len, index, cursor);
-
-    return status_ok(status);
-}
-
-void utf8_index_rune_reverse_fast(const char *data, size_t byte_len,
-                                                    size_t index,
-                                                    rune *r) {
-    char *cursor = NULL;
-
-    utf8_index_reverse_fast(data, byte_len, index, &cursor);
-    utf8_decode_fast(cursor, r);
-}
-
-bool utf8_index_rune_reverse(const char *data, size_t byte_len,
-                                               size_t index,
-                                               rune *r,
-                                               Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    utf8_index_rune_reverse_fast(data, byte_len, index, r);
-
-    return status_ok(status);
-}
-
-void utf8_index_rune_len_reverse_fast(const char *data,
-                                      size_t byte_len,
-                                      size_t index,
-                                      rune *r,
-                                      size_t *rune_byte_len) {
-    char *cursor = NULL;
-
-    utf8_index_reverse_fast(data, byte_len, index, &cursor);
-    utf8_decode_len_fast(cursor, r, rune_byte_len);
-}
-
-bool utf8_index_rune_len_reverse(const char *data, size_t byte_len,
-                                                   size_t index,
-                                                   rune *r,
-                                                   size_t *rune_byte_len,
-                                                   Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    utf8_index_rune_len_reverse_fast(data, byte_len, index, r, rune_byte_len);
-
-    return status_ok(status);
-}
-
-void utf8_cstr_index_reverse_fast(const char *data, size_t index,
-                                                    char **cursor) {
-    utf8_index_reverse_fast(data, strlen(data), index, cursor);
-}
-
-bool utf8_cstr_index_reverse(const char *data, size_t index,
-                                               char **cursor,
-                                               Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    utf8_cstr_index_reverse_fast(data, index, cursor);
-
-    return status_ok(status);
-}
-
-void utf8_cstr_index_rune_reverse_fast(const char *data, size_t index,
-                                                         rune *r) {
-    char *cursor = NULL;
-
-    utf8_cstr_index_reverse_fast(data, index, &cursor);
-    utf8_decode_fast(cursor, r);
-}
-
-bool utf8_cstr_index_rune_reverse(const char *data, size_t index,
-                                                    rune *r,
-                                                    Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    utf8_cstr_index_rune_reverse_fast(data, index, r);
-
-    return status_ok(status);
-}
-
-void utf8_cstr_index_rune_len_reverse_fast(const char *data,
-                                           size_t index,
-                                           rune *r,
-                                           size_t *rune_byte_len) {
-    char *cursor = NULL;
-
-    utf8_cstr_index_reverse_fast(data, index, &cursor);
-    utf8_decode_len_fast(cursor, r, rune_byte_len);
-}
-
-bool utf8_cstr_index_rune_len_reverse(const char *data, size_t index,
-                                                        rune *r,
-                                                        size_t *rune_byte_len,
-                                                        Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    utf8_cstr_index_rune_len_reverse_fast(data, index, r, rune_byte_len);
-
-    return status_ok(status);
+    return 0;
 }
 
 void utf8_get_first_rune_fast(const char *data, rune *r) {
     utf8_decode_fast(data, r);
 }
 
-bool utf8_get_first_rune(const char *data, rune *r, Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
+int utf8_get_first_rune(const char *data, size_t byte_len, rune *r) {
+    CBASE_ERROR_IF(byte_len == 0, CBASE_UTF8_EMPTY);
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
     utf8_get_first_rune_fast(data, r);
 
-    return status_ok(status);
+    return 0;
 }
 
-void utf8_get_first_rune_len_fast(const char *data, rune *r,
-                                                    size_t *rune_byte_len) {
-    utf8_decode_len_fast(data, r, rune_byte_len);
+void utf8_get_last_rune_len_fast(
+    const char *data, size_t byte_len, rune *r, size_t *rune_byte_len) {
+    utf8_index_rune_len_reverse_fast(data, byte_len, 1, r, rune_byte_len);
 }
 
-bool utf8_get_first_rune_len(const char *data, rune *r, size_t *rune_byte_len,
-                                                        Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
+int utf8_get_last_rune_len(
+    const char *data, size_t byte_len, rune *r, size_t *rune_byte_len) {
+    CBASE_ERROR_IF(byte_len == 0, CBASE_UTF8_EMPTY);
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
-    utf8_get_first_rune_len_fast(data, r, rune_byte_len);
+    utf8_get_last_rune_len_fast(data, byte_len, r, rune_byte_len);
 
-    return status_ok(status);
-}
-
-void utf8_cstr_get_first_rune_fast(const char *data, rune *r) {
-    utf8_decode_fast(data, r);
-}
-
-bool utf8_cstr_get_first_rune(const char *data, rune *r, Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    utf8_cstr_get_first_rune_fast(data, r);
-
-    return status_ok(status);
-}
-
-void utf8_cstr_get_first_rune_len_fast(const char *data,
-                                       rune *r,
-                                       size_t *rune_byte_len) {
-    utf8_decode_len_fast(data, r, rune_byte_len);
-}
-
-bool utf8_cstr_get_first_rune_len(const char *data, rune *r,
-                                                    size_t *rune_byte_len,
-                                                    Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    utf8_cstr_get_first_rune_len_fast(data, r, rune_byte_len);
-
-    return status_ok(status);
+    return 0;
 }
 
 void utf8_get_last_rune_fast(const char *data, size_t byte_len, rune *r) {
     utf8_index_rune_reverse_fast(data, byte_len, 1, r);
 }
 
-bool utf8_get_last_rune(const char *data, size_t byte_len, rune *r,
-                                                           Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
+int utf8_get_last_rune(const char *data, size_t byte_len, rune *r) {
+    CBASE_ERROR_IF(byte_len == 0, CBASE_UTF8_EMPTY);
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
     utf8_get_last_rune_fast(data, byte_len, r);
 
-    return status_ok(status);
+    return 0;
 }
 
-void utf8_get_last_rune_len_fast(const char *data, size_t byte_len,
-                                                   rune *r,
-                                                   size_t *rune_byte_len) {
-    utf8_index_rune_len_reverse_fast(data, byte_len, 1, r, rune_byte_len);
-}
-
-bool utf8_get_last_rune_len(const char *data, size_t byte_len,
-                                              rune *r,
-                                              size_t *rune_byte_len,
-                                              Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    utf8_get_last_rune_len_fast(data, byte_len, r, rune_byte_len);
-
-    return status_ok(status);
-}
-
-void utf8_cstr_get_last_rune_fast(const char *data, rune *r) {
-    utf8_get_last_rune_fast(data, strlen(data), r);
-}
-
-bool utf8_cstr_get_last_rune(const char *data, rune *r, Status *status) {
-    return utf8_get_last_rune(data, strlen(data), r, status);
-}
-
-void utf8_cstr_get_last_rune_len_fast(const char *data,
-                                      rune *r,
-                                      size_t *rune_byte_len) {
-    utf8_get_last_rune_len_fast(data, strlen(data), r, rune_byte_len);
-}
-
-bool utf8_cstr_get_last_rune_len(const char *data, rune *r,
-                                 size_t *rune_byte_len,
-                                 Status *status) {
-    return utf8_get_last_rune_len(data, strlen(data), r, rune_byte_len, status);
-}
-
-void utf8_slice_fast(const char *data, size_t byte_len, size_t index,
-                                                        size_t len,
-                                                        char **start,
-                                                        char **end) {
+void utf8_slice_fast(
+    const char *data,
+    size_t byte_len,
+    size_t index,
+    size_t len,
+    char **start,
+    char **end) {
     utf8_index_fast(data, byte_len, index, start);
     utf8_index_fast(*start, byte_len, len, end);
 }
 
-bool utf8_slice(const char *data, size_t byte_len, size_t index,
-                                                   size_t len,
-                                                   char **start,
-                                                   char **end,
-                                                   Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
+int utf8_slice(
+    const char *data,
+    size_t byte_len,
+    size_t index,
+    size_t len,
+    char **start,
+    char **end) {
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
+    char *start2 = NULL;
+    char *end2   = NULL;
 
-    utf8_slice_fast(data, byte_len, index, len, start, end);
+    CBASE_PROPAGATE_ERROR(utf8_index(data, byte_len, index, &start2));
+    CBASE_PROPAGATE_ERROR(utf8_index(start2, byte_len, len, &end2));
 
-    return status_ok(status);
-}
+    *start = start2;
+    *end   = end2;
 
-bool utf8_starts_with_data_fast(const char *s1, size_t byte_len1,
-                                const char *s2, size_t byte_len2) {
-    return (
-        (byte_len2 <= byte_len1) &&
-        (utf8_equal_fast(s1, s2, byte_len2))
-    );
-}
-
-bool utf8_starts_with_data(const char *s1, size_t byte_len1,
-                           const char *s2, size_t byte_len2,
-                                           bool *starts_with,
-                                           Status *status) {
-    if (cstr_end(s1) || cstr_end(s2)) {
-        return no_data_passed(status);
-    }
-
-    *starts_with = utf8_starts_with_data_fast(s1, byte_len1, s2, byte_len2);
-
-    return status_ok(status);
-}
-
-bool utf8_starts_with_cstr_fast(const char *data, size_t byte_len,
-                                                  const char *cs) {
-    return utf8_starts_with_data_fast(data, byte_len, cs, strlen(cs));
-}
-
-bool utf8_starts_with_cstr(const char *data, size_t byte_len,
-                                             const char *cs,
-                                             bool *starts_with,
-                                             Status *status) {
-    if (cstr_end(data) || cstr_end(cs)) {
-        return no_data_passed(status);
-    }
-
-    *starts_with = utf8_starts_with_cstr_fast(data, byte_len, cs);
-
-    return status_ok(status);
+    return 0;
 }
 
 bool utf8_starts_with_rune_fast(const char *data, rune r) {
@@ -778,107 +465,25 @@ bool utf8_starts_with_rune_fast(const char *data, rune r) {
     return r2 == r;
 }
 
-bool utf8_starts_with_rune(const char *data, rune r, bool *starts_with,
-                                                     Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
+int utf8_starts_with_rune(
+    const char *data, size_t byte_len, rune r, bool *starts_with) {
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
+
+    rune r2   = 0;
+    int error = utf8_get_first_rune(data, byte_len, &r2);
+
+    switch (error) {
+    case 0:
+        *starts_with = r2 == r;
+
+        return 0;
+    case CBASE_UTF8_EMPTY:
+        *starts_with = false;
+
+        return 0;
+    default:
+        return error;
     }
-
-    *starts_with = utf8_starts_with_rune_fast(data, r);
-
-    return status_ok(status);
-}
-
-bool utf8_cstr_starts_with_data_fast(const char *cs, const char *data,
-                                                     size_t byte_len) {
-    return utf8_starts_with_data_fast(cs, strlen(cs), data, byte_len);
-}
-
-bool utf8_cstr_starts_with_data(const char *cs, const char *data,
-                                                size_t byte_len,
-                                                bool *starts_with,
-                                                Status *status) {
-    if (cstr_end(cs) || cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    *starts_with = utf8_cstr_starts_with_data_fast(cs, data, byte_len);
-
-    return status_ok(status);
-}
-
-bool utf8_cstr_starts_with_cstr_fast(const char *cs1, const char *cs2) {
-    return utf8_starts_with_data_fast(cs1, strlen(cs1), cs2, strlen(cs2));
-}
-
-bool utf8_cstr_starts_with_cstr(const char *cs1, const char *cs2,
-                                                 bool *starts_with,
-                                                 Status *status) {
-    if (cstr_end(cs1) || cstr_end(cs2)) {
-        return no_data_passed(status);
-    }
-
-    *starts_with = utf8_cstr_starts_with_cstr_fast(cs1, cs2);
-
-    return status_ok(status);
-}
-
-bool utf8_cstr_starts_with_rune_fast(const char *data, rune r) {
-    rune r2 = 0;
-
-    utf8_cstr_get_first_rune_fast(data, &r2);
-
-    return r2 == r;
-}
-
-bool utf8_cstr_starts_with_rune(const char *data, rune r, bool *starts_with,
-                                                          Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    *starts_with = utf8_cstr_starts_with_rune_fast(data, r);
-
-    return status_ok(status);
-}
-
-bool utf8_ends_with_data_fast(const char *s1, size_t byte_len1,
-                              const char *s2, size_t byte_len2) {
-    return (
-        (byte_len2 <= byte_len1) &&
-        (utf8_equal_fast(s1 + (byte_len1 - byte_len2), s2, byte_len2))
-    );
-}
-
-bool utf8_ends_with_data(const char *s1, size_t byte_len1,
-                         const char *s2, size_t byte_len2,
-                                         bool *ends_with,
-                                         Status *status) {
-    if (cstr_end(s1) || cstr_end(s2)) {
-        return no_data_passed(status);
-    }
-
-    *ends_with = utf8_ends_with_data_fast(s1, byte_len1, s2, byte_len2);
-
-    return status_ok(status);
-}
-
-bool utf8_ends_with_cstr_fast(const char *data, size_t byte_len,
-                                                const char *cs) {
-    return utf8_ends_with_data_fast(data, byte_len, cs, strlen(cs));
-}
-
-bool utf8_ends_with_cstr(const char *data, size_t byte_len,
-                                           const char *cs,
-                                           bool *ends_with,
-                                           Status *status) {
-    if (cstr_end(data) || cstr_end(cs)) {
-        return no_data_passed(status);
-    }
-
-    *ends_with = utf8_ends_with_cstr_fast(data, byte_len, cs);
-
-    return status_ok(status);
 }
 
 bool utf8_ends_with_rune_fast(const char *data, size_t byte_len, rune r) {
@@ -889,73 +494,62 @@ bool utf8_ends_with_rune_fast(const char *data, size_t byte_len, rune r) {
     return r2 == r;
 }
 
-bool utf8_ends_with_rune(const char *data, size_t byte_len,
-                                           rune r,
-                                           bool *ends_with,
-                                           Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
-    }
+int utf8_ends_with_rune(
+    const char *data, size_t byte_len, rune r, bool *ends_with) {
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
-    *ends_with = utf8_ends_with_rune_fast(data, byte_len, r);
-
-    return status_ok(status);
-}
-
-bool utf8_cstr_ends_with_data_fast(const char *cs, const char *data,
-                                                   size_t byte_len) {
-    return utf8_ends_with_data_fast(cs, strlen(cs), data, byte_len);
-}
-
-bool utf8_cstr_ends_with_data(const char *cs, const char *data,
-                                              size_t byte_len,
-                                              bool *ends_with,
-                                              Status *status) {
-    if (cstr_end(cs) || cstr_end(data)) {
-        return no_data_passed(status);
-    }
-
-    *ends_with = utf8_cstr_ends_with_data_fast(cs, data, byte_len);
-
-    return status_ok(status);
-}
-
-bool utf8_cstr_ends_with_cstr_fast(const char *cs1, const char *cs2) {
-    return utf8_ends_with_data_fast(cs1, strlen(cs1), cs2, strlen(cs2));
-}
-
-bool utf8_cstr_ends_with_cstr(const char *cs1, const char *cs2,
-                                               bool *ends_with,
-                                               Status *status) {
-    if (cstr_end(cs1) || cstr_end(cs2)) {
-        return no_data_passed(status);
-    }
-
-    *ends_with = utf8_cstr_ends_with_cstr_fast(cs1, cs2);
-
-    return status_ok(status);
-}
-
-bool utf8_cstr_ends_with_rune_fast(const char *data, rune r) {
     rune r2 = 0;
+    int error = utf8_get_last_rune(data, byte_len, &r2);
 
-    utf8_cstr_get_last_rune_fast(data, &r2);
-
-    return r2 == r;
-}
-
-bool utf8_cstr_ends_with_rune(const char *data, rune r, bool *ends_with,
-                                                        Status *status) {
-    if (cstr_end(data)) {
-        return no_data_passed(status);
+    switch (error) {
+        case 0:
+            *ends_with = r2 == r;
+            return 0;
+        case CBASE_UTF8_EMPTY:
+            *ends_with = false;
+            return 0;
+        default:
+            return error;
     }
 
-    *ends_with = utf8_cstr_ends_with_rune_fast(data, r);
-
-    return status_ok(status);
+    return 0;
 }
 
-void utf8_iterate_fast(char **data, size_t *byte_len, rune *r) {
+void utf8_iterate_fast(char **data, size_t *byte_len) {
+    size_t rune_byte_len = 0;
+
+    utf8_calc_rune_byte_len_fast(*data, &rune_byte_len);
+    *data += rune_byte_len;
+    *byte_len -= rune_byte_len;
+}
+
+int utf8_iterate(char **data, size_t *byte_len) {
+    CBASE_ERROR_IF(*byte_len == 0, CBASE_UTF8_EMPTY);
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
+
+    utf8_iterate_fast(data, byte_len);
+
+    return 0;
+}
+
+void utf8_iterate_rune_len_fast(
+    char **data, size_t *byte_len, rune *r, size_t *rune_byte_len) {
+    utf8_decode_len_fast(*data, r, rune_byte_len);
+    *data += *rune_byte_len;
+    *byte_len -= *rune_byte_len;
+}
+
+int utf8_iterate_rune_len(
+    char **data, size_t *byte_len, rune *r, size_t *rune_byte_len) {
+    CBASE_ERROR_IF(*byte_len == 0, CBASE_UTF8_EMPTY);
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
+
+    utf8_iterate_rune_len_fast(data, byte_len, r, rune_byte_len);
+
+    return 0;
+}
+
+void utf8_iterate_rune_fast(char **data, size_t *byte_len, rune *r) {
     size_t rune_byte_len = 0;
 
     utf8_decode_len_fast(*data, r, &rune_byte_len);
@@ -963,14 +557,529 @@ void utf8_iterate_fast(char **data, size_t *byte_len, rune *r) {
     *byte_len -= rune_byte_len;
 }
 
-bool utf8_iterate(char **data, size_t *byte_len, rune *r, Status *status) {
-    if (cstr_end(*data) || (*byte_len == 0)) {
-        return no_data_passed(status);
+int utf8_iterate_rune(char **data, size_t *byte_len, rune *r) {
+    CBASE_ERROR_IF(*byte_len == 0, CBASE_UTF8_EMPTY);
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
+
+    utf8_iterate_rune_fast(data, byte_len, r);
+
+    return 0;
+}
+
+void utf8_iterate_reverse_fast(char **data, size_t *byte_len) {
+    for (size_t i = 1; i <= 4; i++) {
+        char *start = ((*data) + (*byte_len) - i);
+
+        if (utf8_byte_is_sequence_start(*start)) {
+            *data = start;
+            *byte_len -= i;
+            break;
+        }
+    }
+}
+
+int utf8_iterate_reverse(char **data, size_t *byte_len) {
+    CBASE_ERROR_IF(*byte_len == 0, CBASE_UTF8_EMPTY);
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
+
+    for (size_t i = 1; i <= 4; i++) {
+        char *start = ((*data) + (*byte_len) - i);
+
+        if (utf8_byte_is_sequence_start(*start)) {
+            *data = start;
+            *byte_len -= i;
+
+            return 0;
+        }
     }
 
-    utf8_iterate_fast(data, byte_len, r);
+    CBASE_ERROR(CBASE_UTF8_INVALID_UTF8);
+}
 
-    return status_ok(status);
+void utf8_iterate_rune_len_reverse_fast(
+    char **data, size_t *byte_len, rune *r, size_t *rune_byte_len) {
+    for (size_t i = 1; i <= 4; i++) {
+        char *start = ((*data) + (*byte_len) - i);
+
+        if (utf8_byte_is_sequence_start(*start)) {
+            utf8_decode_len_fast(start, r, rune_byte_len);
+            *data = start;
+            *byte_len -= i;
+            break;
+        }
+    }
+}
+
+int utf8_iterate_rune_len_reverse(
+    char **data, size_t *byte_len, rune *r, size_t *rune_byte_len) {
+    CBASE_ERROR_IF(*byte_len == 0, CBASE_UTF8_EMPTY);
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
+
+    for (size_t i = 1; i <= 4; i++) {
+        char *start = ((*data) + (*byte_len) - i);
+
+        if (utf8_byte_is_sequence_start(*start)) {
+            CBASE_PROPAGATE_ERROR(utf8_decode_len(start, 1, r, rune_byte_len));
+            *data = start;
+            *byte_len -= i;
+
+            return 0;
+        }
+    }
+
+    CBASE_ERROR(CBASE_UTF8_INVALID_UTF8);
+}
+
+void utf8_iterate_rune_reverse_fast(char **data, size_t *byte_len, rune *r) {
+    for (size_t i = 1; i <= 4; i++) {
+        char *start = ((*data) + (*byte_len) - i);
+
+        if (utf8_byte_is_sequence_start(*start)) {
+            utf8_decode_fast(start, r);
+            *data = start;
+            *byte_len -= i;
+            break;
+        }
+    }
+}
+
+int utf8_iterate_rune_reverse(char **data, size_t *byte_len, rune *r) {
+    CBASE_ERROR_IF(*byte_len == 0, CBASE_UTF8_EMPTY);
+    CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
+
+    for (size_t i = 1; i <= 4; i++) {
+        char *start = ((*data) + (*byte_len) - i);
+
+        if (utf8_byte_is_sequence_start(*start)) {
+            CBASE_PROPAGATE_ERROR(utf8_decode(start, 1, r));
+            *data = start;
+            *byte_len -= i;
+
+            return 0;
+        }
+    }
+
+    CBASE_ERROR(CBASE_UTF8_INVALID_UTF8);
+}
+
+void utf8_skip_runes_fast(char **data, size_t *len, size_t rune_count) {
+    char *cursor = NULL;
+
+    utf8_index_fast(*data, *len, rune_count, &cursor);
+
+    *len  = cursor - *data;
+    *data = cursor;
+}
+
+int utf8_skip_runes(char **data, size_t *len, size_t rune_count) {
+    CBASE_ERROR_IF((*len > rune_count), CBASE_ERROR_OUT_OF_BOUNDS);
+
+    char *cursor = NULL;
+
+    CBASE_PROPAGATE_ERROR(utf8_index(*data, *len, rune_count, &cursor));
+
+    *len  = cursor - *data;
+    *data = cursor;
+
+    return 0;
+}
+
+void utf8_skip_rune_fast(char **data, size_t *len) {
+    utf8_skip_runes_fast(data, len, 1);
+}
+
+int utf8_skip_rune(char **data, size_t *len) {
+    return utf8_skip_runes(data, len, 1);
+}
+
+void utf8_skip_runes_if_matching_fast(
+    char **data, size_t *len, RuneMatchFunc *matches) {
+    char *cursor = *data;
+    size_t clen  = *len;
+    rune r       = 0;
+
+    do {
+        utf8_iterate_rune_fast(&cursor, &clen, &r);
+    } while (!matches(r));
+
+    *len -= positive_ptrdiff(cursor, *data);
+    *data = cursor;
+}
+
+int utf8_skip_runes_if_matching(
+    char **data, size_t *len, RuneMatchFunc *matches) {
+    char *cursor = *data;
+    size_t clen  = *len;
+    rune r       = 0;
+
+    do {
+        CBASE_PROPAGATE_ERROR(utf8_iterate_rune(&cursor, &clen, &r));
+    } while (!matches(r));
+
+    *len -= positive_ptrdiff(cursor, *data);
+    *data = cursor;
+
+    return 0;
+}
+
+void utf8_skip_rune_if_matching_fast(
+    char **data, size_t *len, RuneMatchFunc *matches) {
+    char *cursor = *data;
+    size_t clen  = *len;
+    rune r       = 0;
+
+    utf8_iterate_rune_fast(&cursor, &clen, &r);
+
+    if (matches(r)) {
+        *len -= positive_ptrdiff(cursor, *data);
+        *data = cursor;
+    }
+}
+
+int utf8_skip_rune_if_matching(
+    char **data, size_t *len, RuneMatchFunc *matches) {
+    char *cursor = *data;
+    size_t clen  = *len;
+    rune r       = 0;
+
+    CBASE_PROPAGATE_ERROR(utf8_iterate_rune(&cursor, &clen, &r));
+
+    if (matches(r)) {
+        *len -= positive_ptrdiff(cursor, *data);
+        *data = cursor;
+    }
+
+    return 0;
+}
+
+void utf8_skip_rune_if_equals_fast(char **data, size_t *len, rune r) {
+    char *cursor = *data;
+    size_t clen  = *len;
+    rune r2      = 0;
+
+    utf8_iterate_rune_fast(&cursor, &clen, &r2);
+
+    if (r2 == r) {
+        *len -= positive_ptrdiff(cursor, *data);
+        *data = cursor;
+    }
+}
+
+int utf8_skip_rune_if_equals(char **data, size_t *len, rune r) {
+    char *cursor = *data;
+    size_t clen  = *len;
+    rune r2      = 0;
+
+    CBASE_PROPAGATE_ERROR(utf8_iterate_rune(&cursor, &clen, &r2));
+
+    if (r2 == r) {
+        *len -= positive_ptrdiff(cursor, *data);
+        *data = cursor;
+    }
+
+    return 0;
+}
+
+int utf8_pop_rune_fast(char **data, size_t *len, rune *r) {
+    rune r2              = 0;
+    size_t rune_byte_len = 0;
+
+    utf8_index_rune_len_fast(*data, *len, 0, &r2, &rune_byte_len);
+
+    *data += rune_byte_len;
+    *len -= rune_byte_len;
+    *r = r2;
+
+    return 0;
+}
+
+int utf8_pop_rune(char **data, size_t *len, rune *r) {
+    rune r2              = 0;
+    size_t rune_byte_len = 0;
+
+    CBASE_PROPAGATE_ERROR(
+        utf8_index_rune_len(*data, *len, 0, &r2, &rune_byte_len));
+
+    *data += rune_byte_len;
+    *len -= rune_byte_len;
+    *r = r2;
+
+    return 0;
+}
+
+void utf8_pop_rune_if_matching_fast(
+    char **data, size_t *len, RuneMatchFunc *matches, rune *r) {
+    rune r2              = 0;
+    size_t rune_byte_len = 0;
+
+    utf8_index_rune_len_fast(*data, *len, 0, &r2, &rune_byte_len);
+
+    if (matches(r2)) {
+        *data += rune_byte_len;
+        *len -= rune_byte_len;
+        *r = r2;
+    }
+}
+
+int utf8_pop_rune_if_matching(
+    char **data, size_t *len, RuneMatchFunc *matches, rune *r) {
+    rune r2              = 0;
+    size_t rune_byte_len = 0;
+
+    CBASE_PROPAGATE_ERROR(
+        utf8_index_rune_len(*data, *len, 0, &r2, &rune_byte_len));
+
+    if (matches(r2)) {
+        *data += rune_byte_len;
+        *len -= rune_byte_len;
+        *r = r2;
+    }
+
+    return 0;
+}
+
+void utf8_seek_to_match_fast(char **data, size_t *len, RuneMatchFunc matches) {
+    char *cursor = *data;
+    size_t clen  = *len;
+
+    while (positive_ptrdiff(cursor, *data) < *len) {
+        rune r = 0;
+
+        utf8_iterate_rune_fast(&cursor, &clen, &r);
+
+        if (matches(r)) {
+            *len -= positive_ptrdiff(cursor, *data);
+            *data = cursor;
+
+            return;
+        }
+    }
+}
+
+int utf8_seek_to_match(char **data, size_t *len, RuneMatchFunc matches) {
+    char *cursor = *data;
+    size_t clen  = *len;
+
+    while (positive_ptrdiff(cursor, *data) < *len) {
+        rune r = 0;
+
+        CBASE_PROPAGATE_ERROR(utf8_iterate_rune(&cursor, &clen, &r));
+
+        if (matches(r)) {
+            *len -= positive_ptrdiff(cursor, *data);
+            *data = cursor;
+
+            return 0;
+        }
+    }
+
+    return CBASE_ERROR_NOT_FOUND;
+}
+
+int utf8_seek_to_rune(char **data, size_t *len, rune r) {
+    char utf8_data[5]    = {0};
+    size_t utf8_byte_len = 0;
+
+    CBASE_PROPAGATE_ERROR(rune_encode(r, &utf8_data[0], &utf8_byte_len));
+
+    return utf8_seek_to_data(data, len, &utf8_data[0], utf8_byte_len);
+}
+
+void utf8_truncate_runes_fast(
+    const char *data, size_t *len, size_t rune_count) {
+    char *cursor = NULL;
+
+    if (rune_count == 0) {
+        return;
+    }
+
+    utf8_index_reverse_fast(data, *len, rune_count - 1, &cursor);
+
+    *len = positive_ptrdiff(cursor, (void *)data);
+}
+
+int utf8_truncate_runes(const char *data, size_t *len, size_t rune_count) {
+    char *cursor = NULL;
+
+    if (rune_count == 0) {
+        return 0;
+    }
+
+    CBASE_PROPAGATE_ERROR(
+        utf8_index_reverse(data, *len, rune_count - 1, &cursor));
+
+    *len = positive_ptrdiff(cursor, (void *)data);
+
+    return 0;
+}
+
+void utf8_truncate_if_matching_fast(
+    const char *data, size_t *len, RuneMatchFunc *matches) {
+    char *cursor = (char *)data;
+    size_t len2  = *len;
+    rune r       = 0;
+
+    do {
+        utf8_iterate_rune_reverse_fast(&cursor, &len2, &r);
+    } while (matches(r));
+
+    *len = len2;
+}
+
+int utf8_truncate_if_matching(
+    const char *data, size_t *len, RuneMatchFunc *matches) {
+    char *cursor = (char *)data;
+    size_t len2  = *len;
+    rune r       = 0;
+
+    do {
+        CBASE_PROPAGATE_ERROR(utf8_iterate_rune_reverse(&cursor, &len2, &r));
+    } while (matches(r));
+
+    *len = len2;
+
+    return 0;
+}
+
+void utf8_truncate_if_equals_fast(const char *data, size_t *len, rune r) {
+    char *cursor = (char *)data;
+    size_t len2  = *len;
+    rune r2      = 0;
+
+    do {
+        utf8_iterate_rune_reverse_fast(&cursor, &len2, &r2);
+    } while (r == r2);
+
+    *len = len2;
+}
+
+int utf8_truncate_if_equals(const char *data, size_t *len, rune r) {
+    char *cursor = (char *)data;
+    size_t len2  = *len;
+    rune r2      = 0;
+
+    do {
+        CBASE_PROPAGATE_ERROR(utf8_iterate_rune_reverse(&cursor, &len2, &r2));
+    } while (r == r2);
+
+    *len = len2;
+
+    return 0;
+}
+
+void utf8_truncate_if_not_equals_fast(const char *data, size_t *len, rune r) {
+    char *cursor = (char *)data;
+    size_t len2  = *len;
+    rune r2      = 0;
+
+    do {
+        utf8_iterate_rune_reverse_fast(&cursor, &len2, &r2);
+    } while (r != r2);
+
+    *len = len2;
+}
+
+int utf8_truncate_if_not_equals(const char *data, size_t *len, rune r) {
+    char *cursor = (char *)data;
+    size_t len2  = *len;
+    rune r2      = 0;
+
+    do {
+        CBASE_PROPAGATE_ERROR(utf8_iterate_rune_reverse(&cursor, &len2, &r2));
+    } while (r != r2);
+
+    *len = len2;
+
+    return 0;
+}
+
+bool utf8_equal_fast(const char *s1, const char *s2, size_t byte_len) {
+    return cbase_data_equals_fast(s1, byte_len, s2, byte_len, 0);
+}
+
+int utf8_equal(const char *s1, const char *s2, size_t byte_len, bool *equal) {
+    return cbase_data_equals(s1, byte_len, s2, byte_len, 0, equal);
+}
+
+void utf8_find_data_fast(
+    const char *haystack,
+    size_t hlen,
+    const char *needle,
+    size_t nlen,
+    bool *found,
+    size_t *location) {
+    cbase_data_find_fast(haystack, hlen, needle, nlen, 0, found, location);
+}
+
+int utf8_find_data(
+    const char *haystack,
+    size_t hlen,
+    const char *needle,
+    size_t nlen,
+    bool *found,
+    size_t *location) {
+    return cbase_data_find(haystack, hlen, needle, nlen, 0, found, location);
+}
+
+bool utf8_starts_with_data_fast(
+    const char *s1, size_t byte_len1, const char *s2, size_t byte_len2) {
+    return cbase_data_starts_with_fast(s1, byte_len1, s2, byte_len2);
+}
+
+int utf8_starts_with_data(
+    const char *s1,
+    size_t byte_len1,
+    const char *s2,
+    size_t byte_len2,
+    bool *starts_with) {
+    return cbase_data_starts_with(s1, byte_len1, s2, byte_len2, starts_with);
+}
+
+bool utf8_ends_with_data_fast(
+    const char *s1, size_t byte_len1, const char *s2, size_t byte_len2) {
+    return cbase_data_ends_with_fast(s1, byte_len1, s2, byte_len2);
+}
+
+int utf8_ends_with_data(
+    const char *s1,
+    size_t byte_len1,
+    const char *s2,
+    size_t byte_len2,
+    bool *ends_with) {
+    return cbase_data_ends_with(s1, byte_len1, s2, byte_len2, ends_with);
+}
+
+void utf8_seek_to_data_fast(
+    char **data, size_t *len, const char *data2, size_t len2) {
+    bool found      = false;
+    size_t location = 0;
+
+    utf8_find_data_fast(*data, *len, data2, len2, &found, &location);
+
+    if (!found) {
+        return;
+    }
+
+    *len -= location;
+    *data += location;
+}
+
+int utf8_seek_to_data(
+    char **data, size_t *len, const char *data2, size_t len2) {
+    bool found      = false;
+    size_t location = 0;
+
+    CBASE_PROPAGATE_ERROR(
+        utf8_find_data(*data, *len, data2, len2, &found, &location));
+
+    if (!found) {
+        CBASE_ERROR(CBASE_ERROR_NOT_FOUND);
+    }
+
+    *len -= location;
+    *data += location;
+
+    return 0;
 }
 
 /* vi: set et ts=4 sw=4: */

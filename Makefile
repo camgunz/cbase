@@ -1,27 +1,34 @@
-.PHONY: all clean debug test debugtest coverage help
+.PHONY: all clean debug release debugtest test coverage
 
 all: release
 
 clean:
-	@rm -rf cbuild
 	@rm -f *.gcno *.gcda *.info
+	@rm -rf build releasebuild
 
-debug:
-	@mkdir -p cbuild
-	@cd cbuild && cmake -DCMAKE_BUILD_TYPE=Debug .. && make
+build:
+	@meson setup --default-library=both build
 
-release:
-	@mkdir -p cbuild
-	@cd cbuild && cmake -DCMAKE_BUILD_TYPE=Release .. && make
+releasebuild:
+	@meson setup --buildtype=release --default-library=both \
+		--buildtype=relase --optimization=3 releasebuild
 
-test: debug
-	@cd cbuild && ./cbase_test
+debug: build
+	@meson compile -C build cbase
 
-debugtest: debug
-	@cd cbuild && gdb ./cbase_test --ex run
+release: releasebuild
+	@meson compile -C releasebuild cbase
+
+test: build
+	@meson compile -C build cbase_test
+	@cd build && ./cbase_test
+
+releasetest: releasebuild
+	@meson compile -C releasebuild cbase_test
+	@cd releasebuild && ./cbase_test
 
 coverage: test
-	@cd cbuild; \
+	@cd build; \
 	 mkdir -p coverage; \
 	 lcov -q -c -i -d CMakeFiles/cbase_test.dir/src -o base_coverage.info; \
 	 lcov -q -c -d CMakeFiles/cbase_test.dir/src -o test_coverage.info; \
@@ -30,4 +37,4 @@ coverage: test
 	 genhtml -q -o coverage total_coverage.info
 
 help:
-	@echo "Targets: all | clean | debug | release | test | debugtest | coverage"
+	@echo "Targets: all | clean | build | relasebuild | debug | release | test | releasetest | coverage"

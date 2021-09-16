@@ -1,118 +1,107 @@
+#include "cbase/internal.h"
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "cbase/alloc.h"
+#include "cbase/checked_math.h"
 #include "cbase/errors.h"
-#include "cbase/status.h"
-#include "cbase/util.h"
 
-bool __cbmalloc(size_t count, size_t size, void **ptr, Status *status) {
-    void *new_ptr = NULL;
+#ifndef cb_sysfree
+CBASE_API_DEALLOC void cb_sysfree(void *ptr) {
+    free(ptr);
+}
+#endif
 
-    if (!check_overflow(count, size)) {
-        return numeric_overflow(status);
-    }
+#ifndef cb_sysmalloc
+CBASE_API_MALLOC(cb_sysfree, 1)
+void *cb_sysmalloc(size_t size) {
+    return malloc(size);
+}
+#endif
 
-    new_ptr = cbbase_malloc(count * size);
+#ifndef cb_syscalloc
+CBASE_API_MALLOC(cb_sysfree, 1)
+void *cb_syscalloc(size_t count, size_t size) {
+    return calloc(count, size);
+}
+#endif
 
-    if (!new_ptr) {
-        return alloc_failure(status);
-    }
+#ifndef cb_sysrealloc
+CBASE_API void *cb_sysrealloc(void *ptr, size_t size) {
+    return realloc(ptr, size);
+}
+#endif
+
+#ifndef cb_sysmemcpy
+CBASE_API void *cb_sysmemcpy(void * restrict dest,
+                             const void * restrict src,
+                             size_t size) {
+    return memmove(dest, src, size);
+}
+#endif
+
+#ifdef CBASE_DISABLE_CHECKED_MATH_IN_ALLOCATIONS
+CBASE_API_MALLOC(_cb_free, 1)
+static void *_cb_uniform_sysmalloc(size_t count, size_t size) {
+    return cb_sysmalloc(count * size);
+}
+#else
+CBASE_API_MALLOC(_cb_free, 1)
+static void *_cb_uniform_sysmalloc(size_t count, size_t size) {
+    size_t byte_count = 0;
+
+    CBASE_ERROR_IF(cb_safe_mul(count, size, &byte_count), NULL);
+
+    return cb_sysmalloc(byte_count);
+}
+#endif
+
+#ifdef CBASE_DISABLE_CHECKED_MATH_IN_ALLOCATIONS
+static void *_cb_uniform_sysrealloc(void *ptr, size_t count, size_t size) {
+    return cb_sysrealloc(ptr, count * size);
+}
+#else
+static void *_cb_uniform_sysrealloc(void *ptr, size_t count, size_t size) {
+    size_t byte_count = 0;
+
+    CBASE_ERROR_IF(cb_safe_mul(count, size, &byte_count), NULL);
+
+    return cb_sysrealloc(ptr, byte_count);
+}
+#endif
+
+int _cb_malloc(size_t count, size_t size, void **ptr) {
+    void *new_ptr = _cb_uniform_sysmalloc(count, size);
+
+    CBASE_ERROR_IF(!new_ptr, CBASE_ERROR_MEMORY_ALLOC_FAILED);
 
     *ptr = new_ptr;
 
-    return status_ok(status);
+    return 0;
 }
 
-bool __cbcalloc(size_t count, size_t size, void **ptr, Status *status) {
-    void *new_ptr = cbbase_calloc(count, size);
+int _cb_calloc(size_t count, size_t size, void **ptr) {
+    void *new_ptr = cb_syscalloc(count, size);
 
-    if (!new_ptr) {
-        return alloc_failure(status);
-    }
+    CBASE_ERROR_IF(!new_ptr, CBASE_ERROR_MEMORY_ALLOC_FAILED);
 
     *ptr = new_ptr;
 
-    return status_ok(status);
+    return 0;
 }
 
-bool __cbrealloc(size_t count, size_t size, void **ptr, Status *status) {
-    void *new_ptr = NULL;
+int _cb_realloc(size_t count, size_t size, void **ptr) {
+    void *new_ptr = _cb_uniform_sysrealloc(*ptr, count, size);
 
-    if (!check_overflow(count, size)) {
-        return numeric_overflow(status);
-    }
-
-    new_ptr = cbbase_realloc(*ptr, count * size);
-
-    if (!new_ptr) {
-        return alloc_failure(status);
-    }
+    CBASE_ERROR_IF(!new_ptr, CBASE_ERROR_MEMORY_ALLOC_FAILED);
 
     *ptr = new_ptr;
 
-    return status_ok(status);
+    return 0;
 }
 
-void __cbfree(void *ptr) {
-    cbbase_free(ptr);
+void _cb_free(void *ptr) {
+    cb_sysfree(ptr);
 }
-
-bool __cbmemmove(void *dest, const void *src, size_t count, size_t size,
-                                                            Status *status) {
-    if (!check_overflow(count, size)) {
-        return numeric_overflow(status);
-    }
-
-    (void)cbbase_memmove(dest, src, count * size);
-
-    return status_ok(status);
-}
-
-bool __cbmemcpy(void *dest, const void *src, size_t count, size_t size,
-                                                           Status *status) {
-    return cbmemmove(dest, src, count, size, status);
-}
-
-bool __cbmemdup(const void *ptr, size_t byte_count, void **out,
-                                                    Status *status) {
-    void *new_ptr = NULL;
-
-    if (!cbmalloc(byte_count, 1, &new_ptr, status)) {
-        return status_propagate(status);
-    }
-
-    if (!cbmemmove(new_ptr, ptr, byte_count, 1, status)) {
-        cbfree(new_ptr);
-        return status_propagate(status);
-    }
-
-    *out = new_ptr;
-
-    return status_ok(status);
-}
-
-bool __cbstrndup(const char *cs, size_t len, char **ptr, Status *status) {
-    char *new_str = NULL;
-    
-    if (!cbmalloc(len + 1, sizeof(char), &new_str, status)) {
-        return status_propagate(status);
-    }
-
-    if (!cbmemmove(new_str, cs, len, sizeof(char), status)) {
-        return status_propagate(status);
-    }
-
-    *(new_str + len) = '\0';
-
-    *ptr = new_str;
-
-    return status_ok(status);
-}
-
-bool __cbstrdup(const char *cs, char **ptr, Status *status) {
-    return cbstrndup(cs, strlen(cs), ptr, status);
-}
-
-/* vi: set et ts=4 sw=4: */

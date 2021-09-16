@@ -1,165 +1,114 @@
 #include <setjmp.h>
 
-#include "cbase.h"
+#include "cbase/dlist.h"
+
 #include "cbase_test.h"
+#include "./dlist.h"
 
 #include <cmocka.h>
 
 void test_dlist(void **state) {
-    DList *dlist = NULL;
-    DListNode *node = NULL;
+    PersonList *dlist = NULL;
+    PersonListNode *node = NULL;
     size_t i;
     Person *person = NULL;
-    Status status;
 
     (void)state;
 
-    status_init(&status);
+    assert_int_equal(person_list_new(&dlist), 0);
+    person_list_free(dlist);
 
-    assert_true(dlist_new(&dlist, sizeof(Person), &status));
-    dlist_free(dlist);
-    assert_true(dlist_new_alloc(&dlist, sizeof(Person), 10, &status));
+    assert_int_equal(person_list_new_alloc(&dlist, 10), 0);
 
-    assert_true(dlist_push_head(dlist, (void **)&person, &status));
-    person->name = "John";
-    person->age = 43;
-
-    assert_true(dlist_push_head(dlist, (void **)&person, &status));
-    person->name = "Lyndon";
-    person->age = 55;
-
-    assert_true(dlist_push_head(dlist, (void **)&person, &status));
+    assert_int_equal(person_list_push_head_slot(dlist, &person), 0);
+    assert_int_equal(dlist->len, 1);
     person->name = "James";
     person->age = 53;
 
-    assert_true(dlist_push_head(dlist, (void **)&person, &status));
+    assert_int_equal(person_list_push_tail_slot(dlist, &person), 0);
+    assert_int_equal(dlist->len, 2);
     person->name = "William";
     person->age = 47;
 
-    assert_true(dlist_push_head(dlist, (void **)&person, &status));
+    assert_int_equal(person_list_push_head_slot(dlist, &person), 0);
+    assert_int_equal(dlist->len, 3);
+    person->name = "Lyndon";
+    person->age = 55;
+
+    assert_int_equal(person_list_push_tail_slot(dlist, &person), 0);
+    assert_int_equal(dlist->len, 4);
     person->name = "Barack";
     person->age = 46;
 
+    assert_int_equal(person_list_push_head_slot(dlist, &person), 0);
+    assert_int_equal(dlist->len, 5);
+    person->name = "John";
+    person->age = 43;
+
     i = 0;
-    while (dlist_iterate(dlist, &node, (void **)&person)) {
+    while (person_list_iterate(dlist, &node, &person)) {
         switch (i) {
             case 0:
-                assert_string_equal(person->name, "Barack");
-                assert_int_equal(person->age, 46);
+                assert_string_equal(person->name, "John");
+                assert_int_equal(person->age, 43);
+                assert_int_equal(dlist->len, 5);
                 break;
             case 1:
-                assert_string_equal(person->name, "William");
-                assert_int_equal(person->age, 47);
+                assert_string_equal(person->name, "Lyndon");
+                assert_int_equal(person->age, 55);
+                assert_int_equal(dlist->len, 5);
                 break;
             case 2:
                 assert_string_equal(person->name, "James");
                 assert_int_equal(person->age, 53);
+                assert_int_equal(dlist->len, 5);
                 break;
             case 3:
-                assert_string_equal(person->name, "Lyndon");
-                assert_int_equal(person->age, 55);
+                assert_string_equal(person->name, "William");
+                assert_int_equal(person->age, 47);
+                assert_int_equal(dlist->len, 5);
                 break;
             case 4:
-                assert_string_equal(person->name, "John");
-                assert_int_equal(person->age, 43);
+                assert_string_equal(person->name, "Barack");
+                assert_int_equal(person->age, 46);
+                assert_int_equal(dlist->len, 5);
                 break;
         }
         i++;
     }
 
-    person = NULL;
-
-    assert_true(dlist_pop_head(dlist, (void **)&person, &status));
-    assert_string_equal(person->name, "Barack");
-    assert_int_equal(person->age, 46);
-
-    assert_true(dlist_pop_head(dlist, (void **)&person, &status));
-    assert_string_equal(person->name, "William");
-    assert_int_equal(person->age, 47);
-
-    assert_true(dlist_pop_head(dlist, (void **)&person, &status));
-    assert_string_equal(person->name, "James");
-    assert_int_equal(person->age, 53);
-
-    assert_true(dlist_pop_head(dlist, (void **)&person, &status));
-    assert_string_equal(person->name, "Lyndon");
-    assert_int_equal(person->age, 55);
-
-    assert_true(dlist_pop_head(dlist, (void **)&person, &status));
-    assert_string_equal(person->name, "John");
-    assert_int_equal(person->age, 43);
-
-    assert_true(dlist_push_tail(dlist, (void **)&person, &status));
-    person->name = "John";
-    person->age = 43;
-
-    assert_true(dlist_push_tail(dlist, (void **)&person, &status));
-    person->name = "Lyndon";
-    person->age = 55;
-
-    assert_true(dlist_push_tail(dlist, (void **)&person, &status));
-    person->name = "James";
-    person->age = 53;
-
-    assert_true(dlist_push_tail(dlist, (void **)&person, &status));
-    person->name = "William";
-    person->age = 47;
-
-    assert_true(dlist_push_tail(dlist, (void **)&person, &status));
-    person->name = "Barack";
-    person->age = 46;
-
-    i = 0;
-    while (dlist_iterate(dlist, &node, (void **)&person)) {
-        switch (i) {
-            case 0:
-                assert_string_equal(person->name, "John");
-                assert_int_equal(person->age, 43);
-                break;
-            case 1:
-                assert_string_equal(person->name, "Lyndon");
-                assert_int_equal(person->age, 55);
-                break;
-            case 2:
-                assert_string_equal(person->name, "James");
-                assert_int_equal(person->age, 53);
-                break;
-            case 3:
-                assert_string_equal(person->name, "William");
-                assert_int_equal(person->age, 47);
-                break;
-            case 4:
-                assert_string_equal(person->name, "Barack");
-                assert_int_equal(person->age, 46);
-                break;
-        }
-        i++;
-    }
+    assert_int_equal(dlist->len, 5);
+    assert_int_equal(i, 5);
 
     person = NULL;
 
-    assert_true(dlist_pop_tail(dlist, (void **)&person, &status));
+    assert_int_equal(person_list_pop_tail(dlist, &person), 0);
+    assert_int_equal(dlist->len, 4);
     assert_string_equal(person->name, "Barack");
     assert_int_equal(person->age, 46);
 
-    assert_true(dlist_pop_tail(dlist, (void **)&person, &status));
-    assert_string_equal(person->name, "William");
-    assert_int_equal(person->age, 47);
-
-    assert_true(dlist_pop_tail(dlist, (void **)&person, &status));
-    assert_string_equal(person->name, "James");
-    assert_int_equal(person->age, 53);
-
-    assert_true(dlist_pop_tail(dlist, (void **)&person, &status));
-    assert_string_equal(person->name, "Lyndon");
-    assert_int_equal(person->age, 55);
-
-    assert_true(dlist_pop_tail(dlist, (void **)&person, &status));
+    assert_int_equal(person_list_pop_head(dlist, &person), 0);
+    assert_int_equal(dlist->len, 3);
     assert_string_equal(person->name, "John");
     assert_int_equal(person->age, 43);
 
-    dlist_free(dlist);
-    cbfree(dlist);
+    assert_int_equal(person_list_pop_tail(dlist, &person), 0);
+    assert_int_equal(dlist->len, 2);
+    assert_string_equal(person->name, "William");
+    assert_int_equal(person->age, 47);
+
+    assert_int_equal(person_list_pop_head(dlist, &person), 0);
+    assert_int_equal(dlist->len, 1);
+    assert_string_equal(person->name, "Lyndon");
+    assert_int_equal(person->age, 55);
+
+    assert_int_equal(person_list_pop_head(dlist, &person), 0);
+    assert_int_equal(dlist->len, 0);
+    assert_string_equal(person->name, "James");
+    assert_int_equal(person->age, 53);
+
+    person_list_destroy(&dlist);
+    assert_null(dlist);
 }
 
 /* vi: set et ts=4 sw=4: */

@@ -1,7 +1,5 @@
 # Conventions
 
-- If present, `Status` is always the last function parameter
-
 - Output parameters always succeed input parameters
 
 - Data structures use `len` where other libraries/languages/platforms might use

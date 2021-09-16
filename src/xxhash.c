@@ -102,7 +102,14 @@
 // #include <string.h>
 
 #define XXH_STATIC_LINKING_ONLY
-#include "cbase.h"
+#include "cbase/internal.h"
+
+#include <string.h>
+
+#include "cbase/log.h"
+#include "cbase/errors.h"
+#include "cbase/util.h"
+#include "cbase/alloc.h"
 #include "cbase/xxhash.h"
 
 

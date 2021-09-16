@@ -1,61 +1,55 @@
 #pragma once
 
-#ifndef SLICE_H__
-#define SLICE_H__
+#ifndef _CBASE_SLICE_H__
+#define _CBASE_SLICE_H__
 
-#include <stdbool.h>
-#include <stdlib.h>
+#include "cbase/internal.h"
 
-#include "cbase/status.h"
+#include <stddef.h>
 
-struct BufferStruct;
+#include "cbase/alloc.h"
+#include "cbase/checks.h"
+#include "cbase/common_slice.h"
+#include "cbase/errors.h"
+#include "cbase/util.h"
 
-typedef struct SliceStruct {
-    size_t len;
-    char *data;
-} Slice;
+#define CBASE_SLICE_IMPL_DECL(_api, _dname, _sname, _stype, _etype)           \
+    _api void _sname##_assign_no_check(_stype *slice,                         \
+                                       _etype *data,                          \
+                                       size_t dlen);                          \
+                                                                              \
+    _api int _sname##_assign(_stype *slice, _etype *data, size_t dlen);       \
+                                                                              \
+    _api void _sname##_seek_no_check(_stype *slice,                           \
+                                     const _etype *data,                      \
+                                     size_t dlen);                            \
+                                                                              \
+    _api int _sname##_seek(_stype *slice, const _etype *data, size_t dlen);
 
-void slice_assign_data(Slice *slice, char *data, size_t len);
+#define CBASE_SLICE_IMPL_NO_DEPS(_api, _dname, _etype)                        \
+    _api void _sname##_assign_no_check(_stype *slice,                         \
+                                       _etype *data,                          \
+                                       size_t dlen) {                         \
+        _dname##_assign_no_check(&slice->data, &slice->len, data, dlen);      \
+    }                                                                         \
+                                                                              \
+    _api int _sname##_assign(_stype *slice, _etype *data, size_t dlen) {      \
+        return _dname##_assign(&slice->data, &slice->len, data, dlen);        \
+    }                                                                         \
+                                                                              \
+    _api void _sname##_seek_no_check(_stype *slice,                           \
+                                     const _etype *data,                      \
+                                     size_t dlen) {                           \
+        _dname##_seek_no_check(&slice->data, slice->len, data, dlen);         \
+    }                                                                         \
+                                                                              \
+    _api int _sname##_seek(_stype *slice, const _etype *data, size_t dlen) {  \
+        return _dname##_seek(&slice->data, slice->len, data, dlen);           \
+    }
 
-void slice_assign_slice(Slice *dst, Slice *src);
-
-bool slice_equals_data_at_fast(Slice *slice, size_t index, size_t len,
-                                                           const void *data);
-
-bool slice_equals_data_at(Slice *slice, size_t index, size_t len,
-                                                      const void *data,
-                                                      bool *equal,
-                                                      Status *status);
-
-bool slice_equals_data(Slice *slice, const char *data);
-
-bool slice_equals(Slice *s1, Slice *s2);
-
-bool slice_starts_with_data_fast(Slice *slice, const void *data, size_t len);
-
-bool slice_starts_with_data(Slice *slice, const void *data, size_t len,
-                                                            bool *equal,
-                                                            Status *status);
-
-bool slice_ends_with_data_fast(Slice *slice, const void *data, size_t len);
-
-bool slice_ends_with_data(Slice *slice, const void *data, size_t len,
-                                                          bool *equal,
-                                                          Status *status);
-
-void slice_read_fast(Slice *slice, size_t index, size_t len, void *out);
-
-bool slice_read(Slice *slice, size_t index, size_t len, void *out,
-                                                        Status *status);
-
-void slice_copy(Slice *dst, Slice *src);
-
-bool slice_encode(Slice *src, const char *src_encoding,
-                              const char *dst_encoding,
-                              struct BufferStruct *dst,
-                              Status *status);
-
-void slice_clear(Slice *slice);
+#define CBASE_SLICE_IMPL(_api, _dname, _sname, _stype, _etype)                \
+    CBASE_SLICE_IMPL_DEPS(_api, _dname, _sname, _stype, _etype)               \
+    CBASE_SLICE_IMPL_NO_DEPS(_api, _dname, _sname, _stype, _etype)
 
 #endif
 

@@ -1,10 +1,17 @@
-#include "cbase.h"
+#include "cbase/internal.h"
 
 #include <ctype.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <sys/stat.h>
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+
+/* [TODO] Make configurable */
 #define INIT_ALLOC 64
 
 #define permission_denied(status) status_error( \

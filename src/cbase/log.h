@@ -1,33 +1,22 @@
 #pragma once
 
-#ifndef LOG_H__
-#define LOG_H__
+#ifndef _CBASE_LOG_H__
+#define _CBASE_LOG_H__
 
-#include <stdarg.h>
+#include "cbase/internal.h"
+#include "cbase/logbase.h"
 
-typedef enum {
-    LOG_DEBUG = 1,
-    LOG_INFO,
-    LOG_WARNING,
-    LOG_ERROR,
-    LOG_CRITICAL,
-    LOG_FATAL,
-} LogLevel;
+#ifdef CBASE_DEFAULT_LOGGER
+#include "cbase/default_log.h"
+#endif
 
-void log_msg(LogLevel level, const char *msg, ...);
-void log_vmsg(LogLevel level, const char *msg, va_list args);
-void log_debug(const char *msg, ...);
-void log_vdebug(const char *msg, va_list args);
-void log_info(const char *msg, ...);
-void log_vinfo(const char *msg, va_list args);
-void log_warning(const char *msg, ...);
-void log_vwarning(const char *msg, va_list args);
-void log_error(const char *msg, ...);
-void log_verror(const char *msg, va_list args);
-void log_critical(const char *msg, ...);
-void log_vcritical(const char *msg, va_list args);
-void log_fatal(const char *msg, ...);
-void log_vfatal(const char *msg, va_list args);
+#ifdef CBASE_INTERNAL_LOGGER
+#include "cbase/internal_log.h"
+#endif
+
+#ifdef CBASE_LOGGER
+#include "cbase/cbase_log.h"
+#endif
 
 #endif
 

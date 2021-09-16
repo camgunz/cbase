@@ -5,14 +5,20 @@
 #include <cmocka.h>
 
 void test_alloc(void **state);
+/*
+void test_log(void **state);
+*/
 void test_array(void **state);
+/*
 void test_charset(void **state);
+*/
 void test_dlist(void **state);
 void test_list(void **state);
+/*
 void test_path(void **state);
 void test_sslice(void **state);
-void test_status(void **state);
 void test_string(void **state);
+*/
 void test_table(void **state);
 void test_utf8(void **state);
 
@@ -21,16 +27,23 @@ int main(void) {
 
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_alloc),
+        /*
+        cmocka_unit_test(test_log),
+        */
         cmocka_unit_test(test_array),
+        /*
         cmocka_unit_test(test_charset),
+        */
         cmocka_unit_test(test_dlist),
         cmocka_unit_test(test_list),
+        /*
         cmocka_unit_test(test_path),
         cmocka_unit_test(test_sslice),
-        cmocka_unit_test(test_status),
         cmocka_unit_test(test_string),
+        */
         cmocka_unit_test(test_table),
         cmocka_unit_test(test_utf8),
+
     };
 
     failed_test_count = cmocka_run_group_tests(tests, NULL, NULL);
