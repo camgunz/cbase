@@ -8,6 +8,11 @@ CONFIGURABLE becomes RUNTIME
 
 ## General
 
+- Find all ` + ` instances and wrap in `check_overflow` or something
+- Find all ` - ` instances that are pointer arithmetic, and replace it with
+  `positive_ptrdiff`
+- Appl CBASE_API_ATTRS to the end of everything
+
 - byte_len -> len in utf8
 - Get list.h and dlist.h up to par
 - Many `string_*` functions need fast variants based on their utf8 counterparts
@@ -16,9 +21,6 @@ CONFIGURABLE becomes RUNTIME
 - Add `cstr` functions to str.h
 - Pull out common defs between array.h and slice.h
 
-- Find all ` + ` instances and wrap in `check_overflow` or something
-- Find all ` - ` instances that are pointer arithmetic, and replace it with
-  `positive_ptrdiff`
 - Many `*_equals` functions return `bool`, but other predicates use output
   parameters. This... feels inconsistent?
 - Paramterize string encoding
@@ -35,6 +37,7 @@ CONFIGURABLE becomes RUNTIME
   kind of thing and should maybe be used if found; `recallocarray` is tricky
   though.
 - Switch table to https://github.com/martinus/robin-hood-hashing
+- Build checked 64-bit math functions that don't require 128-bits of precision
 - Function attributes:
   - GCC: `malloc`
   - GCC: `nonnull`

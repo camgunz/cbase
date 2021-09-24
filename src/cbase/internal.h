@@ -3,6 +3,7 @@
 #ifndef _CBASE_INTERNAL_H__
 #define _CBASE_INTERNAL_H__
 
+#include <stdint.h>
 #include <stdlib.h>
 
 #define CBASE_LOG_DEFAULT              20003
@@ -19,6 +20,11 @@
 
 #ifdef CBASE_HAVE_CONFIG_H
 #include "cbase_config.h"
+#endif
+
+#ifdef HAVE_128BIT_INTEGERS
+__extension__ typedef __int128 int128_t;
+__extension__ typedef unsigned __int128 uint128_t;
 #endif
 
 #ifdef HAVE_FORMAT_FUNCTION_ATTRIBUTE

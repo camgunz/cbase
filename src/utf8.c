@@ -5,14 +5,13 @@
 #include <utf8proc.h>
 
 #include "cbase/errors.h"
-#include "cbase/readable_data.h"
-#include "cbase/writable_data.h"
+#include "cbase/data_slice.h"
 #include "cbase/utf8.h"
 #include "cbase/util.h"
 
 /*
  * [TODO]
- * - Rebase on readable/writable/dynamic_data
+ * - Rebase on data_slice
  * - There should be utf8_find_* versions of the utf8_seek_* functions, and the
  *   utf8_seek_* functions should be defined in terms of those, just like
  *   utf8_find_data -> utf8_seek_to_data

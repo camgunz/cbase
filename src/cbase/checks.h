@@ -25,7 +25,7 @@
 #define CBASE_CHECK_INDEXED_LENGTH_BOUNDS(_len, _index, _count)               \
     do {                                                                      \
         size_t _slot_count = 0;                                               \
-        CBASE_PROPAGATE_ERROR(cb_safe_add((_index), (_count), &_slot_count)); \
+        CBASE_PROPAGATE_ERROR(cb_safe_add_size((_index), (_count), &_slot_count)); \
         CBASE_CHECK_LENGTH_BOUNDS((_len), _slot_count);                       \
     } while (0)
 #else

@@ -52,7 +52,7 @@ CBASE_API_MALLOC(_cb_free, 1)
 static void *_cb_uniform_sysmalloc(size_t count, size_t size) {
     size_t byte_count = 0;
 
-    CBASE_ERROR_IF(cb_safe_mul(count, size, &byte_count), NULL);
+    CBASE_ERROR_IF(cb_safe_mul_size(count, size, &byte_count), NULL);
 
     return cb_sysmalloc(byte_count);
 }
@@ -66,7 +66,7 @@ static void *_cb_uniform_sysrealloc(void *ptr, size_t count, size_t size) {
 static void *_cb_uniform_sysrealloc(void *ptr, size_t count, size_t size) {
     size_t byte_count = 0;
 
-    CBASE_ERROR_IF(cb_safe_mul(count, size, &byte_count), NULL);
+    CBASE_ERROR_IF(cb_safe_mul_size(count, size, &byte_count), NULL);
 
     return cb_sysrealloc(ptr, byte_count);
 }

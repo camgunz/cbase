@@ -355,12 +355,12 @@ XXH_PUBLIC_API unsigned int XXH32 (const void* input, size_t len, unsigned int s
 
 XXH_PUBLIC_API XXH32_state_t* XXH32_createState(void)
 {
-    return cbbase_malloc(sizeof(XXH32_state_t));
+    return cb_sysmalloc(sizeof(XXH32_state_t));
 }
 
 XXH_PUBLIC_API XXH_errorcode XXH32_freeState(XXH32_state_t* statePtr)
 {
-    cbfree(statePtr);
+    cb_sysfree(statePtr);
     return XXH_OK;
 }
 
@@ -372,7 +372,7 @@ XXH_PUBLIC_API void XXH32_copyState(XXH32_state_t* dstState, const XXH32_state_t
 XXH_PUBLIC_API XXH_errorcode XXH32_reset(XXH32_state_t* statePtr, unsigned int seed)
 {
     XXH32_state_t state;   /* using a local state to memcpy() in order to avoid strict-aliasing warnings */
-    zero_buf_fast(&state, sizeof(state)-4);   /* do not write into reserved, for future removal */
+    cb_zero_buf_no_check(&state, sizeof(state)-4);   /* do not write into reserved, for future removal */
     state.v1 = seed + PRIME32_1 + PRIME32_2;
     state.v2 = seed + PRIME32_2;
     state.v3 = seed + 0;
@@ -726,12 +726,12 @@ XXH_PUBLIC_API unsigned long long XXH64 (const void* input, size_t len, unsigned
 
 XXH_PUBLIC_API XXH64_state_t* XXH64_createState(void)
 {
-    return cbbase_malloc(sizeof(XXH64_state_t));
+    return cb_sysmalloc(sizeof(XXH64_state_t));
 }
 
 XXH_PUBLIC_API XXH_errorcode XXH64_freeState(XXH64_state_t* statePtr)
 {
-    cbfree(statePtr);
+    cb_sysfree(statePtr);
     return XXH_OK;
 }
 
@@ -743,7 +743,7 @@ XXH_PUBLIC_API void XXH64_copyState(XXH64_state_t* dstState, const XXH64_state_t
 XXH_PUBLIC_API XXH_errorcode XXH64_reset(XXH64_state_t* statePtr, unsigned long long seed)
 {
     XXH64_state_t state;   /* using a local state to memcpy() in order to avoid strict-aliasing warnings */
-    zero_buf_fast(&state, sizeof(state)-8);   /* do not write into reserved, for future removal */
+    cb_zero_buf_no_check(&state, sizeof(state)-8);   /* do not write into reserved, for future removal */
     state.v1 = seed + PRIME64_1 + PRIME64_2;
     state.v2 = seed + PRIME64_2;
     state.v3 = seed + 0;

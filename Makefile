@@ -11,13 +11,13 @@ build:
 
 releasebuild:
 	@meson setup --buildtype=release --default-library=both \
-		--buildtype=relase --optimization=3 releasebuild
+		--buildtype=release --optimization=3 releasebuild
 
 debug: build
-	@meson compile -C build cbase
+	@meson compile -v -C build
 
 release: releasebuild
-	@meson compile -C releasebuild cbase
+	@meson compile -C releasebuild
 
 test: build
 	@meson compile -C build cbase_test
@@ -37,4 +37,4 @@ coverage: test
 	 genhtml -q -o coverage total_coverage.info
 
 help:
-	@echo "Targets: all | clean | build | relasebuild | debug | release | test | releasetest | coverage"
+	@echo "Targets: all | clean | build | releasebuild | debug | release | test | releasetest | coverage"

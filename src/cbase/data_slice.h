@@ -13,8 +13,9 @@
 #include "cbase/errors.h"
 #include "cbase/util.h"
 
-#define CBASE_DATA_SLICE_IMPL_DECL(_api, _dname, _dtype)                  \
+#define CBASE_DATA_SLICE_IMPL_DECL(_api, _dname, _dtype)                      \
     CBASE_COMMON_DATA_IMPL_DECL(_api, _dname, _dtype)                         \
+                                                                              \
     _api void _dname##_assign_no_check(_dtype **data,                         \
                                        size_t *dlen,                          \
                                        _dtype *data2,                         \
@@ -57,11 +58,12 @@
                                         size_t *dlen,                         \
                                         _dtype *element);
 
-#define CBASE_DATA_SLICE_IMPL_DEPS(_api, _dname, _dtype)                  \
+#define CBASE_DATA_SLICE_IMPL_DEPS(_api, _dname, _dtype)                      \
     CBASE_COMMON_DATA_IMPL(_api, _dname, _dtype)
 
-#define CBASE_DATA_SLICE_IMPL_NO_DEPS(_api, _dname, _dtype)               \
+#define CBASE_DATA_SLICE_IMPL_NO_DEPS(_api, _dname, _dtype)                   \
     CBASE_COMMON_DATA_IMPL(_api, _dname, _dtype)                              \
+                                                                              \
     _api void _dname##_assign_no_check(_dtype **data,                         \
                                        size_t *dlen,                          \
                                        _dtype *data2,                         \
@@ -109,10 +111,7 @@
                            size_t dlen,                                       \
                            const _dtype *data2,                               \
                            size_t dlen2) {                                    \
-        CBASE_PROPAGATE_ERROR(                                                \
-            _dname##_find((*data), dlen, 0, data2, dlen2, data));             \
-                                                                              \
-        return 0;                                                             \
+        CBASE_DELEGATE(_dname##_find((*data), dlen, 0, data2, dlen2, data));  \
     }                                                                         \
                                                                               \
     _api void _dname##_pop_left_no_zero_no_check(_dtype **data,               \
@@ -153,8 +152,8 @@
         return 0;                                                             \
     }
 
-#define CBASE_DATA_SLICE_IMPL(_api, _dname, _dtype)                       \
-    CBASE_DATA_SLICE_IMPL_DEPS(_api, _dname, _dtype)                      \
+#define CBASE_DATA_SLICE_IMPL(_api, _dname, _dtype)                           \
+    CBASE_DATA_SLICE_IMPL_DEPS(_api, _dname, _dtype)                          \
     CBASE_DATA_SLICE_IMPL_NO_DEPS(_api, _dname, _dtype)
 
 #endif

@@ -19,7 +19,7 @@ void cb_zero_buf_no_check(void *buf, size_t byte_count) CBASE_API_ATTRS;
 CBASE_API_STATIC int cb_zero_buf(void *buf, size_t count, size_t size) {
     size_t byte_count = 0;
 
-    CBASE_PROPAGATE_ERROR(cb_safe_mul(count, size, &byte_count));
+    CBASE_PROPAGATE_ERROR(cb_safe_mul_size(count, size, &byte_count));
 
     cb_zero_buf_no_check(buf, byte_count);
 

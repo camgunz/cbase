@@ -39,8 +39,9 @@
                                                       _slot_count));          \
     } while (0)
 
-#define CBASE_MUTABLE_DATA_IMPL_DECL(_api, _dname, _dtype)            \
-    CBASE_COMMON_DATA_IMPL_DECL(_api, _dname, _dtype) \
+#define CBASE_MUTABLE_DATA_IMPL_DECL(_api, _dname, _dtype)                    \
+    CBASE_COMMON_DATA_IMPL_DECL(_api, _dname, _dtype)                         \
+                                                                              \
     _api _dtype *_dname##_mutable_index_no_check(_dtype *data, size_t index); \
                                                                               \
     _api int _dname##_mutable_index(_dtype *data,                             \
@@ -61,13 +62,13 @@
                                                        size_t *dcap,          \
                                                        size_t cap);           \
                                                                               \
-    _api int _dname##_ensure_capacity_no_check(_dtype **data,                 \
-                                               size_t *dcap,                  \
-                                               size_t cap);                   \
-                                                                              \
     _api int _dname##_ensure_capacity_no_zero(_dtype **data,                  \
                                               size_t *dcap,                   \
                                               size_t cap);                    \
+                                                                              \
+    _api int _dname##_ensure_capacity_no_check(_dtype **data,                 \
+                                               size_t *dcap,                  \
+                                               size_t cap);                   \
                                                                               \
     _api int _dname##_ensure_capacity(_dtype **data,                          \
                                       size_t *dcap,                           \
@@ -180,15 +181,13 @@
                              const _dtype *data2,                             \
                              size_t count);                                   \
                                                                               \
-    _api _dtype *_dname##_prepend_slot_no_check(_dtype *data, size_t *dlen);  \
-                                                                              \
-    _api int _dname##_prepend_slot(_dtype **data,                             \
-                                   size_t *dlen,                              \
-                                   _dtype const **new_slot);                  \
+    _api _dtype *_dname##_prepend_slot_no_zero_check(_dtype *data, size_t *dlen);  \
                                                                               \
     _api int _dname##_prepend_slot_no_zero(_dtype **data,                     \
                                            size_t *dlen,                      \
                                            _dtype const **new_slot);          \
+                                                                              \
+    _api _dtype *_dname##_prepend_slot_no_check(_dtype *data, size_t *dlen);  \
                                                                               \
     _api void _dname##_prepend_no_check(_dtype *data,                         \
                                         size_t *dlen,                         \
@@ -368,9 +367,10 @@
     _api int _dname##_clear(_dtype *data, size_t *dlen);
 
 #define CBASE_MUTABLE_DATA_IMPL_DEPS(_api, _dname, _dtype)                    \
-    CBASE_COMMON_DATA_IMPL(_api, _dname, _dtype)
+    CBASE_DATA_SLICE_IMPL_DEPS(_api, _dname, _dtype) \
+    CBASE_DATA_SLICE_IMPL_NO_DEPS(_api, _dname, _dtype)
 
-#define CBASE_MUTABLE_DATA_IMPL_NO_DEPS(_api, _dname, _dtype)                         \
+#define CBASE_MUTABLE_DATA_IMPL_NO_DEPS(_api, _dname, _dtype)                 \
     _api _dtype *_dname##_mutable_index_no_check(_dtype *data,                \
                                                  size_t index) {              \
         return data + index;                                                  \
@@ -412,14 +412,6 @@
         return 0;                                                             \
     }                                                                         \
                                                                               \
-    _api int _dname##_ensure_capacity_no_zero_no_check(_dtype **data,         \
-                                                       size_t *dcap,          \
-                                                       size_t cap);           \
-                                                                              \
-    _api int _dname##_ensure_capacity_no_check(_dtype **data,                 \
-                                               size_t *dcap,                  \
-                                               size_t cap);                   \
-                                                                              \
     _api int _dname##_ensure_capacity_no_zero(_dtype **data,                  \
                                               size_t *dcap,                   \
                                               size_t cap) {                   \
@@ -431,6 +423,10 @@
                                                                               \
         return 0;                                                             \
     }                                                                         \
+                                                                              \
+    _api int _dname##_ensure_capacity_no_check(_dtype **data,                 \
+                                               size_t *dcap,                  \
+                                               size_t cap);                   \
                                                                               \
     _api int _dname##_ensure_capacity(_dtype **data,                          \
                                       size_t *dcap,                           \
@@ -718,6 +714,22 @@
         return 0;                                                             \
     }                                                                         \
                                                                               \
+    _api _dtype *_dname##_prepend_slot_no_zero_no_check(                      \
+        _dtype **data,                                                        \
+        size_t *dlen,                                                         \
+        _dtype const **new_slot) {                                            \
+        return _dname##_insert_slot_no_zero_no_check(data,                    \
+                                                     dlen,                    \
+                                                     0,                       \
+                                                     new_slot);               \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_prepend_slot_no_zero(_dtype **data,                     \
+                                           size_t *dlen,                      \
+                                           _dtype const **new_slot) {         \
+        return _dname##_insert_slot_no_zero(data, dlen, 0, new_slot);         \
+    }                                                                         \
+                                                                              \
     _api _dtype *_dname##_prepend_slot_no_check(_dtype *data, size_t *dlen) { \
         return _dname##_insert_slot_no_check(data, dlen, 0);                  \
     }                                                                         \
@@ -726,12 +738,6 @@
                                    size_t *dlen,                              \
                                    _dtype const **new_slot) {                 \
         return _dname##_insert_slot(data, dlen, 0, new_slot);                 \
-    }                                                                         \
-                                                                              \
-    _api int _dname##_prepend_slot_no_zero(_dtype **data,                     \
-                                           size_t *dlen,                      \
-                                           _dtype const **new_slot) {         \
-        return _dname##_insert_slot_no_zero(data, dlen, 0, new_slot);         \
     }                                                                         \
                                                                               \
     _api void _dname##_prepend_no_check(_dtype *data,                         \

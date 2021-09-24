@@ -70,7 +70,7 @@ CBASE_API_STATIC int cb_memmove(void * restrict dest,
                                 size_t size) {
     size_t byte_count = 0;
 
-    CBASE_ERROR_IF(cb_safe_mul(count, size, &byte_count),
+    CBASE_ERROR_IF(cb_safe_mul_size(count, size, &byte_count),
                    CBASE_ERROR_NUMERIC_OVERFLOW);
 
     (void)memmove(dest, src, byte_count);
@@ -104,7 +104,7 @@ int cb_strndup(const char *cs, size_t len, char **ptr) {
 #else
     size_t byte_count = 0;
 
-    CBASE_PROPAGATE_ERROR(cb_safe_add(len, sizeof(char), &byte_count));
+    CBASE_PROPAGATE_ERROR(cb_safe_add_size(len, sizeof(char), &byte_count));
     CBASE_PROPAGATE_ERROR(cb_malloc(byte_count, sizeof(char), &new_str));
 #endif
 

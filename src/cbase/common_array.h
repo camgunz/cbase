@@ -14,7 +14,7 @@
 #include "cbase/errors.h"
 #include "cbase/util.h"
 
-#define CBASE_COMMON_ARRAY_IMPL_DECL(_api, _dname, _aname, _atype, _etype)    \
+#define CBASE_COMMON_ARRAY_IMPL_DECL(_api, _aname, _atype, _etype)            \
     _api const _etype *_aname##_index_no_check(const _atype *array,           \
                                                size_t index);                 \
                                                                               \

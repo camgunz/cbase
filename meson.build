@@ -15,9 +15,9 @@ incdir = include_directories('src/')
 
 compiler = meson.get_compiler('c')
 
-if compiler.has_argument('-march=native')
-  add_global_arguments('-march=native', language : 'c')
-endif
+# if compiler.has_argument('-march=native')
+#   add_global_arguments('-march=native', language : 'c')
+# endif
 if compiler.has_argument('-fsigned-char')
   add_global_arguments('-fsigned-char', language : 'c')
 endif
@@ -153,6 +153,49 @@ conf_data.set(
   'HAVE_WARN_UNUSED_RESULT_FUNCTION_ATTRIBUTE',
   have_warn_unused_result_function_attribute
 )
+
+int_size = compiler.sizeof('int')
+long_size = compiler.sizeof('long')
+size_size = compiler.sizeof('size_t')
+pointer_size = compiler.sizeof('intptr_t', prefix : '#include <stdint.h>')
+maxint_size = compiler.sizeof('intmax_t', prefix : '#include <stdint.h>')
+int128_size = compiler.sizeof('__int128')
+
+if int_size == 2
+  conf_data.set('HAVE_16BIT_INTS', true)
+elif int_size != 4
+  error('"int" must be either 16 or 32 bits')
+endif
+
+if long_size == 4
+  conf_data.set('HAVE_32BIT_LONGS', true)
+elif long_size != 8
+  error('"long" must be either 32 or 64 bits')
+endif
+
+if size_size == 4
+  conf_data.set('HAVE_32BIT_SIZES', true)
+elif size_size != 8
+  error('"size_t" must be either 32 or 64 bits')
+endif
+
+if pointer_size == 4
+  conf_data.set('HAVE_32BIT_POINTERS', true)
+elif pointer_size != 8
+  error('"intptr_t" must be either 32 or 64 bits')
+endif
+
+if maxint_size == 4
+  conf_data.set('HAVE_32BIT_MAXINTS', true)
+elif maxint_size != 8
+  error('"intmax_t" must be either 32 or 64 bits')
+endif
+
+if int128_size == 16
+  conf_data.set('HAVE_128BIT_INTEGERS', true)
+else
+  conf_data.set('HAVE_128BIT_INTEGERS', false)
+endif
 
 inlining = get_option('inlining')
 

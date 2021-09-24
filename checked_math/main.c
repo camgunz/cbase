@@ -2,112 +2,111 @@
 #include <stdlib.h>
 
 #include "signed_add_benchmarks.h"
+#include "unsigned_add_benchmarks.h"
 #include "signed_add_tests.h"
 #include "signed_sub_tests.h"
-#include "unsigned_add_benchmarks.h"
+#include "signed_mul_tests.h"
 #include "unsigned_add_tests.h"
+#include "unsigned_sub_tests.h"
+#include "unsigned_mul_tests.h"
 #include "timing.h"
 
 #define RANDOM_TEST_COUNT   100000000
 #define BENCHMARK_RUN_COUNT 100000000
 
-void test_sadd(void) {
-  run_sadd8_tests();
-  run_sadd16_tests(RANDOM_TEST_COUNT);
-  run_sadd32_tests(RANDOM_TEST_COUNT);
-  run_sadd64_tests(RANDOM_TEST_COUNT);
+void test_add_s(void) {
+  run_add_s8_tests();
+  run_add_s16_tests(RANDOM_TEST_COUNT);
+  run_add_s32_tests(RANDOM_TEST_COUNT);
+  run_add_s64_tests(RANDOM_TEST_COUNT);
 }
 
-void time_sadd(void) {
-  run_sadd8_benchmarks(BENCHMARK_RUN_COUNT);
+void time_add_s(void) {
+  run_add_s8_benchmarks(BENCHMARK_RUN_COUNT);
   puts("");
-  run_sadd16_benchmarks(BENCHMARK_RUN_COUNT);
+  run_add_s16_benchmarks(BENCHMARK_RUN_COUNT);
   puts("");
-  run_sadd32_benchmarks(BENCHMARK_RUN_COUNT);
+  run_add_s32_benchmarks(BENCHMARK_RUN_COUNT);
   puts("");
-  run_sadd64_benchmarks(BENCHMARK_RUN_COUNT);
+  run_add_s64_benchmarks(BENCHMARK_RUN_COUNT);
 }
 
-void test_uadd(void) {
-  run_uadd8_tests();
-  run_uadd16_tests(RANDOM_TEST_COUNT);
-  run_uadd32_tests(RANDOM_TEST_COUNT);
-  run_uadd64_tests(RANDOM_TEST_COUNT);
+void test_add_u(void) {
+  run_add_u8_tests();
+  run_add_u16_tests(RANDOM_TEST_COUNT);
+  run_add_u32_tests(RANDOM_TEST_COUNT);
+  run_add_u64_tests(RANDOM_TEST_COUNT);
 }
 
-void time_uadd(void) {
-  run_uadd8_benchmarks(BENCHMARK_RUN_COUNT);
+void time_add_u(void) {
+  run_add_u8_benchmarks(BENCHMARK_RUN_COUNT);
   puts("");
-  run_uadd16_benchmarks(BENCHMARK_RUN_COUNT);
+  run_add_u16_benchmarks(BENCHMARK_RUN_COUNT);
   puts("");
-  run_uadd32_benchmarks(BENCHMARK_RUN_COUNT);
+  run_add_u32_benchmarks(BENCHMARK_RUN_COUNT);
   puts("");
-  run_uadd64_benchmarks(BENCHMARK_RUN_COUNT);
+  run_add_u64_benchmarks(BENCHMARK_RUN_COUNT);
 }
 
-void test_ssub(void) {
-  run_ssub8_tests();
-  run_ssub16_tests(RANDOM_TEST_COUNT);
-  run_ssub32_tests(RANDOM_TEST_COUNT);
-  run_ssub64_tests(RANDOM_TEST_COUNT);
+void test_sub_s(void) {
+  run_sub_s8_tests();
+  run_sub_s16_tests(RANDOM_TEST_COUNT);
+  run_sub_s32_tests(RANDOM_TEST_COUNT);
+  run_sub_s64_tests(RANDOM_TEST_COUNT);
 }
 
-void test_usub(void) {
+void test_sub_u(void) {
+  run_sub_u8_tests();
+  run_sub_u16_tests(RANDOM_TEST_COUNT);
+  run_sub_u32_tests(RANDOM_TEST_COUNT);
+  run_sub_u64_tests(RANDOM_TEST_COUNT);
+}
+
+void test_mul_s(void) {
+  run_mul_s8_tests();
+  run_mul_s16_tests(RANDOM_TEST_COUNT);
+  run_mul_s32_tests(RANDOM_TEST_COUNT);
+  run_mul_s64_tests(RANDOM_TEST_COUNT);
+}
+
+void test_mul_u(void) {
+  run_mul_u8_tests();
+  run_mul_u16_tests(RANDOM_TEST_COUNT);
+  run_mul_u32_tests(RANDOM_TEST_COUNT);
+  run_mul_u64_tests(RANDOM_TEST_COUNT);
+}
+
+void test_div_s(void) {
 #if 0
-  run_usub8_tests();
-  run_usub16_tests(RANDOM_TEST_COUNT);
-  run_usub32_tests(RANDOM_TEST_COUNT);
-  run_usub64_tests(RANDOM_TEST_COUNT);
+  run_div_s8_tests();
+  run_div_s16_tests(RANDOM_TEST_COUNT);
+  run_div_s32_tests(RANDOM_TEST_COUNT);
+  run_div_s64_tests(RANDOM_TEST_COUNT);
 #endif
 }
 
-void test_smul(void) {
+void test_div_u(void) {
 #if 0
-  run_smul8_tests();
-  run_smul16_tests(RANDOM_TEST_COUNT);
-  run_smul32_tests(RANDOM_TEST_COUNT);
-  run_smul64_tests(RANDOM_TEST_COUNT);
-#endif
-}
-
-void test_umul(void) {
-#if 0
-  run_umul8_tests();
-  run_umul16_tests(RANDOM_TEST_COUNT);
-  run_umul32_tests(RANDOM_TEST_COUNT);
-  run_umul64_tests(RANDOM_TEST_COUNT);
-#endif
-}
-
-void test_sdiv(void) {
-#if 0
-  run_sdiv8_tests();
-  run_sdiv16_tests(RANDOM_TEST_COUNT);
-  run_sdiv32_tests(RANDOM_TEST_COUNT);
-  run_sdiv64_tests(RANDOM_TEST_COUNT);
-#endif
-}
-
-void test_udiv(void) {
-#if 0
-  run_udiv8_tests();
-  run_udiv16_tests(RANDOM_TEST_COUNT);
-  run_udiv32_tests(RANDOM_TEST_COUNT);
-  run_udiv64_tests(RANDOM_TEST_COUNT);
+  run_div_u8_tests();
+  run_div_u16_tests(RANDOM_TEST_COUNT);
+  run_div_u32_tests(RANDOM_TEST_COUNT);
+  run_div_u64_tests(RANDOM_TEST_COUNT);
 #endif
 }
 
 int main(void) {
-  // test_sadd();
-  // time_sadd();
-  // test_uadd();
-  // time_uadd();
-  test_ssub();
-  test_usub();
-  test_smul();
-  test_umul();
-  test_sdiv();
-  test_udiv();
+  // test_add_s(); // passes
+  time_add_s();
+  // test_add_u(); // passes
+  time_add_u();
+  // test_sub_s(); // passes
+  // test_sub_u(); // passes
+  // test_mul_s(); // passes
+  // test_mul_u(); // passes
+#if 0
+  test_div_s();
+  test_div_u();
+#endif
 
   return EXIT_SUCCESS;
 }

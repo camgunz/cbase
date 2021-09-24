@@ -10,270 +10,116 @@
 #define _EXTRA -2
 #endif
 
-void run_checked_sadd8_1(void) {
-  int8_t r;
-  int o = checked_sadd8_1((INT8_MAX >> 1) + _EXTRA, (INT8_MAX >> 1) + _EXTRA, &r);
+#define define_run_checked(op_name, int_t, signed, bits, max, num)          \
+    static void run_checked_##op_name##_##signed##bits##_##num(void) {      \
+        int_t r;                                                            \
+        bool o =                                                            \
+            checked_##op_name##_##signed##bits##_##num((max >> 1) + _EXTRA, \
+                                                       (max >> 1) + _EXTRA, \
+                                                       &r);                 \
+        (void)o;                                                            \
+    }
 
-  (void)o;
+define_run_checked(add, int8_t, s, 8, INT8_MAX, 1)
+define_run_checked(add, int8_t, s, 8, INT8_MAX, 2)
+define_run_checked(add, int8_t, s, 8, INT8_MAX, 3)
+define_run_checked(add, int8_t, s, 8, INT8_MAX, 4)
+define_run_checked(add, int8_t, s, 8, INT8_MAX, 5)
+define_run_checked(add, int8_t, s, 8, INT8_MAX, 6)
+define_run_checked(add, int8_t, s, 8, INT8_MAX, 7)
+
+define_run_checked(add, int16_t, s, 16, INT16_MAX, 1)
+define_run_checked(add, int16_t, s, 16, INT16_MAX, 2)
+define_run_checked(add, int16_t, s, 16, INT16_MAX, 3)
+define_run_checked(add, int16_t, s, 16, INT16_MAX, 4)
+define_run_checked(add, int16_t, s, 16, INT16_MAX, 5)
+define_run_checked(add, int16_t, s, 16, INT16_MAX, 6)
+define_run_checked(add, int16_t, s, 16, INT16_MAX, 7)
+
+define_run_checked(add, int32_t, s, 32, INT32_MAX, 1)
+define_run_checked(add, int32_t, s, 32, INT32_MAX, 2)
+define_run_checked(add, int32_t, s, 32, INT32_MAX, 3)
+define_run_checked(add, int32_t, s, 32, INT32_MAX, 4)
+define_run_checked(add, int32_t, s, 32, INT32_MAX, 5)
+define_run_checked(add, int32_t, s, 32, INT32_MAX, 6)
+define_run_checked(add, int32_t, s, 32, INT32_MAX, 7)
+
+define_run_checked(add, int64_t, s, 64, INT64_MAX, 1)
+define_run_checked(add, int64_t, s, 64, INT64_MAX, 2)
+define_run_checked(add, int64_t, s, 64, INT64_MAX, 3)
+define_run_checked(add, int64_t, s, 64, INT64_MAX, 4)
+define_run_checked(add, int64_t, s, 64, INT64_MAX, 5)
+define_run_checked(add, int64_t, s, 64, INT64_MAX, 6)
+define_run_checked(add, int64_t, s, 64, INT64_MAX, 7)
+
+void run_add_s8_benchmarks(unsigned int run_count) {
+    double ns1 = time_func(run_checked_add_s8_1, run_count);
+    double ns2 = time_func(run_checked_add_s8_2, run_count);
+    double ns3 = time_func(run_checked_add_s8_3, run_count);
+    double ns4 = time_func(run_checked_add_s8_4, run_count);
+    double ns5 = time_func(run_checked_add_s8_5, run_count);
+    double ns6 = time_func(run_checked_add_s8_6, run_count);
+    double ns7 = time_func(run_checked_add_s8_7, run_count);
+
+    printf("checked_add_s8_1: %g\n", ns1);
+    printf("checked_add_s8_2: %g\n", ns2);
+    printf("checked_add_s8_3: %g\n", ns3);
+    printf("checked_add_s8_4: %g\n", ns4);
+    printf("checked_add_s8_5: %g\n", ns5);
+    printf("checked_add_s8_6: %g\n", ns6);
+    printf("checked_add_s8_7: %g\n", ns7);
 }
 
-void run_checked_sadd8_2(void) {
-  int8_t r;
-  int o = checked_sadd8_2((INT8_MAX >> 1) + _EXTRA, (INT8_MAX >> 1) + _EXTRA, &r);
+void run_add_s16_benchmarks(unsigned int run_count) {
+    double ns1 = time_func(run_checked_add_s16_1, run_count);
+    double ns2 = time_func(run_checked_add_s16_2, run_count);
+    double ns3 = time_func(run_checked_add_s16_3, run_count);
+    double ns4 = time_func(run_checked_add_s16_4, run_count);
+    double ns5 = time_func(run_checked_add_s16_5, run_count);
+    double ns6 = time_func(run_checked_add_s16_6, run_count);
+    double ns7 = time_func(run_checked_add_s16_7, run_count);
 
-  (void)o;
+    printf("checked_add_s16_1: %g\n", ns1);
+    printf("checked_add_s16_2: %g\n", ns2);
+    printf("checked_add_s16_3: %g\n", ns3);
+    printf("checked_add_s16_4: %g\n", ns4);
+    printf("checked_add_s16_5: %g\n", ns5);
+    printf("checked_add_s16_6: %g\n", ns6);
+    printf("checked_add_s16_7: %g\n", ns7);
 }
 
-void run_checked_sadd8_3(void) {
-  int8_t r;
-  int o = checked_sadd8_3((INT8_MAX >> 1) + _EXTRA, (INT8_MAX >> 1) + _EXTRA, &r);
+void run_add_s32_benchmarks(unsigned int run_count) {
+    double ns1 = time_func(run_checked_add_s32_1, run_count);
+    double ns2 = time_func(run_checked_add_s32_2, run_count);
+    double ns3 = time_func(run_checked_add_s32_3, run_count);
+    double ns4 = time_func(run_checked_add_s32_4, run_count);
+    double ns5 = time_func(run_checked_add_s32_5, run_count);
+    double ns6 = time_func(run_checked_add_s32_6, run_count);
+    double ns7 = time_func(run_checked_add_s32_7, run_count);
 
-  (void)o;
+    printf("checked_add_s32_1: %g\n", ns1);
+    printf("checked_add_s32_2: %g\n", ns2);
+    printf("checked_add_s32_3: %g\n", ns3);
+    printf("checked_add_s32_4: %g\n", ns4);
+    printf("checked_add_s32_5: %g\n", ns5);
+    printf("checked_add_s32_6: %g\n", ns6);
+    printf("checked_add_s32_7: %g\n", ns7);
 }
 
-void run_checked_sadd8_3b(void) {
-  int8_t r;
-  int o = checked_sadd8_3b((INT8_MAX >> 1) + _EXTRA, (INT8_MAX >> 1) + _EXTRA, &r);
+void run_add_s64_benchmarks(unsigned int run_count) {
+    double ns1 = time_func(run_checked_add_s64_1, run_count);
+    double ns2 = time_func(run_checked_add_s64_2, run_count);
+    double ns3 = time_func(run_checked_add_s64_3, run_count);
+    double ns4 = time_func(run_checked_add_s64_4, run_count);
+    double ns5 = time_func(run_checked_add_s64_5, run_count);
+    double ns6 = time_func(run_checked_add_s64_6, run_count);
+    double ns7 = time_func(run_checked_add_s64_7, run_count);
 
-  (void)o;
-}
-
-void run_checked_sadd8_3c(void) {
-  int8_t r;
-  int o = checked_sadd8_3c((INT8_MAX >> 1) + _EXTRA, (INT8_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd8_4(void) {
-  int8_t r;
-  int o = checked_sadd8_4((INT8_MAX >> 1) + _EXTRA, (INT8_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd8_5(void) {
-  int8_t r;
-  int o = checked_sadd8_5((INT8_MAX >> 1) + _EXTRA, (INT8_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_sadd8_benchmarks(unsigned int run_count) {
-  double ns1 = time_func(run_checked_sadd8_1, run_count);
-  double ns2 = time_func(run_checked_sadd8_2, run_count);
-  double ns3 = time_func(run_checked_sadd8_3, run_count);
-  double ns4 = time_func(run_checked_sadd8_3b, run_count);
-  double ns5 = time_func(run_checked_sadd8_3c, run_count);
-  double ns6 = time_func(run_checked_sadd8_4, run_count);
-  double ns7 = time_func(run_checked_sadd8_5, run_count);
-
-  printf("checked_sadd8_1:  %g\n", ns1);
-  printf("checked_sadd8_2:  %g\n", ns2);
-  printf("checked_sadd8_3:  %g\n", ns3);
-  printf("checked_sadd8_3b: %g\n", ns4);
-  printf("checked_sadd8_3c: %g\n", ns5);
-  printf("checked_sadd8_4:  %g\n", ns6);
-  printf("checked_sadd8_5:  %g\n", ns7);
-}
-
-void run_checked_sadd16_1(void) {
-  int16_t r;
-  int o = checked_sadd16_1((INT16_MAX >> 1) + _EXTRA, (INT16_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd16_2(void) {
-  int16_t r;
-  int o = checked_sadd16_2((INT16_MAX >> 1) + _EXTRA, (INT16_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd16_3(void) {
-  int16_t r;
-  int o = checked_sadd16_3((INT16_MAX >> 1) + _EXTRA, (INT16_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd16_3b(void) {
-  int16_t r;
-  int o = checked_sadd16_3b((INT16_MAX >> 1) + _EXTRA, (INT16_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd16_3c(void) {
-  int16_t r;
-  int o = checked_sadd16_3c((INT16_MAX >> 1) + _EXTRA, (INT16_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd16_4(void) {
-  int16_t r;
-  int o = checked_sadd16_4((INT16_MAX >> 1) + _EXTRA, (INT16_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd16_5(void) {
-  int16_t r;
-  int o = checked_sadd16_5((INT16_MAX >> 1) + _EXTRA, (INT16_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_sadd16_benchmarks(unsigned int run_count) {
-  double ns1 = time_func(run_checked_sadd16_1, run_count);
-  double ns2 = time_func(run_checked_sadd16_2, run_count);
-  double ns3 = time_func(run_checked_sadd16_3, run_count);
-  double ns4 = time_func(run_checked_sadd16_3b, run_count);
-  double ns5 = time_func(run_checked_sadd16_3c, run_count);
-  double ns6 = time_func(run_checked_sadd16_4, run_count);
-  double ns7 = time_func(run_checked_sadd16_5, run_count);
-
-  printf("checked_sadd16_1:  %g\n", ns1);
-  printf("checked_sadd16_2:  %g\n", ns2);
-  printf("checked_sadd16_3:  %g\n", ns3);
-  printf("checked_sadd16_3b: %g\n", ns4);
-  printf("checked_sadd16_3c: %g\n", ns5);
-  printf("checked_sadd16_4:  %g\n", ns6);
-  printf("checked_sadd16_5:  %g\n", ns7);
-}
-
-void run_checked_sadd32_1(void) {
-  int32_t r;
-  int o = checked_sadd32_1((INT32_MAX >> 1) + _EXTRA, (INT32_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd32_2(void) {
-  int32_t r;
-  int o = checked_sadd32_2((INT32_MAX >> 1) + _EXTRA, (INT32_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd32_3(void) {
-  int32_t r;
-  int o = checked_sadd32_3((INT32_MAX >> 1) + _EXTRA, (INT32_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd32_3b(void) {
-  int32_t r;
-  int o = checked_sadd32_3b((INT32_MAX >> 1) + _EXTRA, (INT32_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd32_3c(void) {
-  int32_t r;
-  int o = checked_sadd32_3c((INT32_MAX >> 1) + _EXTRA, (INT32_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd32_4(void) {
-  int32_t r;
-  int o = checked_sadd32_4((INT32_MAX >> 1) + _EXTRA, (INT32_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd32_5(void) {
-  int32_t r;
-  int o = checked_sadd32_5((INT32_MAX >> 1) + _EXTRA, (INT32_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_sadd32_benchmarks(unsigned int run_count) {
-  double ns1 = time_func(run_checked_sadd32_1, run_count);
-  double ns2 = time_func(run_checked_sadd32_2, run_count);
-  double ns3 = time_func(run_checked_sadd32_3, run_count);
-  double ns4 = time_func(run_checked_sadd32_3b, run_count);
-  double ns5 = time_func(run_checked_sadd32_3c, run_count);
-  double ns6 = time_func(run_checked_sadd32_4, run_count);
-  double ns7 = time_func(run_checked_sadd32_5, run_count);
-
-  printf("checked_sadd32_1:  %g\n", ns1);
-  printf("checked_sadd32_2:  %g\n", ns2);
-  printf("checked_sadd32_3:  %g\n", ns3);
-  printf("checked_sadd32_3b: %g\n", ns4);
-  printf("checked_sadd32_3c: %g\n", ns5);
-  printf("checked_sadd32_4:  %g\n", ns6);
-  printf("checked_sadd32_5:  %g\n", ns7);
-}
-
-void run_checked_sadd64_1(void) {
-  int64_t r;
-  int o = checked_sadd64_1((INT64_MAX >> 1) + _EXTRA, (INT64_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd64_2(void) {
-  int64_t r;
-  int o = checked_sadd64_2((INT64_MAX >> 1) + _EXTRA, (INT64_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd64_3(void) {
-  int64_t r;
-  int o = checked_sadd64_3((INT64_MAX >> 1) + _EXTRA, (INT64_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd64_3b(void) {
-  int64_t r;
-  int o = checked_sadd64_3b((INT64_MAX >> 1) + _EXTRA, (INT64_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd64_3c(void) {
-  int64_t r;
-  int o = checked_sadd64_3c((INT64_MAX >> 1) + _EXTRA, (INT64_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd64_4(void) {
-  int64_t r;
-  int o = checked_sadd64_4((INT64_MAX >> 1) + _EXTRA, (INT64_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_checked_sadd64_5(void) {
-  int64_t r;
-  int o = checked_sadd64_5((INT64_MAX >> 1) + _EXTRA, (INT64_MAX >> 1) + _EXTRA, &r);
-
-  (void)o;
-}
-
-void run_sadd64_benchmarks(unsigned int run_count) {
-  double ns1 = time_func(run_checked_sadd64_1, run_count);
-  double ns2 = time_func(run_checked_sadd64_2, run_count);
-  double ns3 = time_func(run_checked_sadd64_3, run_count);
-  double ns4 = time_func(run_checked_sadd64_3b, run_count);
-  double ns5 = time_func(run_checked_sadd64_3c, run_count);
-  double ns6 = time_func(run_checked_sadd64_4, run_count);
-  double ns7 = time_func(run_checked_sadd64_5, run_count);
-
-  printf("checked_sadd64_1:  %g\n", ns1);
-  printf("checked_sadd64_2:  %g\n", ns2);
-  printf("checked_sadd64_3:  %g\n", ns3);
-  printf("checked_sadd64_3b: %g\n", ns4);
-  printf("checked_sadd64_3c: %g\n", ns5);
-  printf("checked_sadd64_4:  %g\n", ns6);
-  printf("checked_sadd64_5:  %g\n", ns7);
+    printf("checked_add_s64_1: %g\n", ns1);
+    printf("checked_add_s64_2: %g\n", ns2);
+    printf("checked_add_s64_3: %g\n", ns3);
+    printf("checked_add_s64_4: %g\n", ns4);
+    printf("checked_add_s64_5: %g\n", ns5);
+    printf("checked_add_s64_6: %g\n", ns6);
+    printf("checked_add_s64_7: %g\n", ns7);
 }
