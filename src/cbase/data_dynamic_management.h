@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef _CBASE_DYNAMIC_DATA_H__
-#define _CBASE_DYNAMIC_DATA_H__
+#ifndef _CBASE_DATA_DYNAMIC_MANAGEMENT_H__
+#define _CBASE_DATA_DYNAMIC_MANAGEMENT_H__
 
 #include "cbase/internal.h"
 
@@ -9,25 +9,34 @@
 
 #include "cbase/alloc.h"
 #include "cbase/checks.h"
-#include "cbase/mutable_data.h"
+#include "cbase/data_base.h"
+#include "cbase/data_ownership_management.h"
 #include "cbase/errors.h"
 
 /* [TODO] Look at aligned allocation */
 
-#define _CBASE_DYNAMIC_DATA_CHECK_MUTABLE_INPUT_ARGS(_inobj,                  \
-                                                     _inarg1,                 \
-                                                     _inarg2)                 \
+#define _CBASE_DATA_DYNAMIC_MANAGEMENT_CHECK_MUTABLE_INPUT_ARGS(_inobj,       \
+                                                                _inarg1,      \
+                                                                _inarg2)      \
     _CBASE_DATA_CHECK_MUTABLE_INPUT_ARGS(_inobj, _inarg1);                    \
     CBASE_CHECK_INPUT_ARGUMENT(_inarg2)
 
-#define _CBASE_DYNAMIC_DATA_CHECK_REALLOCATABLE_INPUT_ARGS(_inobj,            \
-                                                           _inarg1,           \
-                                                           _inarg2)           \
+#define _CBASE_DATA_DYNAMIC_MANAGEMENT_CHECK_REALLOCATABLE_INPUT_ARGS(        \
+    _inobj,                                                                   \
+    _inarg1,                                                                  \
+    _inarg2)                                                                  \
     _CBASE_DATA_CHECK_REALLOCATABLE_INPUT_ARGS(_inobj, _inarg1);              \
     CBASE_CHECK_INPUT_ARGUMENT(_inarg2)
 
-#define CBASE_DYNAMIC_DATA_IMPL_DECL(_api, _dname, _dtype)                    \
-    CBASE_MUTABLE_DATA_IMPL_DECL(_api, _dname, _dtype)                        \
+#define CBASE_DATA_DYNAMIC_MANAGEMENT_IMPL_DECL(_api, _dname, _dtype)         \
+    _api int _dname##_ensure_capacity_no_zero_no_check(_dtype **data,         \
+                                                       size_t *dcap,          \
+                                                       size_t cap);           \
+                                                                              \
+    _api int _dname##_ensure_capacity_no_check(_dtype **data,                 \
+                                               size_t *dcap,                  \
+                                               size_t cap);                   \
+                                                                              \
     _api void _dname##_init_no_check(size_t *dlen, size_t *dcap);             \
                                                                               \
     _api int _dname##_init(size_t *dlen, size_t *dcap);                       \
@@ -47,6 +56,12 @@
                                               size_t *dcap,                   \
                                               const _dtype *data2,            \
                                               size_t len2);                   \
+                                                                              \
+    _api int _dname##_init_from_data(_dtype **data,                           \
+                                     size_t *dlen,                            \
+                                     size_t *dcap,                            \
+                                     const _dtype *data2,                     \
+                                     size_t len2);                            \
                                                                               \
     _api void _dname##_free_no_zero_no_check(_dtype *data,                    \
                                              size_t *dlen,                    \
@@ -72,10 +87,9 @@
                                         size_t *dlen,                         \
                                         size_t *dcap);                        \
                                                                               \
-    _api int _dname##_destroy(_dtype **data, size_t *dlen, size_t *dcap);
+    _api int _dname##_destroy(_dtype **data, size_t *dlen, size_t *dcap;
 
-#define CBASE_DYNAMIC_DATA_IMPL(_api, _dname, _dtype)                         \
-    CBASE_MUTABLE_DATA_IMPL(_api, _dname, _dtype)                             \
+#define CBASE_DATA_DYNAMIC_MANAGEMENT_IMPL(_api, _dname, _dtype)              \
     _api int _dname##_ensure_capacity_no_zero_no_check(_dtype **data,         \
                                                        size_t *dcap,          \
                                                        size_t cap) {          \
@@ -141,7 +155,9 @@
                                     size_t *dlen,                             \
                                     size_t *dcap,                             \
                                     size_t cap) {                             \
-        _CBASE_DYNAMIC_DATA_CHECK_MUTABLE_INPUT_ARGS(data, dlen, dcap);       \
+        _CBASE_DATA_DYNAMIC_MANAGEMENT_CHECK_MUTABLE_INPUT_ARGS(data,         \
+                                                                dlen,         \
+                                                                dcap);        \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_init_capacity_no_check(data, dlen, dcap, cap));          \
@@ -185,7 +201,9 @@
     _api int _dname##_free_no_zero(_dtype *data,                              \
                                    size_t *dlen,                              \
                                    size_t *dcap) {                            \
-        _CBASE_DYNAMIC_DATA_CHECK_MUTABLE_INPUT_ARGS(data, dlen, dcap);       \
+        _CBASE_DATA_DYNAMIC_MANAGEMENT_CHECK_MUTABLE_INPUT_ARGS(data,         \
+                                                                dlen,         \
+                                                                dcap);        \
                                                                               \
         _dname##_free_no_zero_no_check(data, dlen, dcap);                     \
                                                                               \
@@ -196,11 +214,13 @@
                                      size_t *dlen,                            \
                                      size_t *dcap) {                          \
         _dname##_zero_no_check(data, 0, (*dlen));                             \
-        _dname##_free_no_zero(data, dlen, dcap);                              \
+        _dname##_free_no_zero_no_check(data, dlen, dcap);                     \
     }                                                                         \
                                                                               \
     _api int _dname##_free(_dtype *data, size_t *dlen, size_t *dcap) {        \
-        _CBASE_DYNAMIC_DATA_CHECK_MUTABLE_INPUT_ARGS(data, dlen, dcap);       \
+        _CBASE_DATA_DYNAMIC_MANAGEMENT_CHECK_MUTABLE_INPUT_ARGS(data,         \
+                                                                dlen,         \
+                                                                dcap);        \
                                                                               \
         _dname##_free_no_check(data, dlen, dcap);                             \
                                                                               \
@@ -217,7 +237,9 @@
     _api int _dname##_destroy_no_zero(_dtype **data,                          \
                                       size_t *dlen,                           \
                                       size_t *dcap) {                         \
-        _CBASE_DYNAMIC_DATA_CHECK_REALLOCATABLE_INPUT_ARGS(data, dlen, dcap); \
+        _CBASE_DATA_DYNAMIC_MANAGEMENT_CHECK_REALLOCATABLE_INPUT_ARGS(data,   \
+                                                                      dlen,   \
+                                                                      dcap);  \
                                                                               \
         _dname##_destroy_no_zero_no_check(data, dlen, dcap);                  \
                                                                               \
@@ -232,7 +254,9 @@
     }                                                                         \
                                                                               \
     _api int _dname##_destroy(_dtype **data, size_t *dlen, size_t *dcap) {    \
-        _CBASE_DYNAMIC_DATA_CHECK_MUTABLE_INPUT_ARGS(data, dlen, dcap);       \
+        _CBASE_DATA_DYNAMIC_MANAGEMENT_CHECK_MUTABLE_INPUT_ARGS(data,         \
+                                                                dlen,         \
+                                                                dcap);        \
                                                                               \
         _dname##_destroy_no_check(data, dlen, dcap);                          \
                                                                               \

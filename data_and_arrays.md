@@ -10,8 +10,6 @@
 - slice
 - copy_no_check
 - copy
-- truncate_no_check
-- truncate
 - equals_no_check
 - equals
 - starts_with_no_check
@@ -20,8 +18,6 @@
 - ends_with
 - find_no_check
 - find
-- clear_no_check
-- clear
 
 ## data_slice
 
@@ -33,10 +29,14 @@
 - skip
 - seek_no_check
 - seek
+- truncate_no_zero_no_check
+- truncate_no_zero
 - pop_left_no_zero_no_check
 - pop_left_no_zero
 - pop_right_no_zero_no_check
 - pop_right_no_zero
+- clear_no_zero_no_check
+- clear_no_zero
 
 ### Deps
 

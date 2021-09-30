@@ -39,9 +39,10 @@
                                                       _slot_count));          \
     } while (0)
 
-#define CBASE_MUTABLE_DATA_IMPL_DECL(_api, _dname, _dtype)                    \
-    CBASE_COMMON_DATA_IMPL_DECL(_api, _dname, _dtype)                         \
-                                                                              \
+#define CBASE_MUTABLE_DATA_IMPL_DECL_DEPS(_api, _dname, _dtype) \
+    CBASE_COMMON_DATA_IMPL_DECL(_api, _dname, _dtype)
+
+#define CBASE_MUTABLE_DATA_IMPL_DECL_NO_DEPS(_api, _dname, _dtype)            \
     _api _dtype *_dname##_mutable_index_no_check(_dtype *data, size_t index); \
                                                                               \
     _api int _dname##_mutable_index(_dtype *data,                             \
