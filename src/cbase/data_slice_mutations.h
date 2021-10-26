@@ -19,32 +19,7 @@
  * - truncate_at (uses find_*_reverse)
  */
 
-#define _CBASE_TRY_EXPAND_DATA_IF_NEEDED_NO_ZERO(_dname,                      \
-                                                 _data,                       \
-                                                 _dcap,                       \
-                                                 _excap)                      \
-    do {                                                                      \
-        size_t _slot_count = 0;                                               \
-        CBASE_PROPAGATE_ERROR(                                                \
-            cbase_safe_add((*(_dcap)), (_excap), &_slot_count));              \
-        CBASE_PROPAGATE_ERROR(                                                \
-            _dname##_ensure_capacity_no_zero_no_check((_data),                \
-                                                      (_dcap),                \
-                                                      _slot_count));          \
-    } while (0)
-
-#define _CBASE_TRY_EXPAND_DATA_IF_NEEDED(_dname, _data, _dcap, _excap)        \
-    do {                                                                      \
-        size_t _slot_count = 0;                                               \
-        CBASE_PROPAGATE_ERROR(                                                \
-            cbase_safe_add((*(_dcap)), (_excap), &_slot_count));              \
-        CBASE_PROPAGATE_ERROR(                                                \
-            _dname##_ensure_capacity_no_zero_no_check((_data),                \
-                                                      (_dcap),                \
-                                                      _slot_count));          \
-    } while (0)
-
-#define CBASE_DATA_SLICE_IMPL_DECL(_api, _dname, _dtype)                      \
+#define CBASE_DATA_SLICE_MUTATIONS_IMPL_DECL(_api, _dname, _dtype)            \
     _api _dtype *_dname##_mutable_index_no_check(_dtype *data, size_t index); \
                                                                               \
     _api int _dname##_mutable_index(_dtype *data,                             \

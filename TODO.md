@@ -2,6 +2,9 @@
 
 ## Next time
 
+- Split up the definitions of `_set_length` across static and dynamic data
+- Resume work on `array_ownership_management.h`
+
 ## Defines
 
 CONFIGURABLE becomes RUNTIME

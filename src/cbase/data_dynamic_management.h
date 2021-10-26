@@ -37,9 +37,63 @@
                                                size_t *dcap,                  \
                                                size_t cap);                   \
                                                                               \
+    _api int _dname##_set_capacity_no_zero_no_check(_dtype **data,            \
+                                                    size_t *dlen,             \
+                                                    size_t *dcap,             \
+                                                    size_t cap);              \
+                                                                              \
+    _api int _dname##_set_length_no_zero_no_check(_dtype **data,              \
+                                                  size_t *dlen,               \
+                                                  size_t *dcap,               \
+                                                  size_t len);                \
+                                                                              \
+    _api int _dname##_set_length_no_zero(_dtype **data,                       \
+                                         size_t *dlen,                        \
+                                         size_t *dcap,                        \
+                                         size_t len);                         \
+                                                                              \
+    _api int _dname##_set_length_no_check(_dtype **data,                      \
+                                          size_t *dlen,                       \
+                                          size_t *dcap,                       \
+                                          size_t len);                        \
+                                                                              \
+    _api int _dname##_set_length(_dtype **data,                               \
+                                 size_t *dlen,                                \
+                                 size_t *dcap,                                \
+                                 size_t len);                                 \
+                                                                              \
+    _api int _dname##_set_capacity_no_zero(_dtype **data,                     \
+                                           size_t *dlen,                      \
+                                           size_t *dcap,                      \
+                                           size_t cap);                       \
+                                                                              \
+    _api int _dname##_set_capacity_no_check(_dtype **data,                    \
+                                            size_t *dlen,                     \
+                                            size_t *dcap,                     \
+                                            size_t cap);                      \
+                                                                              \
+    _api int _dname##_set_capacity(_dtype **data,                             \
+                                   size_t *dlen,                              \
+                                   size_t *dcap,                              \
+                                   size_t cap);                               \
+                                                                              \
     _api void _dname##_init_no_check(size_t *dlen, size_t *dcap);             \
                                                                               \
     _api int _dname##_init(size_t *dlen, size_t *dcap);                       \
+                                                                              \
+    _api int _dname##_init_length_no_zero_no_check(_dtype **data,             \
+                                                   size_t *dlen,              \
+                                                   size_t dlen2);             \
+                                                                              \
+    _api int _dname##_init_length_no_zero(_dtype **data,                      \
+                                          size_t *dlen,                       \
+                                          size_t dlen2);                      \
+                                                                              \
+    _api int _dname##_init_length_no_check(_dtype **data,                     \
+                                           size_t *dlen,                      \
+                                           size_t dlen2);                     \
+                                                                              \
+    _api int _dname##_init_length(_dtype **data, size_t *dlen, size_t dlen2); \
                                                                               \
     _api int _dname##_init_capacity_no_check(_dtype **data,                   \
                                              size_t *dlen,                    \
@@ -125,6 +179,129 @@
         return 0;                                                             \
     }                                                                         \
                                                                               \
+    _api int _dname##_set_capacity_no_zero_no_check(_dtype **data,            \
+                                                    size_t *dlen,             \
+                                                    size_t *dcap,             \
+                                                    size_t cap) {             \
+        if (cap < (*dcap)) {                                                  \
+            (*dcap) = cap;                                                    \
+            if (cap < (*dlen)) {                                              \
+                (*dlen) = cap;                                                \
+            }                                                                 \
+        }                                                                     \
+        else {                                                                \
+            _CBASE_TRY_EXPAND_DATA_IF_NEEDED_NO_ZERO(_dname,                  \
+                                                     data,                    \
+                                                     dcap,                    \
+                                                     cap);                    \
+        }                                                                     \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_set_capacity_no_zero(_dtype **data,                     \
+                                           size_t *dlen,                      \
+                                           size_t *dcap,                      \
+                                           size_t cap) {                      \
+        CBASE_CHECK_INPUT_OBJECT(data);                                       \
+        CBASE_CHECK_INPUT_ARGUMENT(dlen);                                     \
+        CBASE_CHECK_INPUT_ARGUMENT(dcap);                                     \
+                                                                              \
+        CBASE_PROPAGATE_ERROR(                                                \
+            _dname##_set_capacity_no_zero_no_check(data, dlen, dcap, cap));   \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_set_capacity_no_check(_dtype **data,                    \
+                                            size_t *dlen,                     \
+                                            size_t *dcap,                     \
+                                            size_t cap) {                     \
+        if (cap < (*dcap)) {                                                  \
+            _dname##_zero_no_check((*data), (*dcap), cap - (*dcap));          \
+            (*dcap) = cap;                                                    \
+            if (cap < (*dlen)) {                                              \
+                (*dlen) = cap;                                                \
+            }                                                                 \
+        }                                                                     \
+        else {                                                                \
+            _CBASE_TRY_EXPAND_DATA_IF_NEEDED(_dname, data, dcap, cap);        \
+        }                                                                     \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_set_capacity(_dtype **data,                             \
+                                   size_t *dlen,                              \
+                                   size_t *dcap,                              \
+                                   size_t cap) {                              \
+        CBASE_CHECK_INPUT_OBJECT(data);                                       \
+        CBASE_CHECK_INPUT_ARGUMENT(dlen);                                     \
+        CBASE_CHECK_INPUT_ARGUMENT(dcap);                                     \
+                                                                              \
+        CBASE_PROPAGATE_ERROR(                                                \
+            _dname##_set_capacity_no_check(data, dlen, dcap, cap));           \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_set_length_no_zero_no_check(_dtype **data,              \
+                                                  size_t *dlen,               \
+                                                  size_t *dcap,               \
+                                                  size_t len) {               \
+        if (len < (*dlen)) {                                                  \
+            (*dlen) = len;                                                    \
+        }                                                                     \
+        else {                                                                \
+            _CBASE_TRY_EXPAND_DATA_IF_NEEDED_NO_ZERO(_dname,                  \
+                                                     data,                    \
+                                                     dcap,                    \
+                                                     len);                    \
+        }                                                                     \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_set_length_no_zero(_dtype **data,                       \
+                                         size_t *dlen,                        \
+                                         size_t *dcap,                        \
+                                         size_t len) {                        \
+        CBASE_CHECK_INPUT_OBJECT(data);                                       \
+        CBASE_CHECK_INPUT_ARGUMENT(dlen);                                     \
+                                                                              \
+        CBASE_PROPAGATE_ERROR(                                                \
+            _dname##_set_length_no_zero_no_check(data, dlen, len));           \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_set_length_no_check(_dtype **data,                      \
+                                          size_t *dlen,                       \
+                                          size_t *dcap,                       \
+                                          size_t len) {                       \
+        if (len < (*dlen)) {                                                  \
+            _dname##_zero_no_check((*data), (*dlen), len - (*dlen));          \
+            (*dlen) = len;                                                    \
+        }                                                                     \
+        else {                                                                \
+            _CBASE_TRY_EXPAND_DATA_IF_NEEDED(_dname, data, dlen, len);        \
+        }                                                                     \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_set_length(_dtype **data,                               \
+                                 size_t *dlen,                                \
+                                 size_t *dcap,                                \
+                                 size_t len) {                                \
+        CBASE_CHECK_INPUT_OBJECT(data);                                       \
+        CBASE_CHECK_INPUT_ARGUMENT(dlen);                                     \
+                                                                              \
+        CBASE_PROPAGATE_ERROR(_dname##_set_length_no_check(data, dlen, len)); \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
     _api void _dname##_init_no_check(size_t *dlen, size_t *dcap) {            \
         (*dlen) = 0;                                                          \
         (*dcap) = 0;                                                          \
@@ -136,6 +313,79 @@
         CBASE_CHECK_LENGTH_BOUNDS((*dcap), (*dlen));                          \
                                                                               \
         _dname##_init_no_check(dlen, dcap);                                   \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_init_length_no_zero_no_check(_dtype **data,             \
+                                                   size_t *dlen,              \
+                                                   size_t *dcap,              \
+                                                   size_t len) {              \
+        _dname##_init_no_check(dlen, dcap);                                   \
+        _CBASE_TRY_EXPAND_DATA_IF_NEEDED_NO_ZERO(_dname, data, dcap, len);    \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_init_length_no_zero(_dtype **data,                      \
+                                          size_t *dlen,                       \
+                                          size_t *dcap,                       \
+                                          size_t len) {                       \
+        CBASE_CHECK_INPUT_OBJECT(data);                                       \
+        CBASE_CHECK_INPUT_ARGUMENT(dlen);                                     \
+        CBASE_CHECK_INPUT_ARGUMENT(dcap);                                     \
+                                                                              \
+        CBASE_PROPAGATE_ERROR(                                                \
+            _dname##_init_length_no_zero_no_check(data, dlen, dcap, len));    \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_init_length_no_check(_dtype **data,                     \
+                                           size_t *dlen,                      \
+                                           size_t *dcap,                      \
+                                           size_t len) {                      \
+        _dname##_init_no_check(dlen, dcap);                                   \
+        _CBASE_TRY_EXPAND_DATA_IF_NEEDED(_dname, data, dcap, len);            \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_init_length(_dtype **data,                              \
+                                  size_t *dlen,                               \
+                                  size_t *dcap,                               \
+                                  size_t len) {                               \
+        CBASE_CHECK_INPUT_OBJECT(data);                                       \
+        CBASE_CHECK_INPUT_ARGUMENT(dlen);                                     \
+        CBASE_CHECK_INPUT_ARGUMENT(dcap);                                     \
+                                                                              \
+        CBASE_PROPAGATE_ERROR(                                                \
+            _dname##_init_length_no_check(data, dlen, dcap, len));            \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_init_capacity_no_zero_no_check(_dtype **data,           \
+                                                     size_t *dlen,            \
+                                                     size_t *dcap,            \
+                                                     size_t cap) {            \
+        _dname##_init_no_check(dlen, dcap);                                   \
+                                                                              \
+        _CBASE_TRY_EXPAND_DATA_IF_NEEDED_NO_ZERO(_dname, data, dcap, cap);    \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_init_capacity_no_zero(_dtype **data,                    \
+                                            size_t *dlen,                     \
+                                            size_t *dcap,                     \
+                                            size_t cap) {                     \
+        _CBASE_DATA_DYNAMIC_MANAGEMENT_CHECK_MUTABLE_INPUT_ARGS(data,         \
+                                                                dlen,         \
+                                                                dcap);        \
+                                                                              \
+        CBASE_PROPAGATE_ERROR(                                                \
+            _dname##_init_capacity_no_zero_no_check(data, dlen, dcap, cap));  \
                                                                               \
         return 0;                                                             \
     }                                                                         \
@@ -161,6 +411,79 @@
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_init_capacity_no_check(data, dlen, dcap, cap));          \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_init_length_capacity_no_zero_no_check(_dtype **data,    \
+                                                            size_t *dlen,     \
+                                                            size_t *dcap,     \
+                                                            size_t len,       \
+                                                            size_t cap) {     \
+        if (cap <= len) {                                                     \
+            CBASE_DELEGATE(_dname##_init_length_no_zero_no_check(data,        \
+                                                                 dlen,        \
+                                                                 dcap,        \
+                                                                 len));       \
+        }                                                                     \
+                                                                              \
+        _dname##_init_no_check(dlen, dcap);                                   \
+                                                                              \
+        _CBASE_TRY_EXPAND_DATA_IF_NEEDED_NO_ZERO(_dname, data, dcap, cap);    \
+                                                                              \
+        (*dlen) = len;                                                        \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_init_length_capacity_no_zero(_dtype **data,             \
+                                                   size_t *dlen,              \
+                                                   size_t *dcap,              \
+                                                   size_t len,                \
+                                                   size_t cap) {              \
+        _CBASE_DATA_DYNAMIC_MANAGEMENT_CHECK_MUTABLE_INPUT_ARGS(data,         \
+                                                                dlen,         \
+                                                                dcap);        \
+                                                                              \
+        CBASE_PROPAGATE_ERROR(                                                \
+            _dname##_init_length_capacity_no_zero_no_check(data,              \
+                                                           dlen,              \
+                                                           dcap,              \
+                                                           len,               \
+                                                           cap));             \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_init_length_capacity_no_check(_dtype **data,            \
+                                                    size_t *dlen,             \
+                                                    size_t *dcap,             \
+                                                    size_t len,               \
+                                                    size_t cap) {             \
+        if (cap <= len) {                                                     \
+            CBASE_DELEGATE(                                                   \
+                _dname##_init_length_no_check(data, dlen, dcap, len));        \
+        }                                                                     \
+                                                                              \
+        _dname##_init_no_check(dlen, dcap);                                   \
+                                                                              \
+        _CBASE_TRY_EXPAND_DATA_IF_NEEDED(_dname, data, dcap, cap);            \
+                                                                              \
+        (*dlen) = len;                                                        \
+                                                                              \
+        return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api int _dname##_init_length_capacity(_dtype **data,                     \
+                                           size_t *dlen,                      \
+                                           size_t *dcap,                      \
+                                           size_t cap) {                      \
+        _CBASE_DATA_DYNAMIC_MANAGEMENT_CHECK_MUTABLE_INPUT_ARGS(data,         \
+                                                                dlen,         \
+                                                                dcap);        \
+                                                                              \
+        CBASE_PROPAGATE_ERROR(                                                \
+            _dname##_init_length_capacity_no_check(data, dlen, dcap, cap));   \
                                                                               \
         return 0;                                                             \
     }                                                                         \

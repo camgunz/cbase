@@ -12,21 +12,23 @@
 #include "cbase/errors.h"
 #include "cbase/util.h"
 
-/*
- * [TODO]
- * - Rebase on readable/writable/dynamic_data
- */
+#define CBASE_ARRAY_SLICE_DECL(_stype, _etype)                                \
+    typedef struct _stype##Struct {                                           \
+        size_t len;                                                           \
+        _etype *data;                                                         \
+    } _stype;
 
-#define CBASE_ARRAY_IMPL(_atype, _aname, _etype)                               \
-    CBASE_ARRAY_BASE_IMPL(CBASE_IMPL_NORMAL, _atype, _aname, _etype)
+#define CBASE_STATIC_ARRAY_DECL(_atype, _etype, _acap)                        \
+    typedef struct _atype##Struct {                                           \
+        size_t len;                                                           \
+        _etype data[_acap];                                                   \
+    } _atype;
 
-#define CBASE_ARRAY_STATIC_IMPL(_atype, _aname, _etype)                        \
-    CBASE_ARRAY_BASE_IMPL(CBASE_IMPL_STATIC, _atype, _aname, _etype)
-
-#define CBASE_ARRAY_STATIC_DEF(_atype, _aname, _etype)                         \
-    CBASE_ARRAY_DECL(_atype, _etype)                                           \
-    CBASE_ARRAY_STATIC_IMPL(_atype, _aname, _etype)
+#define CBASE_DYNAMIC_ARRAY_DECL(_atype, _etype)                              \
+    typedef struct _atype##Struct {                                           \
+        size_t cap;                                                           \
+        size_t len;                                                           \
+        _etype *data;                                                         \
+    } _atype;
 
 #endif
-
-/* vi: set et ts=4 sw=4: */

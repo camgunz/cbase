@@ -3,3 +3,4 @@
 *.o
 cbuild/
 compile_commands.json
+.clang-format

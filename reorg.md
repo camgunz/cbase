@@ -1,5 +1,11 @@
 # Reorganization
 
+## Arrays
+
+`_dtype` -> `_etype`
+s/_etype\s\*data/_atype *array/g
+`_api <type> _dname` -> `_api <type> _aname`
+
 ## data_base.h
 
 - index_no_check
@@ -26,17 +32,21 @@
 
 - ensure_capacity_no_zero
 - ensure_capacity
-- set_capacity_no_zero_no_check
-- set_capacity_no_zero
-- set_capacity_no_check
-- set_capacity
 
 #### data_static_management.h
 
 - ensure_capacity_no_zero_no_check
 - ensure_capacity_no_check
+- set_length_no_zero_no_check
+- set_length_no_zero
+- set_length_no_check
+- set_length
 - init_no_check
 - init
+- init_length_no_zero_no_check
+- init_length_no_zero
+- init_length_no_check
+- init_length
 - init_from_data_no_check
 - init_from_data
 - free_no_zero_no_check
@@ -51,15 +61,31 @@
 #### data_dynamic_management.h
 
 - ensure_capacity_no_zero_no_check
-- ensure_capacity_no_zero
 - ensure_capacity_no_check
-- ensure_capacity
+- set_length_no_zero_no_check
+- set_length_no_zero
+- set_length_no_check
+- set_length
+- set_capacity_no_zero_no_check
+- set_capacity_no_zero
+- set_capacity_no_check
+- set_capacity
 - init_no_check
 - init
+- init_length_no_zero_no_check
+- init_length_no_zero
+- init_length_no_check
+- init_length
+- init_capacity_no_zero_no_check
+- init_capacity_no_zero
 - init_capacity_no_check
 - init_capacity
+- init_length_capacity_no_zero_no_check
+- init_length_capacity_no_zero
+- init_length_capacity_no_check
+- init_length_capacity
 - init_from_data_no_check
-- *init_from_data*
+- init_from_data
 - free_no_zero_no_check
 - free_no_zero
 - free_no_check
@@ -98,6 +124,10 @@
 - truncate
 - compact_no_check
 - compact
+- move_left_no_zero_no_check
+- move_left_no_zero
+- move_left_no_check
+- move_left
 - delete_no_zero_no_check
 - delete_no_zero
 - delete_no_check
@@ -127,14 +157,13 @@
 
 ### data_dynamic_mutations.h
 
+*Actually I think all of these should have static implementations as well, but
+ that's easy enough*
+
 - move_right_no_zero_no_check
 - move_right_no_zero
 - move_right_no_check
 - move_right
-- move_left_no_zero_no_check
-- move_left_no_zero
-- move_left_no_check
-- move_left
 - insert_slot_no_zero_no_check
 - insert_slot_no_zero
 - insert_slot_no_check
