@@ -11,7 +11,7 @@ dependencies = []
 conf_data = configuration_data()
 conf_data.set('version', version)
 
-incdir = include_directories('src/')
+incdirs = [include_directories('src')]
 
 compiler = meson.get_compiler('c')
 
@@ -88,12 +88,6 @@ conf_data.set('HAVE_MEMMEM', compiler.has_function(
   'memmem',
   prefix : '#include <string.h>'
 ))
-
-if compiler.has_header('asm/byteorder.h')
-  conf_data.set('HAVE_ASM_BYTEORDER_H', true)
-else
-  conf_data.set('HAVE_ASM_BYTEORDER_H', false)
-endif
 
 conf_data.set('HAVE_ASM_BYTEORDER_H', compiler.has_header('asm/byteorder.h'))
 conf_data.set('HAVE_BYTESWAP_H', compiler.has_header('byteswap.h'))
@@ -415,7 +409,7 @@ lib = library(
   soversion : version,
   install : true,
   dependencies : dependencies,
-  include_directories : incdir
+  include_directories : incdirs
 )
 
 dependencies += compiler.find_library('cmocka')
@@ -426,7 +420,7 @@ test_exe = executable(
   cbase_test_src,
   install : false,
   dependencies : dependencies,
-  include_directories : incdir
+  include_directories : incdirs
 )
 
 test('cbase tests', test_exe)

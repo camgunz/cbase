@@ -8,6 +8,8 @@ clean:
 
 build:
 	@meson setup --default-library=both build
+	@compdb -p build/ list > compile_commands.json
+	@mv compile_commands.json build/compile_commands.json
 
 releasebuild:
 	@meson setup --buildtype=release --default-library=both \
