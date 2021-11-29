@@ -2,5 +2,7 @@
 *.swo
 *.o
 cbuild/
+.cache/
+subprojects/
 compile_commands.json
 .clang-format
