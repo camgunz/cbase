@@ -2,8 +2,8 @@
 
 ## Next time
 
-- Split up the definitions of `_set_length` across static and dynamic data
-- Resume work on `array_ownership_management.h`
+- Add static data implementations of dynamic data mutations
+- Start work on array mutations
 
 ## Defines
 
@@ -63,6 +63,7 @@ CONFIGURABLE becomes RUNTIME
   - Fraggle's C algorithms
   - tommyds
   - C++ STL
+	- Ludocode's Pottery
 
 ## Tests
 
