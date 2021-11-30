@@ -9,8 +9,8 @@
 
 #ifdef ERRORS
 
-#if (ERRORS == ERROR_LEVEL_CONFIGURABLE) || (ERRORS == ERRORS_CONFIGURABLE)
-static LogLevel _error_log_levels[CBASE_ERROR_CODE_COUNT] = { 
+#if (ERRORS == ERROR_LEVEL_RUNTIME) || (ERRORS == ERRORS_RUNTIME)
+static LogLevel _error_log_levels[CBASE_ERROR_CODE_COUNT] = {
     CBASE_LOG_LEVEL_CRITICAL, /* CBASE_ERROR_OUT_OF_BOUNDS */
     CBASE_LOG_LEVEL_CRITICAL, /* CBASE_ERROR_MEMORY_ALLOC_FAILED */
     CBASE_LOG_LEVEL_FAILURE,  /* CBASE_ERROR_NOT_FOUND */
@@ -29,8 +29,8 @@ void errors_set_log_level(ErrorCode code, LogLevel level) {
 }
 #endif
 
-#if ERRORS == ERRORS_CONFIGURABLE
-static ErrorHandler* _error_handlers[] = {
+#if ERRORS == ERRORS_RUNTIME
+static ErrorHandler *_error_handlers[] = {
     _default_error_handler,
     _default_error_handler,
     _default_error_handler,
@@ -40,7 +40,7 @@ static ErrorHandler* _error_handlers[] = {
     _default_error_handler,
 };
 
-ErrorHandler* errors_get_handler(ErrorCode code) {
+ErrorHandler *errors_get_handler(ErrorCode code) {
     return _error_handlers[INT_MAX - code];
 }
 

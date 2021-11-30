@@ -49,8 +49,8 @@
     _api int _dname##_ensure_capacity_no_zero(_dtype **data,                  \
                                               size_t *dcap,                   \
                                               size_t cap) {                   \
-        CBASE_CHECK_INPUT_OBJECT(data);                                       \
-        CBASE_CHECK_INPUT_ARGUMENT(dcap);                                     \
+        CBASE_CHECK_INPUT_POINTER(data);                                      \
+        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_ensure_capacity_no_zero_no_check(data, dcap, cap));      \
@@ -61,8 +61,8 @@
     _api int _dname##_ensure_capacity(_dtype **data,                          \
                                       size_t *dcap,                           \
                                       size_t cap) {                           \
-        CBASE_CHECK_INPUT_OBJECT(data);                                       \
-        CBASE_CHECK_INPUT_ARGUMENT(dcap);                                     \
+        CBASE_CHECK_INPUT_POINTER(data);                                      \
+        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_ensure_capacity_no_check(data, dcap, cap));              \

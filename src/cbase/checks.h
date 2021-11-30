@@ -22,14 +22,15 @@
 #endif
 
 #ifndef CBASE_DISABLE_INDEXED_LENGTH_BOUNDS_CHECKS
-#define CBASE_CHECK_INDEXED_LENGTH_BOUNDS(_len, _index, _count)               \
+#define CBASE_CHECK_INDEX_OFFSET_BOUNDS(_len, _index, _count)               \
     do {                                                                      \
         size_t _slot_count = 0;                                               \
-        CBASE_PROPAGATE_ERROR(cb_safe_add_size((_index), (_count), &_slot_count)); \
+        CBASE_PROPAGATE_ERROR(                                                \
+            cb_safe_add_size((_index), (_count), &_slot_count));              \
         CBASE_CHECK_LENGTH_BOUNDS((_len), _slot_count);                       \
     } while (0)
 #else
-#define CBASE_CHECK_INDEXED_LENGTH_BOUNDS(_len, _index, _count)
+#define CBASE_CHECK_INDEX_OFFSET_BOUNDS(_len, _index, _count)
 #endif
 
 #ifndef CBASE_DISABLE_OVERLAPPING_MEMORY_CHECKS
@@ -44,36 +45,26 @@
 #ifndef CBASE_DISABLE_ALL_POINTER_CHECKS
 #define CBASE_CHECK_POINTER(_arg)                                             \
     CBASE_ERROR_IF((!(_arg)), CBASE_ERROR_NULL_POINTER)
-#define CBASE_CHECK_DOUBLE_POINTER(_arg) \
-    CBASE_CHECK_POINTER(_arg) \
+#define CBASE_CHECK_DOUBLE_POINTER(_arg)                                      \
+    CBASE_CHECK_POINTER(_arg)                                                 \
     CBASE_CHECK_POINTER((*_arg))
 #else
 #define CBASE_CHECK_POINTER(_arg)
 #define CBASE_CHECK_DOUBLE_POINTER(_arg)
 #endif
 
-#ifndef CBASE_DISABLE_INPUT_OBJECT_POINTER_CHECKS
-#define CBASE_CHECK_INPUT_OBJECT(_inobj) CBASE_CHECK_POINTER(_inobj)
-#define CBASE_CHECK_REALLOCATABLE_INPUT_OBJECT(_inobj)                        \
-    CBASE_CHECK_INPUT_OBJECT(_inobj);                                         \
-    CBASE_CHECK_INPUT_OBJECT((*_inobj))
+#ifndef CBASE_DISABLE_INPUT_POINTER_CHECKS
+#define CBASE_CHECK_INPUT_POINTER(_inarg) CBASE_CHECK_POINTER(_inarg)
+#define CBASE_CHECK_INPUT_DOUBLE_POINTER(_inarg)                              \
+    CBASE_CHECK_DOUBLE_POINTER(_inarg)
 #else
-#define CBASE_CHECK_INPUT_OBJECT(_inobj)
-#define CBASE_CHECK_REALLOCATABLE_INPUT_OBJECT(_inobj)
-#endif
-
-#ifndef CBASE_DISABLE_INPUT_ARGUMENT_POINTER_CHECKS
-#define CBASE_CHECK_INPUT_ARGUMENT(_inarg) CBASE_CHECK_POINTER(_inarg)
-#else
-#define CBASE_CHECK_INPUT_ARGUMENT(_inarg)
+#define CBASE_CHECK_INPUT_POINTER(_inarg)
 #endif
 
 #ifndef CBASE_DISABLE_OUTPUT_POINTER_CHECKS
-#define CBASE_CHECK_OUTPUT_ARGUMENT(_outptr) CBASE_CHECK_POINTER(_outptr)
+#define CBASE_CHECK_OUTPUT_POINTER(_outptr) CBASE_CHECK_POINTER(_outptr)
 #else
-#define CBASE_CHECK_OUTPUT_ARGUMENT(_outptr)
+#define CBASE_CHECK_OUTPUT_POINTER(_outptr)
 #endif
 
 #endif
-
-/* vi: set et ts=4 sw=4: */

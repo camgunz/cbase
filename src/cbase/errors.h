@@ -41,7 +41,7 @@ typedef enum
 
 #ifndef ERRORS
 
-#define CBASE_DELEGATE(call)                                           \
+#define CBASE_DELEGATE(call)                                                  \
     do {                                                                      \
         return call;                                                          \
     } while (0)
@@ -61,7 +61,7 @@ typedef enum
 
 #else
 
-#if (ERRORS == ERROR_LEVEL_CONFIGURABLE) || (ERRORS == ERRORS_CONFIGURABLE)
+#if (ERRORS == ERROR_LEVEL_RUNTIME) || (ERRORS == ERRORS_RUNTIME)
 CBASE_API
 LogLevel errors_get_log_level(ErrorCode code) CBASE_API_ATTRS;
 
@@ -70,7 +70,7 @@ void errors_set_log_level(ErrorCode code, LogLevel level) CBASE_API_ATTRS;
 
 #endif
 
-#if ERRORS == ERRORS_CONFIGURABLE
+#if ERRORS == ERRORS_RUNTIME
 typedef void(ErrorHandler)(ErrorCode code, const char *file, int line);
 
 CBASE_API
@@ -170,13 +170,13 @@ void _default_error_handler(ErrorCode code, const char *file, int line) {
     }
 }
 
-#define CBASE_DELEGATE(call)                                           \
+#define CBASE_DELEGATE(call)                                                  \
     do {                                                                      \
         int _error = call;                                                    \
         if (_error) {                                                         \
-            _default_error_handler(error, __FILE__, __LINE__);                     \
+            _default_error_handler(error, __FILE__, __LINE__);                \
         }                                                                     \
-        return _error;                                                    \
+        return _error;                                                        \
     } while (0)
 
 #define CBASE_ERROR(code)                                                     \

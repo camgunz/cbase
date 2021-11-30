@@ -138,7 +138,8 @@
                                          size_t *dlen,                        \
                                          size_t index,                        \
                                          size_t count) {                      \
-        _CBASE_DATA_CHECK_REALLOCATABLE_INPUT_ARGS(data, dlen);               \
+        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
+        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
         CBASE_CHECK_INDEX_BOUNDS(*dlen, index);                               \
         _CBASE_TRY_EXPAND_DATA_IF_NEEDED_NO_ZERO(_dname, data, dlen, count);  \
                                                                               \
@@ -160,7 +161,8 @@
                                  size_t *dlen,                                \
                                  size_t index,                                \
                                  size_t count) {                              \
-        _CBASE_DATA_CHECK_REALLOCATABLE_INPUT_ARGS(data, dlen);               \
+        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
+        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
         CBASE_CHECK_INDEX_BOUNDS(*dlen, index);                               \
         _CBASE_TRY_EXPAND_DATA_IF_NEEDED(_dname, data, dlen, count);          \
                                                                               \
@@ -180,9 +182,10 @@
                                           size_t *dlen,                       \
                                           size_t index,                       \
                                           _dtype const **new_slot) {          \
-        _CBASE_DATA_CHECK_REALLOCATABLE_INPUT_ARGS(data, dlen);               \
+        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
+        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
         CBASE_CHECK_INDEX_BOUNDS(*dlen, index);                               \
-        CBASE_CHECK_OUTPUT_ARGUMENT(new_slot);                                \
+        CBASE_CHECK_OUTPUT_POINTER(new_slot);                                 \
         _CBASE_TRY_EXPAND_DATA_IF_NEEDED_NO_ZERO(_dname, data, dlen, 1);      \
                                                                               \
         *new_slot =                                                           \
@@ -202,9 +205,10 @@
                                   size_t *dlen,                               \
                                   size_t index,                               \
                                   _dtype const **new_slot) {                  \
-        _CBASE_DATA_CHECK_REALLOCATABLE_INPUT_ARGS(data, dlen);               \
+        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
+        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
         CBASE_CHECK_INDEX_BOUNDS(*dlen, index);                               \
-        CBASE_CHECK_OUTPUT_ARGUMENT(new_slot);                                \
+        CBASE_CHECK_OUTPUT_POINTER(new_slot);                                 \
         _CBASE_TRY_EXPAND_DATA_IF_NEEDED(_dname, data, dlen, 1);              \
                                                                               \
         *new_slot = _dname##_insert_slot_no_check((*data), dlen, index);      \
@@ -226,8 +230,9 @@
                              size_t index,                                    \
                              const _dtype *data2,                             \
                              size_t count) {                                  \
-        _CBASE_DATA_CHECK_MUTABLE_INPUT_ARGS(data, dlen);                     \
-        CBASE_CHECK_INPUT_ARGUMENT(data2);                                    \
+        CBASE_CHECK_INPUT_POINTER(data);                                      \
+        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_INPUT_POINTER(data2);                                     \
         CBASE_CHECK_INDEX_BOUNDS(*dlen, index);                               \
         CBASE_CHECK_MEMORY_OVERLAP((*data), *dlen, data2);                    \
         _CBASE_TRY_EXPAND_DATA_IF_NEEDED(_dname, data, dlen, count);          \
@@ -287,8 +292,9 @@
     _api int _dname##_append_slot_no_zero(_dtype **data,                      \
                                           size_t *dlen,                       \
                                           _dtype const **new_slot) {          \
-        _CBASE_DATA_CHECK_REALLOCATABLE_INPUT_ARGS(data, dlen);               \
-        CBASE_CHECK_OUTPUT_ARGUMENT(new_slot);                                \
+        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
+        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_OUTPUT_POINTER(new_slot);                                 \
         _CBASE_TRY_EXPAND_DATA_IF_NEEDED_NO_ZERO(_dname, data, dlen, 1);      \
                                                                               \
         *new_slot = _dname##_index_no_check((*data), (*dlen) - 1);            \
@@ -305,8 +311,9 @@
     _api int _dname##_append_slot(_dtype **data,                              \
                                   size_t *dlen,                               \
                                   _dtype const **new_slot) {                  \
-        _CBASE_DATA_CHECK_REALLOCATABLE_INPUT_ARGS(data, dlen);               \
-        CBASE_CHECK_OUTPUT_ARGUMENT(new_slot);                                \
+        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
+        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_OUTPUT_POINTER(new_slot);                                 \
         _CBASE_TRY_EXPAND_DATA_IF_NEEDED(_dname, data, dlen, 1);              \
                                                                               \
         *new_slot = _dname##_index_no_check(*data, (*dlen) - 1);              \
@@ -326,8 +333,9 @@
                              size_t *dlen,                                    \
                              const _dtype *data2,                             \
                              size_t count) {                                  \
-        _CBASE_DATA_CHECK_REALLOCATABLE_INPUT_ARGS(data, dlen);               \
-        CBASE_CHECK_INPUT_ARGUMENT(data2);                                    \
+        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
+        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_INPUT_POINTER(data2);                                     \
         CBASE_CHECK_MEMORY_OVERLAP((*data), *dlen, data2);                    \
         _CBASE_TRY_EXPAND_DATA_IF_NEEDED(_dname, data, dlen, count);          \
                                                                               \
@@ -343,9 +351,10 @@
                                       size_t old_len,                         \
                                       const _dtype *new_data,                 \
                                       size_t new_len) {                       \
-        _CBASE_DATA_CHECK_REALLOCATABLE_INPUT_ARGS(data, dlen);               \
-        CBASE_CHECK_INPUT_ARGUMENT(old_data);                                 \
-        CBASE_CHECK_INPUT_ARGUMENT(new_data);                                 \
+        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
+        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_INPUT_POINTER(old_data);                                  \
+        CBASE_CHECK_INPUT_POINTER(new_data);                                  \
         CBASE_CHECK_INDEX_BOUNDS((*dlen), index);                             \
         CBASE_ERROR_IF(index == (*dlen), CBASE_ERROR_NOT_FOUND);              \
         CBASE_ERROR_IF(new_len == 0, CBASE_ERROR_NULL_POINTER);               \
@@ -409,9 +418,10 @@
                               size_t old_len,                                 \
                               const _dtype *new_data,                         \
                               size_t new_len) {                               \
-        _CBASE_DATA_CHECK_REALLOCATABLE_INPUT_ARGS(data, dlen);               \
-        CBASE_CHECK_INPUT_ARGUMENT(old_data);                                 \
-        CBASE_CHECK_INPUT_ARGUMENT(new_data);                                 \
+        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
+        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_INPUT_POINTER(old_data);                                  \
+        CBASE_CHECK_INPUT_POINTER(new_data);                                  \
         CBASE_CHECK_INDEX_BOUNDS((*dlen), index);                             \
         CBASE_ERROR_IF(index == (*dlen), CBASE_ERROR_NOT_FOUND);              \
         CBASE_ERROR_IF(new_len == 0, CBASE_ERROR_NULL_POINTER);               \
@@ -477,5 +487,3 @@
     }                                                                         \
                                                                               \
 #endif
-
-/* vi: set et ts=4 sw=4: */

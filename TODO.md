@@ -5,16 +5,12 @@
 - Add static data implementations of dynamic data mutations
 - Start work on array mutations
 
-## Defines
-
-CONFIGURABLE becomes RUNTIME
-
 ## General
 
 - Find all ` + ` instances and wrap in `check_overflow` or something
 - Find all ` - ` instances that are pointer arithmetic, and replace it with
   `positive_ptrdiff`
-- Appl CBASE_API_ATTRS to the end of everything
+- Append CBASE_API_ATTRS to the end of everything
 
 - byte_len -> len in utf8
 - Get list.h and dlist.h up to par

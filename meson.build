@@ -322,8 +322,8 @@ conf_data.set(
 )
 
 conf_data.set(
-  'CBASE_DISABLE_INDEXED_LENGTH_BOUNDS_CHECKS',
-  get_option('disable_indexed_length_bounds_checks')
+  'CBASE_DISABLE_INDEX_OFFSET_BOUNDS_CHECKS',
+  get_option('disable_index_offset_bounds_checks')
 )
 
 conf_data.set(
@@ -332,13 +332,8 @@ conf_data.set(
 )
 
 conf_data.set(
-  'CBASE_DISABLE_INPUT_OBJECT_POINTER_CHECKS',
-  get_option('disable_input_object_argument_pointer_checks')
-)
-
-conf_data.set(
-  'CBASE_DISABLE_INPUT_ARGUMENT_POINTER_CHECKS',
-  get_option('disable_input_argument_pointer_checks')
+  'CBASE_DISABLE_INPUT_POINTER_CHECKS',
+  get_option('disable_input_pointer_checks')
 )
 
 conf_data.set(
