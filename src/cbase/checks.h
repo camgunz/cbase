@@ -44,8 +44,12 @@
 #ifndef CBASE_DISABLE_ALL_POINTER_CHECKS
 #define CBASE_CHECK_POINTER(_arg)                                             \
     CBASE_ERROR_IF((!(_arg)), CBASE_ERROR_NULL_POINTER)
+#define CBASE_CHECK_DOUBLE_POINTER(_arg) \
+    CBASE_CHECK_POINTER(_arg) \
+    CBASE_CHECK_POINTER((*_arg))
 #else
 #define CBASE_CHECK_POINTER(_arg)
+#define CBASE_CHECK_DOUBLE_POINTER(_arg)
 #endif
 
 #ifndef CBASE_DISABLE_INPUT_OBJECT_POINTER_CHECKS
