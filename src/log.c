@@ -17,7 +17,7 @@ void _default_log_set_level(LogLevel level) {
 #endif
 
 #if DEFAULT_LOGGER == LOG_CUSTOM
-static LoggerFunc* _default_loggers[CBASE_LOG_LEVEL_MAX] = {
+static LoggerFunc *_default_loggers[CBASE_LOG_LEVEL_MAX] = {
     _printf_to_stderr,
     _printf_to_stderr,
     _printf_to_stderr,
@@ -27,7 +27,7 @@ static LoggerFunc* _default_loggers[CBASE_LOG_LEVEL_MAX] = {
     _printf_to_stderr,
 };
 
-static VLoggerFunc* _default_vloggers[CBASE_LOG_LEVEL_MAX] = {
+static VLoggerFunc *_default_vloggers[CBASE_LOG_LEVEL_MAX] = {
     _vprintf_to_stderr,
     _vprintf_to_stderr,
     _vprintf_to_stderr,
@@ -37,7 +37,7 @@ static VLoggerFunc* _default_vloggers[CBASE_LOG_LEVEL_MAX] = {
     _vprintf_to_stderr,
 };
 
-LoggerFunc* _default_log_get_logger(LogLevel level) {
+LoggerFunc *_default_log_get_logger(LogLevel level) {
     return _default_loggers[level];
 }
 
@@ -45,7 +45,7 @@ void _default_set_logger(LogLevel level, LoggerFunc log) {
     _default_loggers[level] = log;
 }
 
-VLoggerFunc* _default_log_get_vlogger(LogLevel level) {
+VLoggerFunc *_default_log_get_vlogger(LogLevel level) {
     return _default_vloggers[level];
 }
 
@@ -68,7 +68,7 @@ void _internal_log_set_level(LogLevel level) {
 #endif
 
 #if INTERNAL_LOGGER == LOG_CUSTOM
-static LoggerFunc* _internal_loggers[CBASE_LOG_LEVEL_MAX] = {
+static LoggerFunc *_internal_loggers[CBASE_LOG_LEVEL_MAX] = {
     _printf_to_stderr,
     _printf_to_stderr,
     _printf_to_stderr,
@@ -78,7 +78,7 @@ static LoggerFunc* _internal_loggers[CBASE_LOG_LEVEL_MAX] = {
     _printf_to_stderr,
 };
 
-static VLoggerFunc* _internal_vloggers[CBASE_LOG_LEVEL_MAX] = {
+static VLoggerFunc *_internal_vloggers[CBASE_LOG_LEVEL_MAX] = {
     _vprintf_to_stderr,
     _vprintf_to_stderr,
     _vprintf_to_stderr,
@@ -88,7 +88,7 @@ static VLoggerFunc* _internal_vloggers[CBASE_LOG_LEVEL_MAX] = {
     _vprintf_to_stderr,
 };
 
-LoggerFunc* _internal_log_get_logger(LogLevel level) {
+LoggerFunc *_internal_log_get_logger(LogLevel level) {
     return _internal_loggers[level];
 }
 
@@ -96,7 +96,7 @@ void _internal_set_logger(LogLevel level, LoggerFunc log) {
     _internal_loggers[level] = log;
 }
 
-VLoggerFunc* _internal_log_get_vlogger(LogLevel level) {
+VLoggerFunc *_internal_log_get_vlogger(LogLevel level) {
     return _internal_vloggers[level];
 }
 
@@ -118,7 +118,7 @@ void log_set_level(LogLevel level) {
 #endif
 
 #if LOGGER == LOG_CUSTOM
-static LoggerFunc* loggers[CBASE_LOG_LEVEL_MAX] = {
+static LoggerFunc *loggers[CBASE_LOG_LEVEL_MAX] = {
     _printf_to_stderr,
     _printf_to_stderr,
     _printf_to_stderr,
@@ -128,7 +128,7 @@ static LoggerFunc* loggers[CBASE_LOG_LEVEL_MAX] = {
     _printf_to_stderr,
 };
 
-static VLoggerFunc* vloggers[CBASE_LOG_LEVEL_MAX] = {
+static VLoggerFunc *vloggers[CBASE_LOG_LEVEL_MAX] = {
     _vprintf_to_stderr,
     _vprintf_to_stderr,
     _vprintf_to_stderr,
@@ -138,7 +138,7 @@ static VLoggerFunc* vloggers[CBASE_LOG_LEVEL_MAX] = {
     _vprintf_to_stderr,
 };
 
-LoggerFunc* log_get_logger(LogLevel level) {
+LoggerFunc *log_get_logger(LogLevel level) {
     return loggers[level];
 }
 
@@ -146,7 +146,7 @@ void log_set_logger(LogLevel level, LoggerFunc log) {
     loggers[level] = log;
 }
 
-VLoggerFunc* log_get_vlogger(LogLevel level) {
+VLoggerFunc *log_get_vlogger(LogLevel level) {
     return vloggers[level];
 }
 

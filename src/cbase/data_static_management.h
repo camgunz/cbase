@@ -129,8 +129,8 @@
     _api int _dname##_set_length_no_zero(_dtype **data,                       \
                                          size_t *dlen,                        \
                                          size_t len) {                        \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_set_length_no_zero_no_check(data, dlen, len));           \
@@ -153,8 +153,8 @@
     }                                                                         \
                                                                               \
     _api int _dname##_set_length(_dtype **data, size_t *dlen, size_t len) {   \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
                                                                               \
         CBASE_PROPAGATE_ERROR(_dname##_set_length_no_check(data, dlen, len)); \
                                                                               \
@@ -166,7 +166,7 @@
     }                                                                         \
                                                                               \
     _api int _dname##_init(size_t *dlen) {                                    \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
                                                                               \
         _dname##_init_no_check(dlen);                                         \
                                                                               \
@@ -185,8 +185,8 @@
     _api int _dname##_init_length_no_zero(_dtype **data,                      \
                                           size_t *dlen,                       \
                                           size_t len) {                       \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_init_length_no_zero_no_check(data, dlen, len));          \
@@ -204,8 +204,8 @@
     }                                                                         \
                                                                               \
     _api int _dname##_init_length(_dtype **data, size_t *dlen, size_t len) {  \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_init_length_no_check(data, dlen, len));                  \
@@ -228,9 +228,9 @@
                                      size_t *dlen,                            \
                                      const _dtype *data2,                     \
                                      size_t dlen2) {                          \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_INPUT_POINTER(data2);                                     \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(data2);                                  \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_init_from_data_no_check(data, dlen, data2, dlen2));      \
@@ -244,8 +244,8 @@
     }                                                                         \
                                                                               \
     _api int _dname##_free_no_zero(_dtype *data, size_t *dlen) {              \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
                                                                               \
         _dname##_free_no_zero_no_check(data, dlen);                           \
                                                                               \
@@ -258,8 +258,8 @@
     }                                                                         \
                                                                               \
     _api int _dname##_free(_dtype *data, size_t *dlen) {                      \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
                                                                               \
         _dname##_free_no_check(data, dlen);                                   \
                                                                               \
@@ -273,8 +273,8 @@
     }                                                                         \
                                                                               \
     _api int _dname##_destroy_no_zero(_dtype **data, size_t *dlen) {          \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
                                                                               \
         _dname##_destroy_no_zero_no_check(data, dlen);                        \
                                                                               \
@@ -287,8 +287,8 @@
     }                                                                         \
                                                                               \
     _api int _dname##_destroy(_dtype **data, size_t *dlen) {                  \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
                                                                               \
         _dname##_destroy_no_check(data, dlen);                                \
                                                                               \

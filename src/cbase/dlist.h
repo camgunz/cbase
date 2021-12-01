@@ -15,7 +15,7 @@ enum
     CBASE_DLIST_FULL,
 };
 
-#define CBASE_DLIST_DECL(_api, _dltype, _dlname, _otype)                    \
+#define CBASE_DLIST_DECL(_api, _dltype, _dlname, _otype)                      \
     struct _dltype##NodeStruct;                                               \
                                                                               \
     typedef struct _dltype##NodeStruct {                                      \
@@ -24,7 +24,7 @@ enum
         _otype obj;                                                           \
     } _dltype##Node;                                                          \
                                                                               \
-    CBASE_ARRAY_DEF(_api,                                                   \
+    CBASE_ARRAY_DEF(_api,                                                     \
                     _dltype##NodeArray,                                       \
                     _dlname##_node_array,                                     \
                     _dltype##Node)                                            \
@@ -36,8 +36,8 @@ enum
         _dltype##Node *spare_nodes;                                           \
     } _dltype;
 
-#define CBASE_DLIST_IMPL(_api, _dltype, _dlname, _otype)                    \
-    _api CBASE_TMPL_API void _##_dlname##_node_push_tail(                   \
+#define CBASE_DLIST_IMPL(_api, _dltype, _dlname, _otype)                      \
+    _api CBASE_TMPL_API void _##_dlname##_node_push_tail(                     \
         _dltype##Node **node_list,                                            \
         _dltype##Node *node) {                                                \
         if (!(*node_list)) {                                                  \
@@ -53,7 +53,7 @@ enum
         }                                                                     \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API void _##_dlname##_node_push_head(                   \
+    _api CBASE_TMPL_API void _##_dlname##_node_push_head(                     \
         _dltype##Node **node_list,                                            \
         _dltype##Node *node) {                                                \
         _##_dlname##_node_push_tail(node_list, node);                         \
@@ -61,7 +61,7 @@ enum
         *node_list = node;                                                    \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API int _##_dlname##_node_pop_head(                     \
+    _api CBASE_TMPL_API int _##_dlname##_node_pop_head(                       \
         _dltype##Node **node_list,                                            \
         _dltype##Node **node) {                                               \
         CBASE_ERROR_IF((!(*node_list)), CBASE_DLIST_EMPTY);                   \
@@ -79,7 +79,7 @@ enum
         return 0;                                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API int _##_dlname##_node_pop_tail(                     \
+    _api CBASE_TMPL_API int _##_dlname##_node_pop_tail(                       \
         _dltype##Node **node_list,                                            \
         _dltype##Node **node) {                                               \
         CBASE_ERROR_IF((!(*node_list)), CBASE_DLIST_EMPTY);                   \
@@ -95,8 +95,8 @@ enum
         return 0;                                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API int _dlname##_ensure_capacity(_dltype *dlist,       \
-                                                        size_t length) {      \
+    _api CBASE_TMPL_API int _dlname##_ensure_capacity(_dltype *dlist,         \
+                                                      size_t length) {        \
         size_t saved_alloc = dlist->nodes.alloc;                              \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
@@ -114,20 +114,20 @@ enum
         return 0;                                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API void _dlname##_init(_dltype *dlist) {               \
+    _api CBASE_TMPL_API void _dlname##_init(_dltype *dlist) {                 \
         _dlname##_node_array_init(&dlist->nodes);                             \
         dlist->len = 0;                                                       \
         dlist->used_nodes = NULL;                                             \
         dlist->spare_nodes = NULL;                                            \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API int _dlname##_init_alloc(_dltype *dlist,            \
-                                                   size_t length) {           \
+    _api CBASE_TMPL_API int _dlname##_init_alloc(_dltype *dlist,              \
+                                                 size_t length) {             \
         _dlname##_init(dlist);                                                \
         return _dlname##_ensure_capacity(dlist, length);                      \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API int _dlname##_new(_dltype **dlist) {                \
+    _api CBASE_TMPL_API int _dlname##_new(_dltype **dlist) {                  \
         CBASE_PROPAGATE_ERROR(cbmalloc(1, sizeof(_dltype), dlist));           \
                                                                               \
         _dlname##_init(*dlist);                                               \
@@ -135,8 +135,8 @@ enum
         return 0;                                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API int _dlname##_new_alloc(_dltype **dlist,            \
-                                                  size_t length) {            \
+    _api CBASE_TMPL_API int _dlname##_new_alloc(_dltype **dlist,              \
+                                                size_t length) {              \
         CBASE_PROPAGATE_ERROR(cbmalloc(1, sizeof(_dltype), dlist));           \
                                                                               \
         CBASE_PROPAGATE_ERROR(_dlname##_init_alloc(*dlist, length));          \
@@ -144,8 +144,8 @@ enum
         return 0;                                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API int _dlname##_push_head_slot(_dltype *dlist,        \
-                                                       _otype **obj) {        \
+    _api CBASE_TMPL_API int _dlname##_push_head_slot(_dltype *dlist,          \
+                                                     _otype **obj) {          \
         CBASE_PROPAGATE_ERROR(                                                \
             _dlname##_ensure_capacity(dlist, dlist->len + 1));                \
                                                                               \
@@ -164,8 +164,8 @@ enum
         return 0;                                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API int _dlname##_push_tail_slot(_dltype *dlist,        \
-                                                       _otype **obj) {        \
+    _api CBASE_TMPL_API int _dlname##_push_tail_slot(_dltype *dlist,          \
+                                                     _otype **obj) {          \
         CBASE_PROPAGATE_ERROR(                                                \
             _dlname##_ensure_capacity(dlist, dlist->len + 1));                \
                                                                               \
@@ -184,8 +184,8 @@ enum
         return 0;                                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API int _dlname##_pop_head(_dltype *dlist,              \
-                                                 _otype **obj) {              \
+    _api CBASE_TMPL_API int _dlname##_pop_head(_dltype *dlist,                \
+                                               _otype **obj) {                \
         _dltype##Node *node = NULL;                                           \
                                                                               \
         CBASE_ERROR_IF(_##_dlname##_node_pop_head(&dlist->used_nodes, &node), \
@@ -200,8 +200,8 @@ enum
         return 0;                                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API int _dlname##_pop_tail(_dltype *dlist,              \
-                                                 _otype **obj) {              \
+    _api CBASE_TMPL_API int _dlname##_pop_tail(_dltype *dlist,                \
+                                               _otype **obj) {                \
         _dltype##Node *node = NULL;                                           \
                                                                               \
         CBASE_ERROR_IF(_##_dlname##_node_pop_tail(&dlist->used_nodes, &node), \
@@ -216,9 +216,9 @@ enum
         return 0;                                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API bool _dlname##_iterate(_dltype *dlist,              \
-                                                 _dltype##Node **node,        \
-                                                 _otype **obj) {              \
+    _api CBASE_TMPL_API bool _dlname##_iterate(_dltype *dlist,                \
+                                               _dltype##Node **node,          \
+                                               _otype **obj) {                \
         if (!*node) {                                                         \
             *node = dlist->used_nodes;                                        \
         }                                                                     \
@@ -239,36 +239,36 @@ enum
         return true;                                                          \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API void _dlname##_clear_no_zero(_dltype *dlist) {      \
+    _api CBASE_TMPL_API void _dlname##_clear_no_zero(_dltype *dlist) {        \
         _dlname##_node_array_clear_no_zero(&dlist->nodes);                    \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API void _dlname##_clear(_dltype *dlist) {              \
+    _api CBASE_TMPL_API void _dlname##_clear(_dltype *dlist) {                \
         _dlname##_node_array_clear(&dlist->nodes);                            \
         dlist->len = 0;                                                       \
         dlist->used_nodes = NULL;                                             \
         dlist->spare_nodes = NULL;                                            \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API void _dlname##_free_no_zero(_dltype *dlist) {       \
+    _api CBASE_TMPL_API void _dlname##_free_no_zero(_dltype *dlist) {         \
         _dlname##_node_array_free_no_zero(&dlist->nodes);                     \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API void _dlname##_free(_dltype *dlist) {               \
+    _api CBASE_TMPL_API void _dlname##_free(_dltype *dlist) {                 \
         _dlname##_node_array_free(&dlist->nodes);                             \
         dlist->len = 0;                                                       \
         dlist->used_nodes = NULL;                                             \
         dlist->spare_nodes = NULL;                                            \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API void _dlname##_destroy_no_zero(_dltype **dlist) {   \
+    _api CBASE_TMPL_API void _dlname##_destroy_no_zero(_dltype **dlist) {     \
         _dlname##_node_array_free_no_zero(&(*dlist)->nodes);                  \
         cbfree(*dlist);                                                       \
                                                                               \
         *dlist = NULL;                                                        \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API void _dlname##_destroy(_dltype **dlist) {           \
+    _api CBASE_TMPL_API void _dlname##_destroy(_dltype **dlist) {             \
         _dlname##_node_array_free(&(*dlist)->nodes);                          \
         cbfree(*dlist);                                                       \
                                                                               \

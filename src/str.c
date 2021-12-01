@@ -12,16 +12,19 @@
 #include "cbase/utf8.h"
 #include "cbase/str.h"
 
-int string_assign_transcoded_data(String *string, const char *src,
-                                                  size_t byte_len,
-                                                  const char *src_encoding) {
+int string_assign_transcoded_data(String *string,
+                                  const char *src,
+                                  size_t byte_len,
+                                  const char *src_encoding) {
     while (true) {
         size_t len = string->alloc;
 
-        int error = charset_convert_data(src, byte_len, src_encoding,
-                                                        "utf-8",
-                                                        string->data,
-                                                        &len);
+        int error = charset_convert_data(src,
+                                         byte_len,
+                                         src_encoding,
+                                         "utf-8",
+                                         string->data,
+                                         &len);
         if (!error) {
             string->len = len;
             break;
@@ -32,8 +35,7 @@ int string_assign_transcoded_data(String *string, const char *src,
         }
 
         CBASE_PROPAGATE_ERROR(
-            string_ensure_capacity(string, string->alloc * 2)
-        );
+            string_ensure_capacity(string, string->alloc * 2));
     }
 
     return 0;
@@ -63,34 +65,41 @@ int string_ends_with_rune(String *string, rune r, bool *ends_with) {
     return utf8_ends_with_rune(string->data, string->len, r, ends_with);
 }
 
-void string_slice_runes_fast(String *string, size_t rune_index,
-                                             size_t rune_count,
-                                             SSlice *sslice) {
+void string_slice_runes_fast(String *string,
+                             size_t rune_index,
+                             size_t rune_count,
+                             SSlice *sslice) {
     char *start = NULL;
     char *end = NULL;
 
-    utf8_slice_fast(string->data, string->len, rune_index, rune_count, &start,
-                                                                       &end);
+    utf8_slice_fast(string->data,
+                    string->len,
+                    rune_index,
+                    rune_count,
+                    &start,
+                    &end);
 
     sslice_assign(sslice, start, positive_ptrdiff(start, end));
 }
 
-int string_slice_runes(String *string, size_t index, size_t len,
-                                                     SSlice *sslice) {
+int string_slice_runes(String *string,
+                       size_t index,
+                       size_t len,
+                       SSlice *sslice) {
     char *start = NULL;
     char *end = NULL;
 
     CBASE_PROPAGATE_ERROR(
-        utf8_slice(string->data, string->len, index, len, &start, &end)
-    );
+        utf8_slice(string->data, string->len, index, len, &start, &end));
 
     sslice_assign(sslice, start, positive_ptrdiff(start, end));
 
     return 0;
 }
 
-void string_delete_runes_fast(String *string, size_t index,
-                                              size_t rune_count) {
+void string_delete_runes_fast(String *string,
+                              size_t index,
+                              size_t rune_count) {
     char *start = string->data;
     size_t byte_index = 0;
 
@@ -110,7 +119,6 @@ void string_delete_runes_fast(String *string, size_t index,
     string_delete_many_fast(string, byte_index, temp_len);
 }
 
-
 int string_delete_runes(String *string, size_t index, size_t rune_count) {
     char *start = string->data;
     size_t byte_index = 0;
@@ -121,8 +129,7 @@ int string_delete_runes(String *string, size_t index, size_t rune_count) {
 
     if (index) {
         CBASE_PROPAGATE_ERROR(
-            utf8_index(string->data, string->len, index, &start)
-        );
+            utf8_index(string->data, string->len, index, &start));
 
         byte_index = start - (char *)string->data;
     }
@@ -168,8 +175,9 @@ int string_pop_rune(String *string, rune *r) {
     return 0;
 }
 
-int string_pop_rune_if_matches(String *string, RuneMatchFunc *matches,
-                                               rune *r) {
+int string_pop_rune_if_matches(String *string,
+                               RuneMatchFunc *matches,
+                               rune *r) {
     rune r2 = 0;
 
     CBASE_PROPAGATE_ERROR(utf8_get_first_rune(string->data, string->len, &r2));
@@ -197,8 +205,10 @@ int string_truncate_rune(String *string) {
 }
 
 CBASE_VPRINTF_FUNCTION(3)
-int string_insert_vprintf(String *string, size_t index, const char *fmt,
-                                                        va_list args) {
+int string_insert_vprintf(String *string,
+                          size_t index,
+                          const char *fmt,
+                          va_list args) {
     va_list args2;
     int byte_size;
 
@@ -211,8 +221,7 @@ int string_insert_vprintf(String *string, size_t index, const char *fmt,
     CBASE_ERROR_IF((byte_size < 0), CBASE_STRING_VSNPRINTF_FAILED);
 
     CBASE_PROPAGATE_ERROR(
-        string_ensure_capacity(string, string->len + (size_t)byte_size)
-    );
+        string_ensure_capacity(string, string->len + (size_t)byte_size));
 
     char *cursor = string->data;
     size_t len = string->len;
@@ -223,10 +232,8 @@ int string_insert_vprintf(String *string, size_t index, const char *fmt,
 
     int bytes_written = vsnprintf(cursor, byte_size + 1, fmt, args);
 
-    CBASE_ERROR_IF(
-        (bytes_written != (byte_size - 1)),
-        CBASE_STRING_VSNPRINTF_FAILED
-    );
+    CBASE_ERROR_IF((bytes_written != (byte_size - 1)),
+                   CBASE_STRING_VSNPRINTF_FAILED);
 
     string->len += bytes_written;
 
@@ -284,11 +291,9 @@ int string_init_printf(String *string, const char *fmt, ...) {
 CBASE_VPRINTF_FUNCTION(2)
 int string_new_vprintf(String **string, const char *fmt, va_list args) {
     CBASE_PROPAGATE_ERROR(cbmalloc(1, sizeof(String), string));
-    CBASE_FREE_AND_PROPAGATE_ERROR(
-        string_init_vprintf(*string, fmt, args),
-        cbfree,
-        *string
-    );
+    CBASE_FREE_AND_PROPAGATE_ERROR(string_init_vprintf(*string, fmt, args),
+                                   cbfree,
+                                   *string);
 
     return 0;
 }

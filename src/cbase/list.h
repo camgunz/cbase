@@ -15,7 +15,7 @@ enum
     CBASE_LIST_FULL,
 };
 
-#define CBASE_LIST_DECL(_api, _ltype, _lname, _otype)                       \
+#define CBASE_LIST_DECL(_api, _ltype, _lname, _otype)                         \
     struct _ltype##NodeStruct;                                                \
                                                                               \
     typedef struct _ltype##NodeStruct {                                       \
@@ -23,7 +23,7 @@ enum
         _otype obj;                                                           \
     } _ltype##Node;                                                           \
                                                                               \
-    CBASE_ARRAY_DEF(_api,                                                   \
+    CBASE_ARRAY_DEF(_api,                                                     \
                     _ltype##NodeArray,                                        \
                     _lname##_node_array,                                      \
                     _ltype##Node)                                             \
@@ -35,9 +35,9 @@ enum
         _ltype##Node *spare_nodes;                                            \
     } _ltype;
 
-#define CBASE_LIST_IMPL(_api, _ltype, _lname, _otype)                       \
-    _api CBASE_TMPL_API int _lname##_ensure_capacity(_ltype *list,          \
-                                                       size_t length) {       \
+#define CBASE_LIST_IMPL(_api, _ltype, _lname, _otype)                         \
+    _api CBASE_TMPL_API int _lname##_ensure_capacity(_ltype *list,            \
+                                                     size_t length) {         \
         size_t saved_alloc = list->nodes.alloc;                               \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
@@ -56,20 +56,20 @@ enum
         return 0;                                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API void _lname##_init(_ltype *list) {                  \
+    _api CBASE_TMPL_API void _lname##_init(_ltype *list) {                    \
         _lname##_node_array_init(&list->nodes);                               \
         list->len = 0;                                                        \
         list->used_nodes = NULL;                                              \
         list->spare_nodes = NULL;                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API int _lname##_init_alloc(_ltype *list,               \
-                                                  size_t length) {            \
+    _api CBASE_TMPL_API int _lname##_init_alloc(_ltype *list,                 \
+                                                size_t length) {              \
         _lname##_init(list);                                                  \
         return _lname##_ensure_capacity(list, length);                        \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API int _lname##_new(_ltype **list) {                   \
+    _api CBASE_TMPL_API int _lname##_new(_ltype **list) {                     \
         CBASE_PROPAGATE_ERROR(cbmalloc(1, sizeof(_ltype), list));             \
                                                                               \
         _lname##_init(*list);                                                 \
@@ -77,8 +77,8 @@ enum
         return 0;                                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API int _lname##_new_alloc(_ltype **list,               \
-                                                 size_t length) {             \
+    _api CBASE_TMPL_API int _lname##_new_alloc(_ltype **list,                 \
+                                               size_t length) {               \
         CBASE_PROPAGATE_ERROR(cbmalloc(1, sizeof(_ltype), list));             \
                                                                               \
         CBASE_PROPAGATE_ERROR(_lname##_init_alloc(*list, length));            \
@@ -86,8 +86,7 @@ enum
         return 0;                                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API int _lname##_push_slot(_ltype *list,                \
-                                                 _otype **obj) {              \
+    _api CBASE_TMPL_API int _lname##_push_slot(_ltype *list, _otype **obj) {  \
         CBASE_PROPAGATE_ERROR(_lname##_ensure_capacity(list, list->len + 1)); \
                                                                               \
         CBASE_ERROR_IF((!(list->spare_nodes)), CBASE_LIST_EMPTY);             \
@@ -104,7 +103,7 @@ enum
         return 0;                                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API int _lname##_pop(_ltype *list, _otype **obj) {      \
+    _api CBASE_TMPL_API int _lname##_pop(_ltype *list, _otype **obj) {        \
         CBASE_ERROR_IF(!list->used_nodes, CBASE_LIST_EMPTY);                  \
                                                                               \
         _ltype##Node *node = list->used_nodes;                                \
@@ -119,9 +118,9 @@ enum
         return 0;                                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API bool _lname##_iterate(_ltype *list,                 \
-                                                _ltype##Node **node,          \
-                                                _otype **obj) {               \
+    _api CBASE_TMPL_API bool _lname##_iterate(_ltype *list,                   \
+                                              _ltype##Node **node,            \
+                                              _otype **obj) {                 \
         if (!*node) {                                                         \
             *node = list->used_nodes;                                         \
         }                                                                     \
@@ -138,36 +137,36 @@ enum
         return true;                                                          \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API void _lname##_clear_no_zero(_ltype *list) {         \
+    _api CBASE_TMPL_API void _lname##_clear_no_zero(_ltype *list) {           \
         _lname##_node_array_clear_no_zero(&list->nodes);                      \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API void _lname##_clear(_ltype *list) {                 \
+    _api CBASE_TMPL_API void _lname##_clear(_ltype *list) {                   \
         _lname##_node_array_clear(&list->nodes);                              \
         list->len = 0;                                                        \
         list->used_nodes = NULL;                                              \
         list->spare_nodes = NULL;                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API void _lname##_free_no_zero(_ltype *list) {          \
+    _api CBASE_TMPL_API void _lname##_free_no_zero(_ltype *list) {            \
         _lname##_node_array_free_no_zero(&list->nodes);                       \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API void _lname##_free(_ltype *list) {                  \
+    _api CBASE_TMPL_API void _lname##_free(_ltype *list) {                    \
         _lname##_node_array_free(&list->nodes);                               \
         list->len = 0;                                                        \
         list->used_nodes = NULL;                                              \
         list->spare_nodes = NULL;                                             \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API void _lname##_destroy_no_zero(_ltype **list) {      \
+    _api CBASE_TMPL_API void _lname##_destroy_no_zero(_ltype **list) {        \
         _lname##_node_array_free_no_zero(&(*list)->nodes);                    \
         cbfree(*list);                                                        \
                                                                               \
         *list = NULL;                                                         \
     }                                                                         \
                                                                               \
-    _api CBASE_TMPL_API void _lname##_destroy(_ltype **list) {              \
+    _api CBASE_TMPL_API void _lname##_destroy(_ltype **list) {                \
         _lname##_node_array_free(&(*list)->nodes);                            \
         cbfree(*list);                                                        \
                                                                               \

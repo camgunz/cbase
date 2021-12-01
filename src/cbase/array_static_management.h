@@ -69,7 +69,7 @@
                                            _etype,                            \
                                            _dmaxcap,                          \
                                            _aname,                            \
-                                           _atype) \
+                                           _atype)                            \
     _api int _aname##_ensure_capacity_no_zero(_atype *array, size_t cap) {    \
         CBASE_DELEGATE(_dname##_ensure_capacity_no_zero(&array->data,         \
                                                         &array->len,          \

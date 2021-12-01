@@ -1,4 +1,4 @@
-.PHONY: all clean debug release debugtest test coverage
+.PHONY: all clean format debug release debugtest test coverage
 
 all: release
 
@@ -10,6 +10,10 @@ build:
 	@meson setup --default-library=both build
 	@compdb -p build/ list > compile_commands.json
 	@mv compile_commands.json build/compile_commands.json
+
+format:
+	@find src -type f -name '*.c' | xargs -I '{}' -P0 /usr/local/bin/clang-format -i '{}'
+	@find src -type f -name '*.h' | xargs -I '{}' -P0 /usr/local/bin/clang-format -i '{}'
 
 releasebuild:
 	@meson setup --buildtype=release --default-library=both \

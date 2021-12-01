@@ -22,11 +22,9 @@
  * - Look for those buffer zeroing intrinsics
  */
 
-static
-void* (*const volatile memset_buf)(void *, int, size_t) = memset;
+static void *(* const volatile memset_buf)(void *, int, size_t) = memset;
 
-static
-void secure_memzero(void *buf, size_t len) {
+static void secure_memzero(void *buf, size_t len) {
     (memset_buf)(buf, 0, len);
 }
 
@@ -43,8 +41,8 @@ void zero_buf_no_check(void *buf, size_t byte_count) {
 #endif
 }
 
-void* _cbmemmem(const void *haystack, size_t hlen,
-                const void *needle,   size_t nlen) {
+void *
+_cbmemmem(const void *haystack, size_t hlen, const void *needle, size_t nlen) {
     if (!haystack) {
         return NULL;
     }
@@ -65,7 +63,6 @@ void* _cbmemmem(const void *haystack, size_t hlen,
     const unsigned char *end = cursor + (hlen - nlen);
 
     for (; cursor <= end; cursor++) {
-
         if (cursor[0] != ((const unsigned char *)needle)[0]) {
             continue;
         }
@@ -80,15 +77,19 @@ void* _cbmemmem(const void *haystack, size_t hlen,
     return NULL;
 }
 
-void cbmemmem_no_check(const void *haystack, size_t hlen,
-                   const void *needle,   size_t nlen,
-                                         void **location) {
+void cbmemmem_no_check(const void *haystack,
+                       size_t hlen,
+                       const void *needle,
+                       size_t nlen,
+                       void **location) {
     *location = memmem(haystack, hlen, needle, nlen);
 }
 
-int cbmemmem(const void *haystack, size_t hlen,
-             const void *needle,   size_t nlen,
-                                   void **location) {
+int cbmemmem(const void *haystack,
+             size_t hlen,
+             const void *needle,
+             size_t nlen,
+             void **location) {
     CBASE_CHECK_INPUT_OBJECT(haystack);
     CBASE_CHECK_INPUT_OBJECT(needle);
     CBASE_CHECK_OUTPUT_ARGUMENT(location);

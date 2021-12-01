@@ -126,8 +126,8 @@
                             size_t dlen,                                      \
                             size_t index,                                     \
                             _dtype const **element) {                         \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
-        CBASE_CHECK_OUTPUT_POINTER(element);                                  \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(element);                                \
         CBASE_CHECK_INDEX_BOUNDS(dlen, index);                                \
                                                                               \
         *element = _dname##_index_no_check(data, index);                      \
@@ -150,10 +150,10 @@
                             size_t len,                                       \
                             _dtype **data2,                                   \
                             size_t *dlen2) {                                  \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
         CBASE_CHECK_INDEX_OFFSET_BOUNDS(dlen, index, len);                    \
-        CBASE_CHECK_OUTPUT_POINTER(data2);                                    \
-        CBASE_CHECK_OUTPUT_POINTER(dlen2);                                    \
+        CBASE_CHECK_POINTER_ARGUMENT(data2);                                  \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen2);                                  \
                                                                               \
         CBASE_DELEGATE(                                                       \
             _dname##_slice_no_check(data, index, count, data2, dlen2));       \
@@ -175,8 +175,8 @@
                            size_t count,                                      \
                            _dtype *data2,                                     \
                            size_t dlen2) {                                    \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
-        CBASE_CHECK_INPUT_POINTER(data2);                                     \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(data2);                                  \
         CBASE_CHECK_INDEX_BOUNDS(dlen, index);                                \
         CBASE_CHECK_INDEX_OFFSET_BOUNDS(dlen, index, count);                  \
         CBASE_CHECK_LENGTH_BOUNDS(dlen2, count);                              \
@@ -192,9 +192,9 @@
                              const _dtype *data2,                             \
                              size_t dlen2,                                    \
                              bool *equal) {                                   \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
-        CBASE_CHECK_INPUT_POINTER(data2);                                     \
-        CBASE_CHECK_OUTPUT_POINTER(equal);                                    \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(data2);                                  \
+        CBASE_CHECK_POINTER_ARGUMENT(equal);                                  \
         CBASE_CHECK_INDEX_BOUNDS(dlen, index);                                \
         CBASE_CHECK_INDEX_OFFSET_BOUNDS(dlen, index, dlen2);                  \
                                                                               \
@@ -234,9 +234,9 @@
                                 const _dtype *data2,                          \
                                 size_t dlen2,                                 \
                                 bool *equal) {                                \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
-        CBASE_CHECK_INPUT_POINTER(data2);                                     \
-        CBASE_CHECK_OUTPUT_POINTER(equal);                                    \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(data2);                                  \
+        CBASE_CHECK_POINTER_ARGUMENT(equal);                                  \
         CBASE_CHECK_LENGTH_BOUNDS(dlen, dlen2);                               \
                                                                               \
         *equal = _dname##_ends_with_no_check(data, dlen, data2, dlen2);       \
@@ -263,9 +263,9 @@
                            const _dtype *data2,                               \
                            size_t dlen2,                                      \
                            _dtype **cursor) {                                 \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
-        CBASE_CHECK_INPUT_POINTER(data2);                                     \
-        CBASE_CHECK_OUTPUT_POINTER(cursor);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(data2);                                  \
+        CBASE_CHECK_POINTER_ARGUMENT(cursor);                                 \
         CBASE_CHECK_INDEX_BOUNDS(dlen, index);                                \
         /* [FIXME] Custom NULL pointer check, also probably not the right     \
          * code */                                                            \
@@ -314,9 +314,9 @@
                                  const _dtype *data2,                         \
                                  size_t dlen2,                                \
                                  size_t *location) {                          \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
-        CBASE_CHECK_INPUT_POINTER(data2);                                     \
-        CBASE_CHECK_OUTPUT_POINTER(location);                                 \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(data2);                                  \
+        CBASE_CHECK_POINTER_ARGUMENT(location);                               \
         CBASE_CHECK_INDEX_BOUNDS(dlen, index);                                \
         /* [FIXME] Custom NULL pointer check, also probably not the right     \
          * code */                                                            \

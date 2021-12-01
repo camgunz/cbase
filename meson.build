@@ -332,13 +332,8 @@ conf_data.set(
 )
 
 conf_data.set(
-  'CBASE_DISABLE_INPUT_POINTER_CHECKS',
+  'CBASE_DISABLE_POINTER_ARGUMENT_CHECKS',
   get_option('disable_input_pointer_checks')
-)
-
-conf_data.set(
-  'CBASE_DISABLE_OUTPUT_POINTER_CHECKS',
-  get_option('disable_output_argument_pointer_checks')
 )
 
 conf_data.set(

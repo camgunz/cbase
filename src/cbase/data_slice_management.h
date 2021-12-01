@@ -37,8 +37,8 @@
                              size_t *dlen,                                    \
                              _dtype *data2,                                   \
                              size_t dlen2) {                                  \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
                                                                               \
         _dname##_assign_no_check(data, dlen, data2, dlen2);                   \
                                                                               \

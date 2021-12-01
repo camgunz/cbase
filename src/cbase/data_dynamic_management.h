@@ -190,9 +190,9 @@
                                            size_t *dlen,                      \
                                            size_t *dcap,                      \
                                            size_t cap) {                      \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_set_capacity_no_zero_no_check(data, dlen, dcap, cap));   \
@@ -222,9 +222,9 @@
                                    size_t *dlen,                              \
                                    size_t *dcap,                              \
                                    size_t cap) {                              \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_set_capacity_no_check(data, dlen, dcap, cap));           \
@@ -253,9 +253,9 @@
                                          size_t *dlen,                        \
                                          size_t *dcap,                        \
                                          size_t len) {                        \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_set_length_no_zero_no_check(data, dlen, len));           \
@@ -282,9 +282,9 @@
                                  size_t *dlen,                                \
                                  size_t *dcap,                                \
                                  size_t len) {                                \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
         CBASE_PROPAGATE_ERROR(_dname##_set_length_no_check(data, dlen, len)); \
                                                                               \
@@ -297,8 +297,8 @@
     }                                                                         \
                                                                               \
     _api int _dname##_init(size_t *dlen, size_t *dcap) {                      \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
         CBASE_CHECK_LENGTH_BOUNDS((*dcap), (*dlen));                          \
                                                                               \
         _dname##_init_no_check(dlen, dcap);                                   \
@@ -320,9 +320,9 @@
                                           size_t *dlen,                       \
                                           size_t *dcap,                       \
                                           size_t len) {                       \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_init_length_no_zero_no_check(data, dlen, dcap, len));    \
@@ -344,9 +344,9 @@
                                   size_t *dlen,                               \
                                   size_t *dcap,                               \
                                   size_t len) {                               \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_init_length_no_check(data, dlen, dcap, len));            \
@@ -369,9 +369,9 @@
                                             size_t *dlen,                     \
                                             size_t *dcap,                     \
                                             size_t cap) {                     \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_init_capacity_no_zero_no_check(data, dlen, dcap, cap));  \
@@ -394,9 +394,9 @@
                                     size_t *dlen,                             \
                                     size_t *dcap,                             \
                                     size_t cap) {                             \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_init_capacity_no_check(data, dlen, dcap, cap));          \
@@ -430,9 +430,9 @@
                                                    size_t *dcap,              \
                                                    size_t len,                \
                                                    size_t cap) {              \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_init_length_capacity_no_zero_no_check(data,              \
@@ -467,9 +467,9 @@
                                            size_t *dlen,                      \
                                            size_t *dcap,                      \
                                            size_t cap) {                      \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
             _dname##_init_length_capacity_no_check(data, dlen, dcap, cap));   \
@@ -513,9 +513,9 @@
     _api int _dname##_free_no_zero(_dtype *data,                              \
                                    size_t *dlen,                              \
                                    size_t *dcap) {                            \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
         _dname##_free_no_zero_no_check(data, dlen, dcap);                     \
                                                                               \
@@ -530,9 +530,9 @@
     }                                                                         \
                                                                               \
     _api int _dname##_free(_dtype *data, size_t *dlen, size_t *dcap) {        \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
         _dname##_free_no_check(data, dlen, dcap);                             \
                                                                               \
@@ -549,9 +549,9 @@
     _api int _dname##_destroy_no_zero(_dtype **data,                          \
                                       size_t *dlen,                           \
                                       size_t *dcap) {                         \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
         _dname##_destroy_no_zero_no_check(data, dlen, dcap);                  \
                                                                               \
@@ -566,9 +566,9 @@
     }                                                                         \
                                                                               \
     _api int _dname##_destroy(_dtype **data, size_t *dlen, size_t *dcap) {    \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_INPUT_POINTER(dcap);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
         _dname##_destroy_no_check(data, dlen, dcap);                          \
                                                                               \

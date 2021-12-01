@@ -25,8 +25,8 @@ bool utf8_byte_is_sequence_start(char b) {
 
 int utf8_validate_len_fast(const char *data, size_t byte_len, size_t *len) {
     const unsigned char *cursor = (const unsigned char *)data;
-    size_t total_bytes_read     = 0;
-    size_t local_len            = 0;
+    size_t total_bytes_read = 0;
+    size_t local_len = 0;
 
     while (total_bytes_read < byte_len) {
         rune r;
@@ -54,7 +54,7 @@ int utf8_validate_len(const char *data, size_t byte_len, size_t *len) {
 
 int utf8_validate_fast(const char *data, size_t byte_len) {
     const unsigned char *cursor = (const unsigned char *)data;
-    size_t total_bytes_read     = 0;
+    size_t total_bytes_read = 0;
 
     while (total_bytes_read < byte_len) {
         rune r;
@@ -102,27 +102,33 @@ void utf8_calc_rune_byte_len_fast(const char *data, size_t *rune_byte_len) {
 
     if (ubyte < 0x80) {
         *rune_byte_len = 1;
-    } else if (ubyte < 0xE0) {
+    }
+    else if (ubyte < 0xE0) {
         *rune_byte_len = 2;
-    } else if (ubyte < 0xF0) {
+    }
+    else if (ubyte < 0xF0) {
         *rune_byte_len = 3;
-    } else {
+    }
+    else {
         *rune_byte_len = 4;
     }
 }
 
 void utf8_decode_fast(const char *data, rune *r) {
     const unsigned char *udata = (const unsigned char *)data;
-    const unsigned char ubyte  = *udata;
+    const unsigned char ubyte = *udata;
 
     if (ubyte < 0x80) {
         *r = ubyte;
-    } else if (ubyte < 0xE0) {
+    }
+    else if (ubyte < 0xE0) {
         *r = ((ubyte & 0x1F) << 6) | (udata[1] & 0x3F);
-    } else if (ubyte < 0xF0) {
+    }
+    else if (ubyte < 0xF0) {
         *r = ((ubyte & 0xF) << 12) | ((udata[1] & 0x3F) << 6) |
              (udata[2] & 0x3F);
-    } else {
+    }
+    else {
         *r = ((ubyte & 7) << 18) | ((udata[1] & 0x3F) << 12) |
              ((udata[2] & 0x3F) << 6) | (udata[3] & 0x3F);
     }
@@ -139,27 +145,32 @@ int utf8_decode(const char *data, size_t byte_len, rune *r) {
 
 void utf8_decode_len_fast(const char *data, rune *r, size_t *rune_byte_len) {
     const unsigned char *udata = (const unsigned char *)data;
-    const unsigned char ubyte  = *udata;
+    const unsigned char ubyte = *udata;
 
     if (ubyte < 0x80) {
-        *r             = ubyte;
+        *r = ubyte;
         *rune_byte_len = 1;
-    } else if (ubyte < 0xE0) {
-        *r             = ((ubyte & 0x1F) << 6) | (udata[1] & 0x3F);
+    }
+    else if (ubyte < 0xE0) {
+        *r = ((ubyte & 0x1F) << 6) | (udata[1] & 0x3F);
         *rune_byte_len = 2;
-    } else if (ubyte < 0xF0) {
+    }
+    else if (ubyte < 0xF0) {
         *r = ((ubyte & 0xF) << 12) | ((udata[1] & 0x3F) << 6) |
              (udata[2] & 0x3F);
         *rune_byte_len = 3;
-    } else {
+    }
+    else {
         *r = ((ubyte & 7) << 18) | ((udata[1] & 0x3F) << 12) |
              ((udata[2] & 0x3F) << 6) | (udata[3] & 0x3F);
         *rune_byte_len = 4;
     }
 }
 
-int utf8_decode_len(
-    const char *data, size_t byte_len, rune *r, size_t *rune_byte_len) {
+int utf8_decode_len(const char *data,
+                    size_t byte_len,
+                    rune *r,
+                    size_t *rune_byte_len) {
     CBASE_ERROR_IF(byte_len == 0, CBASE_UTF8_EMPTY);
     CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
@@ -168,10 +179,12 @@ int utf8_decode_len(
     return 0;
 }
 
-void utf8_index_fast(
-    const char *data, size_t byte_len, size_t index, char **cursor) {
+void utf8_index_fast(const char *data,
+                     size_t byte_len,
+                     size_t index,
+                     char **cursor) {
     char *cursor2 = (char *)data;
-    size_t clen   = byte_len;
+    size_t clen = byte_len;
 
     while (index-- >= 0) {
         utf8_iterate_fast(&cursor2, &clen);
@@ -180,11 +193,14 @@ void utf8_index_fast(
     *cursor = cursor2;
 }
 
-int utf8_index(const char *data, size_t byte_len, size_t index, char **cursor) {
+int utf8_index(const char *data,
+               size_t byte_len,
+               size_t index,
+               char **cursor) {
     CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
     char *cursor2 = (char *)data;
-    size_t clen   = byte_len;
+    size_t clen = byte_len;
 
     while (index-- >= 0) {
         CBASE_PROPAGATE_ERROR(utf8_iterate(&cursor2, &clen));
@@ -195,14 +211,13 @@ int utf8_index(const char *data, size_t byte_len, size_t index, char **cursor) {
     return 0;
 }
 
-void utf8_index_rune_len_fast(
-    const char *data,
-    size_t byte_len,
-    size_t index,
-    rune *r,
-    size_t *rune_byte_len) {
+void utf8_index_rune_len_fast(const char *data,
+                              size_t byte_len,
+                              size_t index,
+                              rune *r,
+                              size_t *rune_byte_len) {
     char *cursor = (char *)data;
-    size_t clen  = byte_len;
+    size_t clen = byte_len;
 
     while (index-- > 0) {
         utf8_iterate_fast(&cursor, &clen);
@@ -211,17 +226,16 @@ void utf8_index_rune_len_fast(
     utf8_iterate_rune_len_fast(&cursor, &clen, r, rune_byte_len);
 }
 
-int utf8_index_rune_len(
-    const char *data,
-    size_t byte_len,
-    size_t index,
-    rune *r,
-    size_t *rune_byte_len) {
+int utf8_index_rune_len(const char *data,
+                        size_t byte_len,
+                        size_t index,
+                        rune *r,
+                        size_t *rune_byte_len) {
     CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
-    char *cursor          = (char *)data;
-    size_t clen           = byte_len;
-    rune r2               = 0;
+    char *cursor = (char *)data;
+    size_t clen = byte_len;
+    rune r2 = 0;
     size_t rune_byte_len2 = 0;
 
     while (index-- > 0) {
@@ -231,16 +245,18 @@ int utf8_index_rune_len(
     CBASE_PROPAGATE_ERROR(
         utf8_iterate_rune_len(&cursor, &clen, &r2, &rune_byte_len2));
 
-    *r             = r2;
+    *r = r2;
     *rune_byte_len = rune_byte_len2;
 
     return 0;
 }
 
-void utf8_index_rune_fast(
-    const char *data, size_t byte_len, size_t index, rune *r) {
+void utf8_index_rune_fast(const char *data,
+                          size_t byte_len,
+                          size_t index,
+                          rune *r) {
     char *cursor = (char *)data;
-    size_t clen  = byte_len;
+    size_t clen = byte_len;
 
     while (index-- > 0) {
         utf8_iterate_fast(&cursor, &clen);
@@ -253,8 +269,8 @@ int utf8_index_rune(const char *data, size_t byte_len, size_t index, rune *r) {
     CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
     char *cursor = (char *)data;
-    size_t clen  = byte_len;
-    rune r2      = 0;
+    size_t clen = byte_len;
+    rune r2 = 0;
 
     while (index-- > 0) {
         CBASE_PROPAGATE_ERROR(utf8_iterate(&cursor, &clen));
@@ -267,10 +283,12 @@ int utf8_index_rune(const char *data, size_t byte_len, size_t index, rune *r) {
     return 0;
 }
 
-void utf8_index_reverse_fast(
-    const char *data, size_t byte_len, size_t index, char **cursor) {
+void utf8_index_reverse_fast(const char *data,
+                             size_t byte_len,
+                             size_t index,
+                             char **cursor) {
     char *cursor2 = (char *)data;
-    size_t clen   = byte_len;
+    size_t clen = byte_len;
 
     while (index-- >= 0) {
         utf8_iterate_reverse_fast(&cursor2, &clen);
@@ -279,12 +297,14 @@ void utf8_index_reverse_fast(
     *cursor = cursor2;
 }
 
-int utf8_index_reverse(
-    const char *data, size_t byte_len, size_t index, char **cursor) {
+int utf8_index_reverse(const char *data,
+                       size_t byte_len,
+                       size_t index,
+                       char **cursor) {
     CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
     char *cursor2 = (char *)data;
-    size_t clen   = byte_len;
+    size_t clen = byte_len;
 
     while (index-- >= 0) {
         CBASE_PROPAGATE_ERROR(utf8_iterate_reverse(&cursor2, &clen));
@@ -295,14 +315,13 @@ int utf8_index_reverse(
     return 0;
 }
 
-void utf8_index_rune_len_reverse_fast(
-    const char *data,
-    size_t byte_len,
-    size_t index,
-    rune *r,
-    size_t *rune_byte_len) {
+void utf8_index_rune_len_reverse_fast(const char *data,
+                                      size_t byte_len,
+                                      size_t index,
+                                      rune *r,
+                                      size_t *rune_byte_len) {
     char *cursor = (char *)data;
-    size_t clen  = byte_len;
+    size_t clen = byte_len;
 
     while (index-- > 0) {
         utf8_iterate_reverse_fast(&cursor, &clen);
@@ -311,17 +330,16 @@ void utf8_index_rune_len_reverse_fast(
     utf8_iterate_rune_len_reverse_fast(&cursor, &clen, r, rune_byte_len);
 }
 
-int utf8_index_rune_len_reverse(
-    const char *data,
-    size_t byte_len,
-    size_t index,
-    rune *r,
-    size_t *rune_byte_len) {
+int utf8_index_rune_len_reverse(const char *data,
+                                size_t byte_len,
+                                size_t index,
+                                rune *r,
+                                size_t *rune_byte_len) {
     CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
-    char *cursor          = (char *)data;
-    size_t clen           = byte_len;
-    rune r2               = 0;
+    char *cursor = (char *)data;
+    size_t clen = byte_len;
+    rune r2 = 0;
     size_t rune_byte_len2 = 0;
 
     while (index-- > 0) {
@@ -331,16 +349,18 @@ int utf8_index_rune_len_reverse(
     CBASE_PROPAGATE_ERROR(
         utf8_iterate_rune_len_reverse(&cursor, &clen, &r2, &rune_byte_len2));
 
-    *r             = r2;
+    *r = r2;
     *rune_byte_len = rune_byte_len2;
 
     return 0;
 }
 
-void utf8_index_rune_reverse_fast(
-    const char *data, size_t byte_len, size_t index, rune *r) {
+void utf8_index_rune_reverse_fast(const char *data,
+                                  size_t byte_len,
+                                  size_t index,
+                                  rune *r) {
     char *cursor = (char *)data;
-    size_t clen  = byte_len;
+    size_t clen = byte_len;
 
     while (index-- > 0) {
         utf8_iterate_reverse_fast(&cursor, &clen);
@@ -349,13 +369,15 @@ void utf8_index_rune_reverse_fast(
     utf8_iterate_rune_reverse_fast(&cursor, &clen, r);
 }
 
-int utf8_index_rune_reverse(
-    const char *data, size_t byte_len, size_t index, rune *r) {
+int utf8_index_rune_reverse(const char *data,
+                            size_t byte_len,
+                            size_t index,
+                            rune *r) {
     CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
     char *cursor = (char *)data;
-    size_t clen  = byte_len;
-    rune r2      = 0;
+    size_t clen = byte_len;
+    rune r2 = 0;
 
     while (index-- > 0) {
         CBASE_PROPAGATE_ERROR(utf8_iterate_reverse(&cursor, &clen));
@@ -368,13 +390,16 @@ int utf8_index_rune_reverse(
     return 0;
 }
 
-void utf8_get_first_rune_len_fast(
-    const char *data, rune *r, size_t *rune_byte_len) {
+void utf8_get_first_rune_len_fast(const char *data,
+                                  rune *r,
+                                  size_t *rune_byte_len) {
     utf8_decode_len_fast(data, r, rune_byte_len);
 }
 
-int utf8_get_first_rune_len(
-    const char *data, size_t byte_len, rune *r, size_t *rune_byte_len) {
+int utf8_get_first_rune_len(const char *data,
+                            size_t byte_len,
+                            rune *r,
+                            size_t *rune_byte_len) {
     CBASE_ERROR_IF(byte_len == 0, CBASE_UTF8_EMPTY);
     CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
@@ -396,13 +421,17 @@ int utf8_get_first_rune(const char *data, size_t byte_len, rune *r) {
     return 0;
 }
 
-void utf8_get_last_rune_len_fast(
-    const char *data, size_t byte_len, rune *r, size_t *rune_byte_len) {
+void utf8_get_last_rune_len_fast(const char *data,
+                                 size_t byte_len,
+                                 rune *r,
+                                 size_t *rune_byte_len) {
     utf8_index_rune_len_reverse_fast(data, byte_len, 1, r, rune_byte_len);
 }
 
-int utf8_get_last_rune_len(
-    const char *data, size_t byte_len, rune *r, size_t *rune_byte_len) {
+int utf8_get_last_rune_len(const char *data,
+                           size_t byte_len,
+                           rune *r,
+                           size_t *rune_byte_len) {
     CBASE_ERROR_IF(byte_len == 0, CBASE_UTF8_EMPTY);
     CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
@@ -424,34 +453,32 @@ int utf8_get_last_rune(const char *data, size_t byte_len, rune *r) {
     return 0;
 }
 
-void utf8_slice_fast(
-    const char *data,
-    size_t byte_len,
-    size_t index,
-    size_t len,
-    char **start,
-    char **end) {
+void utf8_slice_fast(const char *data,
+                     size_t byte_len,
+                     size_t index,
+                     size_t len,
+                     char **start,
+                     char **end) {
     utf8_index_fast(data, byte_len, index, start);
     utf8_index_fast(*start, byte_len, len, end);
 }
 
-int utf8_slice(
-    const char *data,
-    size_t byte_len,
-    size_t index,
-    size_t len,
-    char **start,
-    char **end) {
+int utf8_slice(const char *data,
+               size_t byte_len,
+               size_t index,
+               size_t len,
+               char **start,
+               char **end) {
     CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
     char *start2 = NULL;
-    char *end2   = NULL;
+    char *end2 = NULL;
 
     CBASE_PROPAGATE_ERROR(utf8_index(data, byte_len, index, &start2));
     CBASE_PROPAGATE_ERROR(utf8_index(start2, byte_len, len, &end2));
 
     *start = start2;
-    *end   = end2;
+    *end = end2;
 
     return 0;
 }
@@ -464,11 +491,13 @@ bool utf8_starts_with_rune_fast(const char *data, rune r) {
     return r2 == r;
 }
 
-int utf8_starts_with_rune(
-    const char *data, size_t byte_len, rune r, bool *starts_with) {
+int utf8_starts_with_rune(const char *data,
+                          size_t byte_len,
+                          rune r,
+                          bool *starts_with) {
     CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
-    rune r2   = 0;
+    rune r2 = 0;
     int error = utf8_get_first_rune(data, byte_len, &r2);
 
     switch (error) {
@@ -493,22 +522,24 @@ bool utf8_ends_with_rune_fast(const char *data, size_t byte_len, rune r) {
     return r2 == r;
 }
 
-int utf8_ends_with_rune(
-    const char *data, size_t byte_len, rune r, bool *ends_with) {
+int utf8_ends_with_rune(const char *data,
+                        size_t byte_len,
+                        rune r,
+                        bool *ends_with) {
     CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
     rune r2 = 0;
     int error = utf8_get_last_rune(data, byte_len, &r2);
 
     switch (error) {
-        case 0:
-            *ends_with = r2 == r;
-            return 0;
-        case CBASE_UTF8_EMPTY:
-            *ends_with = false;
-            return 0;
-        default:
-            return error;
+    case 0:
+        *ends_with = r2 == r;
+        return 0;
+    case CBASE_UTF8_EMPTY:
+        *ends_with = false;
+        return 0;
+    default:
+        return error;
     }
 
     return 0;
@@ -531,15 +562,19 @@ int utf8_iterate(char **data, size_t *byte_len) {
     return 0;
 }
 
-void utf8_iterate_rune_len_fast(
-    char **data, size_t *byte_len, rune *r, size_t *rune_byte_len) {
+void utf8_iterate_rune_len_fast(char **data,
+                                size_t *byte_len,
+                                rune *r,
+                                size_t *rune_byte_len) {
     utf8_decode_len_fast(*data, r, rune_byte_len);
     *data += *rune_byte_len;
     *byte_len -= *rune_byte_len;
 }
 
-int utf8_iterate_rune_len(
-    char **data, size_t *byte_len, rune *r, size_t *rune_byte_len) {
+int utf8_iterate_rune_len(char **data,
+                          size_t *byte_len,
+                          rune *r,
+                          size_t *rune_byte_len) {
     CBASE_ERROR_IF(*byte_len == 0, CBASE_UTF8_EMPTY);
     CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
@@ -595,8 +630,10 @@ int utf8_iterate_reverse(char **data, size_t *byte_len) {
     CBASE_ERROR(CBASE_UTF8_INVALID_UTF8);
 }
 
-void utf8_iterate_rune_len_reverse_fast(
-    char **data, size_t *byte_len, rune *r, size_t *rune_byte_len) {
+void utf8_iterate_rune_len_reverse_fast(char **data,
+                                        size_t *byte_len,
+                                        rune *r,
+                                        size_t *rune_byte_len) {
     for (size_t i = 1; i <= 4; i++) {
         char *start = ((*data) + (*byte_len) - i);
 
@@ -609,8 +646,10 @@ void utf8_iterate_rune_len_reverse_fast(
     }
 }
 
-int utf8_iterate_rune_len_reverse(
-    char **data, size_t *byte_len, rune *r, size_t *rune_byte_len) {
+int utf8_iterate_rune_len_reverse(char **data,
+                                  size_t *byte_len,
+                                  rune *r,
+                                  size_t *rune_byte_len) {
     CBASE_ERROR_IF(*byte_len == 0, CBASE_UTF8_EMPTY);
     CBASE_ERROR_IF(data == NULL, CBASE_ERROR_NULL_POINTER);
 
@@ -666,7 +705,7 @@ void utf8_skip_runes_fast(char **data, size_t *len, size_t rune_count) {
 
     utf8_index_fast(*data, *len, rune_count, &cursor);
 
-    *len  = cursor - *data;
+    *len = cursor - *data;
     *data = cursor;
 }
 
@@ -677,7 +716,7 @@ int utf8_skip_runes(char **data, size_t *len, size_t rune_count) {
 
     CBASE_PROPAGATE_ERROR(utf8_index(*data, *len, rune_count, &cursor));
 
-    *len  = cursor - *data;
+    *len = cursor - *data;
     *data = cursor;
 
     return 0;
@@ -691,11 +730,12 @@ int utf8_skip_rune(char **data, size_t *len) {
     return utf8_skip_runes(data, len, 1);
 }
 
-void utf8_skip_runes_if_matching_fast(
-    char **data, size_t *len, RuneMatchFunc *matches) {
+void utf8_skip_runes_if_matching_fast(char **data,
+                                      size_t *len,
+                                      RuneMatchFunc *matches) {
     char *cursor = *data;
-    size_t clen  = *len;
-    rune r       = 0;
+    size_t clen = *len;
+    rune r = 0;
 
     do {
         utf8_iterate_rune_fast(&cursor, &clen, &r);
@@ -705,11 +745,12 @@ void utf8_skip_runes_if_matching_fast(
     *data = cursor;
 }
 
-int utf8_skip_runes_if_matching(
-    char **data, size_t *len, RuneMatchFunc *matches) {
+int utf8_skip_runes_if_matching(char **data,
+                                size_t *len,
+                                RuneMatchFunc *matches) {
     char *cursor = *data;
-    size_t clen  = *len;
-    rune r       = 0;
+    size_t clen = *len;
+    rune r = 0;
 
     do {
         CBASE_PROPAGATE_ERROR(utf8_iterate_rune(&cursor, &clen, &r));
@@ -721,11 +762,12 @@ int utf8_skip_runes_if_matching(
     return 0;
 }
 
-void utf8_skip_rune_if_matching_fast(
-    char **data, size_t *len, RuneMatchFunc *matches) {
+void utf8_skip_rune_if_matching_fast(char **data,
+                                     size_t *len,
+                                     RuneMatchFunc *matches) {
     char *cursor = *data;
-    size_t clen  = *len;
-    rune r       = 0;
+    size_t clen = *len;
+    rune r = 0;
 
     utf8_iterate_rune_fast(&cursor, &clen, &r);
 
@@ -735,11 +777,12 @@ void utf8_skip_rune_if_matching_fast(
     }
 }
 
-int utf8_skip_rune_if_matching(
-    char **data, size_t *len, RuneMatchFunc *matches) {
+int utf8_skip_rune_if_matching(char **data,
+                               size_t *len,
+                               RuneMatchFunc *matches) {
     char *cursor = *data;
-    size_t clen  = *len;
-    rune r       = 0;
+    size_t clen = *len;
+    rune r = 0;
 
     CBASE_PROPAGATE_ERROR(utf8_iterate_rune(&cursor, &clen, &r));
 
@@ -753,8 +796,8 @@ int utf8_skip_rune_if_matching(
 
 void utf8_skip_rune_if_equals_fast(char **data, size_t *len, rune r) {
     char *cursor = *data;
-    size_t clen  = *len;
-    rune r2      = 0;
+    size_t clen = *len;
+    rune r2 = 0;
 
     utf8_iterate_rune_fast(&cursor, &clen, &r2);
 
@@ -766,8 +809,8 @@ void utf8_skip_rune_if_equals_fast(char **data, size_t *len, rune r) {
 
 int utf8_skip_rune_if_equals(char **data, size_t *len, rune r) {
     char *cursor = *data;
-    size_t clen  = *len;
-    rune r2      = 0;
+    size_t clen = *len;
+    rune r2 = 0;
 
     CBASE_PROPAGATE_ERROR(utf8_iterate_rune(&cursor, &clen, &r2));
 
@@ -780,7 +823,7 @@ int utf8_skip_rune_if_equals(char **data, size_t *len, rune r) {
 }
 
 int utf8_pop_rune_fast(char **data, size_t *len, rune *r) {
-    rune r2              = 0;
+    rune r2 = 0;
     size_t rune_byte_len = 0;
 
     utf8_index_rune_len_fast(*data, *len, 0, &r2, &rune_byte_len);
@@ -793,7 +836,7 @@ int utf8_pop_rune_fast(char **data, size_t *len, rune *r) {
 }
 
 int utf8_pop_rune(char **data, size_t *len, rune *r) {
-    rune r2              = 0;
+    rune r2 = 0;
     size_t rune_byte_len = 0;
 
     CBASE_PROPAGATE_ERROR(
@@ -806,9 +849,11 @@ int utf8_pop_rune(char **data, size_t *len, rune *r) {
     return 0;
 }
 
-void utf8_pop_rune_if_matching_fast(
-    char **data, size_t *len, RuneMatchFunc *matches, rune *r) {
-    rune r2              = 0;
+void utf8_pop_rune_if_matching_fast(char **data,
+                                    size_t *len,
+                                    RuneMatchFunc *matches,
+                                    rune *r) {
+    rune r2 = 0;
     size_t rune_byte_len = 0;
 
     utf8_index_rune_len_fast(*data, *len, 0, &r2, &rune_byte_len);
@@ -820,9 +865,11 @@ void utf8_pop_rune_if_matching_fast(
     }
 }
 
-int utf8_pop_rune_if_matching(
-    char **data, size_t *len, RuneMatchFunc *matches, rune *r) {
-    rune r2              = 0;
+int utf8_pop_rune_if_matching(char **data,
+                              size_t *len,
+                              RuneMatchFunc *matches,
+                              rune *r) {
+    rune r2 = 0;
     size_t rune_byte_len = 0;
 
     CBASE_PROPAGATE_ERROR(
@@ -839,7 +886,7 @@ int utf8_pop_rune_if_matching(
 
 void utf8_seek_to_match_fast(char **data, size_t *len, RuneMatchFunc matches) {
     char *cursor = *data;
-    size_t clen  = *len;
+    size_t clen = *len;
 
     while (positive_ptrdiff(cursor, *data) < *len) {
         rune r = 0;
@@ -857,7 +904,7 @@ void utf8_seek_to_match_fast(char **data, size_t *len, RuneMatchFunc matches) {
 
 int utf8_seek_to_match(char **data, size_t *len, RuneMatchFunc matches) {
     char *cursor = *data;
-    size_t clen  = *len;
+    size_t clen = *len;
 
     while (positive_ptrdiff(cursor, *data) < *len) {
         rune r = 0;
@@ -876,7 +923,7 @@ int utf8_seek_to_match(char **data, size_t *len, RuneMatchFunc matches) {
 }
 
 int utf8_seek_to_rune(char **data, size_t *len, rune r) {
-    char utf8_data[5]    = {0};
+    char utf8_data[5] = {0};
     size_t utf8_byte_len = 0;
 
     CBASE_PROPAGATE_ERROR(rune_encode(r, &utf8_data[0], &utf8_byte_len));
@@ -884,8 +931,9 @@ int utf8_seek_to_rune(char **data, size_t *len, rune r) {
     return utf8_seek_to_data(data, len, &utf8_data[0], utf8_byte_len);
 }
 
-void utf8_truncate_runes_fast(
-    const char *data, size_t *len, size_t rune_count) {
+void utf8_truncate_runes_fast(const char *data,
+                              size_t *len,
+                              size_t rune_count) {
     char *cursor = NULL;
 
     if (rune_count == 0) {
@@ -912,11 +960,12 @@ int utf8_truncate_runes(const char *data, size_t *len, size_t rune_count) {
     return 0;
 }
 
-void utf8_truncate_if_matching_fast(
-    const char *data, size_t *len, RuneMatchFunc *matches) {
+void utf8_truncate_if_matching_fast(const char *data,
+                                    size_t *len,
+                                    RuneMatchFunc *matches) {
     char *cursor = (char *)data;
-    size_t len2  = *len;
-    rune r       = 0;
+    size_t len2 = *len;
+    rune r = 0;
 
     do {
         utf8_iterate_rune_reverse_fast(&cursor, &len2, &r);
@@ -925,11 +974,12 @@ void utf8_truncate_if_matching_fast(
     *len = len2;
 }
 
-int utf8_truncate_if_matching(
-    const char *data, size_t *len, RuneMatchFunc *matches) {
+int utf8_truncate_if_matching(const char *data,
+                              size_t *len,
+                              RuneMatchFunc *matches) {
     char *cursor = (char *)data;
-    size_t len2  = *len;
-    rune r       = 0;
+    size_t len2 = *len;
+    rune r = 0;
 
     do {
         CBASE_PROPAGATE_ERROR(utf8_iterate_rune_reverse(&cursor, &len2, &r));
@@ -942,8 +992,8 @@ int utf8_truncate_if_matching(
 
 void utf8_truncate_if_equals_fast(const char *data, size_t *len, rune r) {
     char *cursor = (char *)data;
-    size_t len2  = *len;
-    rune r2      = 0;
+    size_t len2 = *len;
+    rune r2 = 0;
 
     do {
         utf8_iterate_rune_reverse_fast(&cursor, &len2, &r2);
@@ -954,8 +1004,8 @@ void utf8_truncate_if_equals_fast(const char *data, size_t *len, rune r) {
 
 int utf8_truncate_if_equals(const char *data, size_t *len, rune r) {
     char *cursor = (char *)data;
-    size_t len2  = *len;
-    rune r2      = 0;
+    size_t len2 = *len;
+    rune r2 = 0;
 
     do {
         CBASE_PROPAGATE_ERROR(utf8_iterate_rune_reverse(&cursor, &len2, &r2));
@@ -968,8 +1018,8 @@ int utf8_truncate_if_equals(const char *data, size_t *len, rune r) {
 
 void utf8_truncate_if_not_equals_fast(const char *data, size_t *len, rune r) {
     char *cursor = (char *)data;
-    size_t len2  = *len;
-    rune r2      = 0;
+    size_t len2 = *len;
+    rune r2 = 0;
 
     do {
         utf8_iterate_rune_reverse_fast(&cursor, &len2, &r2);
@@ -980,8 +1030,8 @@ void utf8_truncate_if_not_equals_fast(const char *data, size_t *len, rune r) {
 
 int utf8_truncate_if_not_equals(const char *data, size_t *len, rune r) {
     char *cursor = (char *)data;
-    size_t len2  = *len;
-    rune r2      = 0;
+    size_t len2 = *len;
+    rune r2 = 0;
 
     do {
         CBASE_PROPAGATE_ERROR(utf8_iterate_rune_reverse(&cursor, &len2, &r2));
@@ -1000,57 +1050,59 @@ int utf8_equal(const char *s1, const char *s2, size_t byte_len, bool *equal) {
     return cbase_data_equals(s1, byte_len, s2, byte_len, 0, equal);
 }
 
-void utf8_find_data_fast(
-    const char *haystack,
-    size_t hlen,
-    const char *needle,
-    size_t nlen,
-    bool *found,
-    size_t *location) {
+void utf8_find_data_fast(const char *haystack,
+                         size_t hlen,
+                         const char *needle,
+                         size_t nlen,
+                         bool *found,
+                         size_t *location) {
     cbase_data_find_fast(haystack, hlen, needle, nlen, 0, found, location);
 }
 
-int utf8_find_data(
-    const char *haystack,
-    size_t hlen,
-    const char *needle,
-    size_t nlen,
-    bool *found,
-    size_t *location) {
+int utf8_find_data(const char *haystack,
+                   size_t hlen,
+                   const char *needle,
+                   size_t nlen,
+                   bool *found,
+                   size_t *location) {
     return cbase_data_find(haystack, hlen, needle, nlen, 0, found, location);
 }
 
-bool utf8_starts_with_data_fast(
-    const char *s1, size_t byte_len1, const char *s2, size_t byte_len2) {
+bool utf8_starts_with_data_fast(const char *s1,
+                                size_t byte_len1,
+                                const char *s2,
+                                size_t byte_len2) {
     return cbase_data_starts_with_fast(s1, byte_len1, s2, byte_len2);
 }
 
-int utf8_starts_with_data(
-    const char *s1,
-    size_t byte_len1,
-    const char *s2,
-    size_t byte_len2,
-    bool *starts_with) {
+int utf8_starts_with_data(const char *s1,
+                          size_t byte_len1,
+                          const char *s2,
+                          size_t byte_len2,
+                          bool *starts_with) {
     return cbase_data_starts_with(s1, byte_len1, s2, byte_len2, starts_with);
 }
 
-bool utf8_ends_with_data_fast(
-    const char *s1, size_t byte_len1, const char *s2, size_t byte_len2) {
+bool utf8_ends_with_data_fast(const char *s1,
+                              size_t byte_len1,
+                              const char *s2,
+                              size_t byte_len2) {
     return cbase_data_ends_with_fast(s1, byte_len1, s2, byte_len2);
 }
 
-int utf8_ends_with_data(
-    const char *s1,
-    size_t byte_len1,
-    const char *s2,
-    size_t byte_len2,
-    bool *ends_with) {
+int utf8_ends_with_data(const char *s1,
+                        size_t byte_len1,
+                        const char *s2,
+                        size_t byte_len2,
+                        bool *ends_with) {
     return cbase_data_ends_with(s1, byte_len1, s2, byte_len2, ends_with);
 }
 
-void utf8_seek_to_data_fast(
-    char **data, size_t *len, const char *data2, size_t len2) {
-    bool found      = false;
+void utf8_seek_to_data_fast(char **data,
+                            size_t *len,
+                            const char *data2,
+                            size_t len2) {
+    bool found = false;
     size_t location = 0;
 
     utf8_find_data_fast(*data, *len, data2, len2, &found, &location);
@@ -1063,9 +1115,11 @@ void utf8_seek_to_data_fast(
     *data += location;
 }
 
-int utf8_seek_to_data(
-    char **data, size_t *len, const char *data2, size_t len2) {
-    bool found      = false;
+int utf8_seek_to_data(char **data,
+                      size_t *len,
+                      const char *data2,
+                      size_t len2) {
+    bool found = false;
     size_t location = 0;
 
     CBASE_PROPAGATE_ERROR(

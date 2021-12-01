@@ -22,7 +22,7 @@
 #endif
 
 #ifndef CBASE_DISABLE_INDEXED_LENGTH_BOUNDS_CHECKS
-#define CBASE_CHECK_INDEX_OFFSET_BOUNDS(_len, _index, _count)               \
+#define CBASE_CHECK_INDEX_OFFSET_BOUNDS(_len, _index, _count)                 \
     do {                                                                      \
         size_t _slot_count = 0;                                               \
         CBASE_PROPAGATE_ERROR(                                                \
@@ -53,18 +53,12 @@
 #define CBASE_CHECK_DOUBLE_POINTER(_arg)
 #endif
 
-#ifndef CBASE_DISABLE_INPUT_POINTER_CHECKS
-#define CBASE_CHECK_INPUT_POINTER(_inarg) CBASE_CHECK_POINTER(_inarg)
-#define CBASE_CHECK_INPUT_DOUBLE_POINTER(_inarg)                              \
+#ifndef CBASE_DISABLE_POINTER_ARGUMENT_CHECKS
+#define CBASE_CHECK_POINTER_ARGUMENT(_inarg) CBASE_CHECK_POINTER(_inarg)
+#define CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(_inarg)                           \
     CBASE_CHECK_DOUBLE_POINTER(_inarg)
 #else
-#define CBASE_CHECK_INPUT_POINTER(_inarg)
-#endif
-
-#ifndef CBASE_DISABLE_OUTPUT_POINTER_CHECKS
-#define CBASE_CHECK_OUTPUT_POINTER(_outptr) CBASE_CHECK_POINTER(_outptr)
-#else
-#define CBASE_CHECK_OUTPUT_POINTER(_outptr)
+#define CBASE_CHECK_POINTER_ARGUMENT(_inarg)
 #endif
 
 #endif

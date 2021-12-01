@@ -2,7 +2,8 @@
 
 ## Next time
 
-- Add static data implementations of dynamic data mutations
+- Audit all `CBASE_CHECK_*` calls
+- `clang-format` everything again
 - Start work on array mutations
 
 ## General

@@ -105,8 +105,8 @@
                                     size_t dlen,                              \
                                     size_t index,                             \
                                     _dtype **element) {                       \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
-        CBASE_CHECK_OUTPUT_POINTER(element);                                  \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(element);                                \
         CBASE_CHECK_INDEX_BOUNDS(dlen, index);                                \
                                                                               \
         *element = _dname##_mutable_index_no_check(data, index);              \
@@ -125,7 +125,7 @@
                            size_t dlen,                                       \
                            size_t index,                                      \
                            size_t count) {                                    \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
         CBASE_CHECK_INDEX_BOUNDS(dlen, index);                                \
         CBASE_CHECK_INDEX_OFFSET_BOUNDS(dlen, index, count);                  \
                                                                               \
@@ -151,8 +151,8 @@
                           size_t index,                                       \
                           const _dtype *data2,                                \
                           size_t count) {                                     \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
-        CBASE_CHECK_INPUT_POINTER(data2);                                     \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(data2);                                  \
         CBASE_CHECK_INDEX_BOUNDS(dlen, index);                                \
         CBASE_CHECK_INDEX_OFFSET_BOUNDS(dlen, index, count);                  \
                                                                               \
@@ -169,8 +169,8 @@
     }                                                                         \
                                                                               \
     _api int _dname##_skip(_dtype **data, size_t *dlen, size_t count) {       \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_LENGTH_BOUNDS(*dlen, count);                              \
                                                                               \
         (*data) += count;                                                     \
@@ -199,7 +199,7 @@
     }                                                                         \
                                                                               \
     _api int _dname##_truncate_no_zero(size_t *dlen, size_t new_length) {     \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_LENGTH_BOUNDS(*dlen, new_length);                         \
                                                                               \
         _dname##_truncate_no_zero_no_check(dlen, new_length);                 \
@@ -217,9 +217,9 @@
     _api int _dname##_pop_left_no_zero(_dtype **data,                         \
                                        size_t *dlen,                          \
                                        _dtype *element) {                     \
-        CBASE_CHECK_INPUT_DOUBLE_POINTER(data);                               \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_OUTPUT_POINTER(element);                                  \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(element);                                \
         CBASE_CHECK_INDEX_BOUNDS(*dlen, 0);                                   \
                                                                               \
         _dname##_pop_left_no_zero_no_check(data, dlen, element);              \
@@ -237,9 +237,9 @@
     _api int _dname##_pop_right_no_zero(_dtype *data,                         \
                                         size_t *dlen,                         \
                                         _dtype *element) {                    \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
-        CBASE_CHECK_OUTPUT_POINTER(element);                                  \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(element);                                \
         CBASE_CHECK_INDEX_BOUNDS(*dlen, 0);                                   \
                                                                               \
         _dname##_pop_right_no_zero_no_check(data, dlen, element);             \
@@ -252,7 +252,7 @@
     }                                                                         \
                                                                               \
     _api int _dname##_clear_no_zero(size_t *dlen) {                           \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
                                                                               \
         _dname##_clear_no_zero_no_check(dlen);                                \
                                                                               \
@@ -264,8 +264,8 @@
     }                                                                         \
                                                                               \
     _api int _dname##_clear(_dtype *data, size_t *dlen) {                     \
-        CBASE_CHECK_INPUT_POINTER(data);                                      \
-        CBASE_CHECK_INPUT_POINTER(dlen);                                      \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
                                                                               \
         _dname##_clear_no_check(data, dlen);                                  \
                                                                               \

@@ -12,7 +12,8 @@
 #include "cbase/status.h"
 #include "cbase/str.h"
 
-enum {
+enum
+{
     PATH_PERMISSION_DENIED,
     PATH_INVALID_FILE_DESCRIPTOR,
     PATH_INVALID_MEMORY_ADDRESS,
@@ -63,7 +64,7 @@ typedef struct PathStruct {
     String normal_path;
 } Path;
 
-typedef void* File;
+typedef void *File;
 
 bool path_init(Path *path, Status *status);
 bool path_init_and_set(Path *path, SSlice *input, Status *status);
@@ -89,8 +90,9 @@ bool path_is_symlink(Path *path, bool *is_symlink, Status *status);
 bool path_is_root(Path *path);
 bool path_is_readable(Path *path, bool *readable, Status *status);
 bool path_is_writable(Path *path, bool *writable, Status *status);
-bool path_is_readable_and_writable(Path *path, bool *readable_and_writable,
-                                               Status *status);
+bool path_is_readable_and_writable(Path *path,
+                                   bool *readable_and_writable,
+                                   Status *status);
 bool path_size(Path *path, size_t *size, Status *status);
 bool path_rename(Path *old_path, Path *new_path, Status *status);
 bool path_delete(Path *path, Status *status);
@@ -121,8 +123,11 @@ bool path_file_fdopen(Path *path, int flags, int mode, int *fd,
                                                        Status *status);
 */
 
-bool file_read(File *file, Buffer *buffer, size_t count, size_t size,
-                                                         Status *status);
+bool file_read(File *file,
+               Buffer *buffer,
+               size_t count,
+               size_t size,
+               Status *status);
 bool file_read_raw(File *file, void *buf, size_t byte_count, Status *status);
 /*
 bool file_write(File *file, Buffer *buffer, size_t byte_count, Status *status);
