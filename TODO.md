@@ -2,8 +2,6 @@
 
 ## Next time
 
-- Audit all `CBASE_CHECK_*` calls
-- `clang-format` everything again
 - Start work on array mutations
 
 ## General

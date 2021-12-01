@@ -427,8 +427,8 @@
                                           _dtype const **new_slot) {          \
         CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
-        CBASE_CHECK_INDEX_BOUNDS(*dlen, index);                               \
         CBASE_CHECK_POINTER_ARGUMENT(new_slot);                               \
+        CBASE_CHECK_INDEX_BOUNDS(*dlen, index);                               \
         _CBASE_TRY_EXPAND_DATA_IF_NEEDED_NO_ZERO(_dname, data, dlen, 1);      \
                                                                               \
         *new_slot =                                                           \
@@ -450,8 +450,8 @@
                                   _dtype const **new_slot) {                  \
         CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
-        CBASE_CHECK_INDEX_BOUNDS(*dlen, index);                               \
         CBASE_CHECK_POINTER_ARGUMENT(new_slot);                               \
+        CBASE_CHECK_INDEX_BOUNDS(*dlen, index);                               \
         _CBASE_TRY_EXPAND_DATA_IF_NEEDED(_dname, data, dlen, 1);              \
                                                                               \
         *new_slot = _dname##_insert_slot_no_check((*data), dlen, index);      \

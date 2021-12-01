@@ -228,7 +228,7 @@
                                      size_t *dlen,                            \
                                      const _dtype *data2,                     \
                                      size_t dlen2) {                          \
-        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(data2);                                  \
                                                                               \

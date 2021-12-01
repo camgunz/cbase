@@ -47,7 +47,7 @@
     _api int _dname##_ensure_capacity_no_zero(_dtype **data,                  \
                                               size_t *dcap,                   \
                                               size_t cap) {                   \
-        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
         CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
@@ -59,7 +59,7 @@
     _api int _dname##_ensure_capacity(_dtype **data,                          \
                                       size_t *dcap,                           \
                                       size_t cap) {                           \
-        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
+        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
         CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
         CBASE_PROPAGATE_ERROR(                                                \
