@@ -26,6 +26,6 @@ int cb_charset_convert_data(const char *data,
                             const char *src_encoding,
                             const char *dst_encoding,
                             char *output_data,
-                            size_t *output_len) CBASE_API_ATTRS;
+                            size_t *output_len);
 
 #endif

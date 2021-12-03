@@ -114,6 +114,18 @@ conf_data.set(
   have_flatten_function_attribute
 )
 
+have_always_inline_function_attribute = compiler.has_function_attribute('always_inline')
+conf_data.set(
+  'HAVE_ALWAYS_INLINE_FUNCTION_ATTRIBUTE',
+  have_always_inline_function_attribute
+)
+
+have_forceinline_function_attribute = compiler.has_function_attribute('__forceinline')
+conf_data.set(
+  'HAVE_FORCEINLINE_FUNCTION_ATTRIBUTE',
+  have_forceinline_function_attribute
+)
+
 have_noinline_function_attribute = compiler.has_function_attribute('noinline')
 conf_data.set(
   'HAVE_NOINLINE_FUNCTION_ATTRIBUTE',
@@ -203,6 +215,13 @@ if inlining == 'CBASE_FLATTEN_FUNCTIONS'
       'Cannot mark static inline functions unused without the unused ' +
       'function attribute'
     )
+  endif
+
+  if not have_always_inline_function_attribute and not have_forceinline_function_attribute
+    warning(
+      'Cannot force inlining without the always_inline or __forceinline '
+      'function attributes'
+      )
   endif
 elif inlining == 'CBASE_INLINE_FUNCTIONS'
   if not have_unused_function_attribute

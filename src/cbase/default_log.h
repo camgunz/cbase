@@ -13,25 +13,25 @@
 
 #if DEFAULT_LOGGER_LOG_LEVEL == LOG_LEVEL_RUNTIME
 CBASE_API
-LogLevel _default_log_get_level(void) CBASE_API_ATTRS;
+LogLevel _default_log_get_level(void);
 
 CBASE_API
-void _default_log_set_level(LogLevel level) CBASE_API_ATTRS;
+void _default_log_set_level(LogLevel level);
 #endif
 
 #if DEFAULT_LOGGER == LOG_CUSTOM
 CBASE_API
-LoggerFunc *_default_log_get_logger(LogLevel level) CBASE_API_ATTRS;
+LoggerFunc *_default_log_get_logger(LogLevel level);
 
 CBASE_API
-void _default_log_set_logger(LogLevel level, LoggerFunc log) CBASE_API_ATTRS;
+void _default_log_set_logger(LogLevel level, LoggerFunc log);
 
 CBASE_API
-VLoggerFunc *_default_log_get_vlogger(LogLevel level) CBASE_API_ATTRS;
+VLoggerFunc *_default_log_get_vlogger(LogLevel level);
 
 CBASE_API
 void _default_log_set_vlogger(LogLevel level,
-                              VLoggerFunc vlog) CBASE_API_ATTRS;
+                              VLoggerFunc vlog);
 #endif
 
 CBASE_API_STATIC CBASE_VPRINTF(2) void _default_log_vmsg(LogLevel level,

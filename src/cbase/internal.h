@@ -44,6 +44,20 @@ __extension__ typedef unsigned __int128 uint128_t;
 #define CBASE_ATTR_FLATTEN
 #endif
 
+#if defined(HAVE_ALWAYS_INLINE_FUNCTION_ATTRIBUTE)
+#define CBASE_FORCE_INLINE __attribute__((always_inline))
+#elif defined(HAVE_FORCEINLINE_FUNCTION_ATTRIBUTE)
+#define CBASE_FORCE_INLINE __forceinline
+#else
+#define CBASE_FORCE_INLINE
+#endif
+
+#ifdef _MSC_VER
+#define CBASE_INLINE __inline
+#else
+#define CBASE_INLINE inline
+#endif
+
 #ifdef HAVE_UNUSED_FUNCTION_ATTRIBUTE
 #define CBASE_ATTR_UNUSED __attribute__((unused))
 #else
@@ -51,7 +65,11 @@ __extension__ typedef unsigned __int128 uint128_t;
 #endif
 
 #ifdef HAVE_NOINLINE_FUNCTION_ATTRIBUTE
+#ifdef _MSC_VER
+#define CBASE_ATTR_NOINLINE __declspec(noinline)
+#else
 #define CBASE_ATTR_NOINLINE __attribute__((noinline))
+#endif
 #else
 #define CBASE_ATTR_NOINLINE
 #endif
@@ -93,17 +111,19 @@ __extension__ typedef unsigned __int128 uint128_t;
 #define CBASE_TMPL_API
 
 #if CBASE_INLINING == CBASE_FLATTEN_FUNCTIONS
-#define CBASE_API_ATTRS
-#define CBASE_API_STATIC      static inline CBASE_ATTR_FLATTEN CBASE_ATTR_UNUSED
+#define CBASE_API_STATIC      static CBASE_INLINE CBASE_FORCE_INLINE \
+                                     CBASE_ATTR_FLATTEN CBASE_ATTR_UNUSED
 #define CBASE_TMPL_API_STATIC CBASE_ATTR_FLATTEN CBASE_ATTR_UNUSED
+#define XXH_INLINE_ALL
 #elif CBASE_INLINING == CBASE_INLINE_FUNCTIONS
-#define CBASE_API_ATTRS
-#define CBASE_API_STATIC      static inline CBASE_ATTR_UNUSED
+#define CBASE_API_STATIC      static CBASE_INLINE CBASE_ATTR_UNUSED
 #define CBASE_TMPL_API_STATIC CBASE_ATTR_UNUSED
+#define XXH_INLINE_ALL
 #elif CBASE_INLINING == CBASE_NEVER_INLINE_FUNCTIONS
-#define CBASE_API_ATTRS       CBASE_ATTR_NOINLINE
-#define CBASE_API_STATIC      static inline CBASE_ATTR_UNUSED CBASE_ATTR_NOINLINE
+#define CBASE_API_STATIC      static CBASE_ATTR_UNUSED CBASE_ATTR_NOINLINE
 #define CBASE_TMPL_API_STATIC CBASE_ATTR_UNUSED CBASE_ATTR_NOINLINE
+#define XXH_NO_INLINE_HINTS   1
+#define XXH_NAMESPACE         CBASE_XXH_
 #endif
 
 #define CBASE_TMPL_SCOPE_NORMAL

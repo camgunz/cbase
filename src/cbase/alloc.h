@@ -26,35 +26,35 @@ void *cb_syscalloc(size_t count, size_t size);
 #endif
 
 #ifndef cb_sysrealloc
-CBASE_API void *cb_sysrealloc(void *ptr, size_t size) CBASE_API_ATTRS;
+CBASE_API void *cb_sysrealloc(void *ptr, size_t size);
 #endif
 
 #ifndef cb_sysmemcpy
 CBASE_API void *cb_sysmemcpy(void * restrict dest,
                              const void * restrict src,
-                             size_t size) CBASE_API_ATTRS;
+                             size_t size);
 #endif
 
 CBASE_API
-int _cb_malloc(size_t count, size_t size, void **ptr) CBASE_API_ATTRS;
+int _cb_malloc(size_t count, size_t size, void **ptr);
 
 #define cb_malloc(_count, _size, _ptr)                                        \
     _cb_malloc((_count), (_size), (void **)(_ptr))
 
 CBASE_API
-int _cb_calloc(size_t count, size_t size, void **ptr) CBASE_API_ATTRS;
+int _cb_calloc(size_t count, size_t size, void **ptr);
 
 #define cb_calloc(_count, _size, _ptr)                                        \
     _cb_calloc((_count), (_size), (void **)(_ptr))
 
 CBASE_API
-int _cb_realloc(size_t count, size_t size, void **ptr) CBASE_API_ATTRS;
+int _cb_realloc(size_t count, size_t size, void **ptr);
 
 #define cb_realloc(_count, _size, _ptr)                                       \
     _cb_realloc((_count), (_size), (void **)(_ptr))
 
 CBASE_API
-void cb_free(void *ptr) CBASE_API_ATTRS;
+void cb_free(void *ptr);
 
 #ifdef CBASE_DISABLE_CHECKED_MATH_IN_ALLOCATIONS
 CBASE_API_STATIC int cb_memmove(void * restrict dest,

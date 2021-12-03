@@ -22,24 +22,24 @@ CBASE_API_STATIC CBASE_VPRINTF(2) void log_vmsg(LogLevel level,
 
 #if LOGGER_LOG_LEVEL == LOG_LEVEL_RUNTIME
 CBASE_API
-LogLevel log_get_level(void) CBASE_API_ATTRS;
+LogLevel log_get_level(void);
 
 CBASE_API
-void log_set_level(LogLevel level) CBASE_API_ATTRS;
+void log_set_level(LogLevel level);
 #endif
 
 #if LOGGER == LOG_CUSTOM
 CBASE_API
-LoggerFunc *log_get_logger(LogLevel level) CBASE_API_ATTRS;
+LoggerFunc *log_get_logger(LogLevel level);
 
 CBASE_API
-void log_set_logger(LogLevel level, LoggerFunc log) CBASE_API_ATTRS;
+void log_set_logger(LogLevel level, LoggerFunc log);
 
 CBASE_API
-VLoggerFunc *log_get_vlogger(LogLevel level) CBASE_API_ATTRS;
+VLoggerFunc *log_get_vlogger(LogLevel level);
 
 CBASE_API
-void log_set_vlogger(LogLevel level, VLoggerFunc vlog) CBASE_API_ATTRS;
+void log_set_vlogger(LogLevel level, VLoggerFunc vlog);
 #endif
 
 CBASE_API_STATIC CBASE_VPRINTF(2) void log_vmsg(LogLevel level,

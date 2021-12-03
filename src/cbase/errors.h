@@ -63,10 +63,10 @@ typedef enum
 
 #if (ERRORS == ERROR_LEVEL_RUNTIME) || (ERRORS == ERRORS_RUNTIME)
 CBASE_API
-LogLevel errors_get_log_level(ErrorCode code) CBASE_API_ATTRS;
+LogLevel errors_get_log_level(ErrorCode code);
 
 CBASE_API
-void errors_set_log_level(ErrorCode code, LogLevel level) CBASE_API_ATTRS;
+void errors_set_log_level(ErrorCode code, LogLevel level);
 
 #endif
 
@@ -74,10 +74,10 @@ void errors_set_log_level(ErrorCode code, LogLevel level) CBASE_API_ATTRS;
 typedef void(ErrorHandler)(ErrorCode code, const char *file, int line);
 
 CBASE_API
-ErrorHandler *errors_get_handler(ErrorCode code) CBASE_API_ATTRS;
+ErrorHandler *errors_get_handler(ErrorCode code);
 
 CBASE_API
-void errors_set_handler(ErrorCode code, ErrorHandler handler) CBASE_API_ATTRS;
+void errors_set_handler(ErrorCode code, ErrorHandler handler);
 
 #endif
 
