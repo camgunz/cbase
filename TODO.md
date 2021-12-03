@@ -10,6 +10,7 @@
 - Find all ` - ` instances that are pointer arithmetic, and replace it with
   `positive_ptrdiff`
 
+- tables might benefit from having a local hasher?
 - byte_len -> len in utf8
 - Get list.h and dlist.h up to par
 - Many `string_*` functions need fast variants based on their utf8 counterparts

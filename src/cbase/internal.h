@@ -123,7 +123,6 @@ __extension__ typedef unsigned __int128 uint128_t;
 #define CBASE_API_STATIC      static CBASE_ATTR_UNUSED CBASE_ATTR_NOINLINE
 #define CBASE_TMPL_API_STATIC CBASE_ATTR_UNUSED CBASE_ATTR_NOINLINE
 #define XXH_NO_INLINE_HINTS   1
-#define XXH_NAMESPACE         CBASE_XXH_
 #endif
 
 #define CBASE_TMPL_SCOPE_NORMAL

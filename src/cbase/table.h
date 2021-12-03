@@ -48,7 +48,6 @@ enum
         _ttype##BucketArray buckets;                                          \
     } _ttype;
 
-#endif
 
 #define TABLE_IMPL(_ttype,                                                    \
                    _tname,                                                    \
@@ -428,7 +427,7 @@ enum
                _otype,                                                        \
                hash64_string,                                                 \
                _obj_to_key,                                                   \
-               cstr_equal)
+               cb_cstr_equal)
 
 #define STR_TABLE_DEF(_ttype, _tname, _otype, _obj_to_key)                    \
     STR_TABLE_DECL(_ttype, _tname, _otype)                                    \
@@ -442,9 +441,9 @@ enum
                _tname,                                                        \
                uint64_t,                                                      \
                _otype,                                                        \
-               hash64_string,                                                 \
+               hash64_uint,                                                 \
                _obj_to_key,                                                   \
-               cstr_equal)
+               cb_uint_equal)
 
 #define UINT_TABLE_DEF(_ttype, _tname, _otype, _obj_to_key)                   \
     UINT_TABLE_DECL(_ttype, _tname, _otype)                                   \
@@ -458,9 +457,9 @@ enum
                _tname,                                                        \
                int64_t,                                                       \
                _otype,                                                        \
-               hash64_string,                                                 \
+               hash64_int,                                                 \
                _obj_to_key,                                                   \
-               cstr_equal)
+               cb_int_equal)
 
 #define INT_TABLE_DEF(_ttype, _tname, _otype, _obj_to_key)                    \
     INT_TABLE_DECL(_ttype, _tname, _otype)                                    \
@@ -478,9 +477,9 @@ enum
                _tname,                                                        \
                uint32_t,                                                      \
                _otype,                                                        \
-               hash32_string,                                                 \
+               hash32_uint,                                                 \
                _obj_to_key,                                                   \
-               cstr_equal)
+               cb_uint_equal)
 
 #define UINT32_TABLE_DEF(_ttype, _tname, _otype, _obj_to_key)                 \
     UINT32_TABLE_DECL(_ttype, _tname, _otype)                                 \
@@ -494,12 +493,12 @@ enum
                _tname,                                                        \
                int32_t,                                                       \
                _otype,                                                        \
-               hash32_string,                                                 \
+               hash32_int,                                                 \
                _obj_to_key,                                                   \
-               cstr_equal)
+               cb_int_equal)
 
 #define INT32_TABLE_DEF(_ttype, _tname, _otype, _obj_to_key)                  \
     INT32_TABLE_DECL(_ttype, _tname, _otype)                                  \
     INT32_TABLE_IMPL(_ttype, _tname, _otype, _obj_to_key)
 
-/* vi: set et ts=4 sw=4: */
+#endif
