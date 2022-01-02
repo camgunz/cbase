@@ -3,17 +3,6 @@
 #ifndef _CBASE_DATA_BASE_H__
 #define _CBASE_DATA_BASE_H__
 
-#include "cbase/internal.h"
-
-#include <stdbool.h>
-#include <stddef.h>
-#include <string.h>
-
-#include "cbase/alloc.h"
-#include "cbase/checks.h"
-#include "cbase/errors.h"
-#include "cbase/util.h"
-
 /*
  * [TODO]
  * - find_*_reverse
@@ -31,14 +20,14 @@
     _api void _dname##_slice_no_check(const _dtype *data,                     \
                                       size_t index,                           \
                                       size_t len,                             \
-                                      _dtype **data2,                         \
+                                      _dtype const **data2,                   \
                                       size_t *dlen2);                         \
                                                                               \
     _api int _dname##_slice(const _dtype *data,                               \
                             size_t dlen,                                      \
                             size_t index,                                     \
                             size_t len,                                       \
-                            _dtype **data2,                                   \
+                            _dtype const **data2,                             \
                             size_t *dlen2);                                   \
                                                                               \
     _api void _dname##_copy_no_check(const _dtype *data,                      \
@@ -54,7 +43,6 @@
                            size_t dlen2);                                     \
                                                                               \
     _api bool _dname##_equals_no_check(const _dtype *data,                    \
-                                       size_t dlen,                           \
                                        size_t index,                          \
                                        const _dtype *data2,                   \
                                        size_t dlen2);                         \
@@ -67,7 +55,6 @@
                              bool *equal);                                    \
                                                                               \
     _api bool _dname##_starts_with_no_check(const _dtype *data,               \
-                                            size_t dlen,                      \
                                             const _dtype *data2,              \
                                             size_t dlen2);                    \
                                                                               \
@@ -138,7 +125,7 @@
     _api void _dname##_slice_no_check(const _dtype *data,                     \
                                       size_t index,                           \
                                       size_t len,                             \
-                                      _dtype **data2,                         \
+                                      _dtype const **data2,                   \
                                       size_t *dlen2) {                        \
         *data2 = _dname##_index_no_check(data, index);                        \
         *dlen2 = len;                                                         \
@@ -148,15 +135,16 @@
                             size_t dlen,                                      \
                             size_t index,                                     \
                             size_t len,                                       \
-                            _dtype **data2,                                   \
+                            _dtype const **data2,                             \
                             size_t *dlen2) {                                  \
         CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
-        CBASE_CHECK_INDEX_OFFSET_BOUNDS(dlen, index, len);                    \
+        CBASE_CHECK_OFFSET_INDEX_BOUNDS(dlen, index, len);                    \
         CBASE_CHECK_POINTER_ARGUMENT(data2);                                  \
         CBASE_CHECK_POINTER_ARGUMENT(dlen2);                                  \
                                                                               \
-        CBASE_DELEGATE(                                                       \
-            _dname##_slice_no_check(data, index, count, data2, dlen2));       \
+        _dname##_slice_no_check(data, index, len, data2, dlen2);              \
+                                                                              \
+        return 0;                                                             \
     }                                                                         \
                                                                               \
     _api void _dname##_copy_no_check(const _dtype *data,                      \
@@ -178,12 +166,19 @@
         CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(data2);                                  \
         CBASE_CHECK_INDEX_BOUNDS(dlen, index);                                \
-        CBASE_CHECK_INDEX_OFFSET_BOUNDS(dlen, index, count);                  \
+        CBASE_CHECK_OFFSET_INDEX_BOUNDS(dlen, index, count);                  \
         CBASE_CHECK_LENGTH_BOUNDS(dlen2, count);                              \
                                                                               \
         _dname##_copy_no_check(data, index, count, data2);                    \
                                                                               \
         return 0;                                                             \
+    }                                                                         \
+                                                                              \
+    _api bool _dname##_equals_no_check(const _dtype *data,                    \
+                                       size_t index,                          \
+                                       const _dtype *data2,                   \
+                                       size_t dlen2) {                        \
+        return memcmp(data + index, data2, dlen2);                            \
     }                                                                         \
                                                                               \
     _api int _dname##_equals(const _dtype *data,                              \
@@ -196,18 +191,17 @@
         CBASE_CHECK_POINTER_ARGUMENT(data2);                                  \
         CBASE_CHECK_POINTER_ARGUMENT(equal);                                  \
         CBASE_CHECK_INDEX_BOUNDS(dlen, index);                                \
-        CBASE_CHECK_INDEX_OFFSET_BOUNDS(dlen, index, dlen2);                  \
+        CBASE_CHECK_OFFSET_INDEX_BOUNDS(dlen, index, dlen2);                  \
                                                                               \
-        *equal = _dname##_equals_no_check(data, dlen, index, data2, dlen2);   \
+        *equal = _dname##_equals_no_check(data, index, data2, dlen2);         \
                                                                               \
         return 0;                                                             \
     }                                                                         \
                                                                               \
     _api bool _dname##_starts_with_no_check(const _dtype *data,               \
-                                            size_t dlen,                      \
                                             const _dtype *data2,              \
                                             size_t dlen2) {                   \
-        return _dname##_equals_no_check(data, dlen, 0, data2, dlen2);         \
+        return _dname##_equals_no_check(data, 0, data2, dlen2);               \
     }                                                                         \
                                                                               \
     _api int _dname##_starts_with(const _dtype *data,                         \
@@ -222,11 +216,7 @@
                                           size_t dlen,                        \
                                           const _dtype *data2,                \
                                           size_t dlen2) {                     \
-        return _dname##_equals_no_check(data,                                 \
-                                        dlen,                                 \
-                                        dlen - dlen2,                         \
-                                        data2,                                \
-                                        dlen2);                               \
+        return _dname##_equals_no_check(data, dlen - dlen2, data2, dlen2);    \
     }                                                                         \
                                                                               \
     _api int _dname##_ends_with(const _dtype *data,                           \

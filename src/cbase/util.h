@@ -27,10 +27,8 @@ CBASE_API_STATIC int cb_zero_buf(void *buf, size_t count, size_t size) {
 }
 
 CBASE_API
-void *_cb_memmem(const void *haystack,
-                 size_t hlen,
-                 const void *needle,
-                 size_t nlen);
+void *
+_cb_memmem(const void *haystack, size_t hlen, const void *needle, size_t nlen);
 
 #ifndef HAVE_MEMMEM
 #define memmem _cb_memmem

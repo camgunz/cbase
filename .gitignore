@@ -3,6 +3,8 @@
 *.o
 cbuild/
 .cache/
-subprojects/
+subprojects/packagecache
+subprojects/utf8proc-2.6.0
+subprojects/cmocka-1.1.5
 compile_commands.json
 .clang-format

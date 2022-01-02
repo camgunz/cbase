@@ -167,5 +167,3 @@ CBASE_API_STATIC CBASE_PRINTF(1, 2) void log_fatal(const char *msg, ...) {
 }
 
 #endif
-
-/* vi: set et ts=4 sw=4: */

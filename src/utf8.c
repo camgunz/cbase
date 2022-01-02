@@ -1134,5 +1134,3 @@ int utf8_seek_to_data(char **data,
 
     return 0;
 }
-
-/* vi: set et ts=4 sw=4: */

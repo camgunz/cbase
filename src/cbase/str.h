@@ -122,5 +122,3 @@ CBASE_PRINTF(2, 3)
 int string_append_printf(String *string, const char *fmt, ...);
 
 #endif
-
-/* vi: set et ts=4 sw=4: */

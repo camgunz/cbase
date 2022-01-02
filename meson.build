@@ -120,12 +120,6 @@ conf_data.set(
   have_always_inline_function_attribute
 )
 
-have_forceinline_function_attribute = compiler.has_function_attribute('__forceinline')
-conf_data.set(
-  'HAVE_FORCEINLINE_FUNCTION_ATTRIBUTE',
-  have_forceinline_function_attribute
-)
-
 have_noinline_function_attribute = compiler.has_function_attribute('noinline')
 conf_data.set(
   'HAVE_NOINLINE_FUNCTION_ATTRIBUTE',
@@ -217,11 +211,10 @@ if inlining == 'CBASE_FLATTEN_FUNCTIONS'
     )
   endif
 
-  if not have_always_inline_function_attribute and not have_forceinline_function_attribute
+  if not have_always_inline_function_attribute and not compiler.get_id() == 'msvc'
     warning(
-      'Cannot force inlining without the always_inline or __forceinline '
-      'function attributes'
-      )
+      'Cannot force inlining without the always_inline function attribute'
+    )
   endif
 elif inlining == 'CBASE_INLINE_FUNCTIONS'
   if not have_unused_function_attribute
@@ -231,7 +224,7 @@ elif inlining == 'CBASE_INLINE_FUNCTIONS'
     )
   endif
 elif inlining == 'CBASE_NEVER_INLINE_FUNCTIONS'
-  if not have_noinline_function_attribute
+  if not have_noinline_function_attribute and not compiler.get_id() == 'msvc'
     warning('Cannot disable inlining without the noinline function attribute')
   endif
 endif
@@ -341,8 +334,8 @@ conf_data.set(
 )
 
 conf_data.set(
-  'CBASE_DISABLE_INDEX_OFFSET_BOUNDS_CHECKS',
-  get_option('disable_index_offset_bounds_checks')
+  'CBASE_DISABLE_OFFSET_INDEX_BOUNDS_CHECKS',
+  get_option('disable_offset_index_bounds_checks')
 )
 
 conf_data.set(
@@ -352,7 +345,7 @@ conf_data.set(
 
 conf_data.set(
   'CBASE_DISABLE_POINTER_ARGUMENT_CHECKS',
-  get_option('disable_input_pointer_checks')
+  get_option('disable_pointer_argument_checks')
 )
 
 conf_data.set(
@@ -370,6 +363,13 @@ conf_data.set(
   get_option('disable_pointer_arithmetic_checks')
 )
 
+conf_data.set(
+  'CBASE_BUILDING_DLL',
+  compiler.get_id() == 'msvc' and get_option('library') == 'shared'
+)
+
+conf_data.set('CBASE_OPTIMIZE_SIZE', get_option('buildtype') == 'minsize')
+
 configure_file(
   input : 'cbase_config.h.in',
   output : 'cbase_config.h',
@@ -386,29 +386,31 @@ else
 endif
 
 utf8proc_dep = dependency('utf8proc', fallback : ['utf8proc', 'utf8proc_dep'])
+cmocka_dep = dependency('cmocka', fallback : ['cmocka', 'cmocka_dep'])
 
 dependencies += utf8proc_dep
+dependencies += cmocka_dep
 
 cbase_src = [
   'src/alloc.c',
-  'src/charset.c',
+  # 'src/charset.c',
   'src/errors.c',
   'src/log.c',
-  'src/str.c',
-  'src/utf8.c',
+  # 'src/str.c',
+  # 'src/utf8.c',
   'src/util.c',
-  'src/xxhash.c',
+  # 'src/xxhash.c',
 ]
 
 cbase_test_src = [
-  'test/alloc.c',
+  # 'test/alloc.c',
   'test/array.c',
-  'test/dlist.c',
-  'test/list.c',
+  # 'test/dlist.c',
+  # 'test/list.c',
   'test/main.c',
-  'test/str.c',
-  'test/table.c',
-  'test/utf8.c',
+  # 'test/str.c',
+  # 'test/table.c',
+  # 'test/utf8.c',
 ]
 
 lib = library(
@@ -420,8 +422,6 @@ lib = library(
   dependencies : dependencies,
   include_directories : incdirs
 )
-
-dependencies += compiler.find_library('cmocka')
 
 test_exe = executable(
   'cbase_test',

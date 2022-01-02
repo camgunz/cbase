@@ -58,5 +58,3 @@ int charset_convert_data(const char *data,
 
     return 0;
 }
-
-/* vi: set et ts=4 sw=4: */

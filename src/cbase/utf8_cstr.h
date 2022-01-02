@@ -282,5 +282,3 @@ utf8_cstr_ends_with_rune(const char *cstr, rune r, bool *ends_with) {
 }
 
 #endif
-
-/* vi: set et ts=4 sw=4: */

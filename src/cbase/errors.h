@@ -197,5 +197,3 @@ void _default_error_handler(ErrorCode code, const char *file, int line) {
 #endif
 
 #endif
-
-/* vi: set et ts=4 sw=4: */

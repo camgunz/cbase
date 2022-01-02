@@ -51,5 +51,3 @@ void errors_set_handler(ErrorCode code, ErrorHandler handler) {
 #endif
 
 #endif
-
-/* vi: set et ts=4 sw=4: */

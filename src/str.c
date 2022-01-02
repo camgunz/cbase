@@ -343,5 +343,3 @@ int string_append_printf(String *string, const char *fmt, ...) {
 
     return res;
 }
-
-/* vi: set et ts=4 sw=4: */

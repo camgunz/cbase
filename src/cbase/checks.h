@@ -22,7 +22,7 @@
 #endif
 
 #ifndef CBASE_DISABLE_INDEXED_LENGTH_BOUNDS_CHECKS
-#define CBASE_CHECK_INDEX_OFFSET_BOUNDS(_len, _index, _count)                 \
+#define CBASE_CHECK_OFFSET_INDEX_BOUNDS(_len, _index, _count)                 \
     do {                                                                      \
         size_t _slot_count = 0;                                               \
         CBASE_PROPAGATE_ERROR(                                                \
@@ -30,7 +30,7 @@
         CBASE_CHECK_LENGTH_BOUNDS((_len), _slot_count);                       \
     } while (0)
 #else
-#define CBASE_CHECK_INDEX_OFFSET_BOUNDS(_len, _index, _count)
+#define CBASE_CHECK_OFFSET_INDEX_BOUNDS(_len, _index, _count)
 #endif
 
 #ifndef CBASE_DISABLE_OVERLAPPING_MEMORY_CHECKS
@@ -46,7 +46,7 @@
 #define CBASE_CHECK_POINTER(_arg)                                             \
     CBASE_ERROR_IF((!(_arg)), CBASE_ERROR_NULL_POINTER)
 #define CBASE_CHECK_DOUBLE_POINTER(_arg)                                      \
-    CBASE_CHECK_POINTER(_arg)                                                 \
+    CBASE_CHECK_POINTER(_arg);                                                \
     CBASE_CHECK_POINTER((*_arg))
 #else
 #define CBASE_CHECK_POINTER(_arg)

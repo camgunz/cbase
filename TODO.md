@@ -2,30 +2,36 @@
 
 ## Next time
 
-- Start work on array mutations
+- Arrays
+  - Use tests to find problems
 
-## General
+## Big
 
-- Find all ` + ` instances and wrap in `check_overflow` or something
-- Find all ` - ` instances that are pointer arithmetic, and replace it with
+- Reimplement utf8 and str
+- Get list.h and dlist.h up to par
+
+## Small
+
+- Find all ` +` instances and wrap in `check_overflow` or something
+- Find all ` -` instances that are pointer arithmetic, and replace it with
   `positive_ptrdiff`
 
-- tables might benefit from having a local hasher?
 - byte_len -> len in utf8
-- Get list.h and dlist.h up to par
 - Many `string_*` functions need fast variants based on their utf8 counterparts
 - Expand `utf8_pop_*` to `pop_left` and `pop_right`
   - Build on this to `string_pop_*` to `pop_left` and `pop_right`
 - Add `cstr` functions to str.h
-- Pull out common defs between array.h and slice.h
-
-- Many `*_equals` functions return `bool`, but other predicates use output
-  parameters. This... feels inconsistent?
-- Paramterize string encoding
-  - Not super clear on how to do this
 - All `*_assign` functions should take ownership of their arguments
   - n.b. this doesn't make sense for slices
+  - n.b. 2 `*_assign` for data and arrays is in `*_slice*.h`
 - Ensure everything modifies their output parameters only on success
+- Build checked 64-bit math functions that don't require 128-bits of precision
+
+## Musings and dreams
+
+- tables might benefit from having a local hasher?
+- Parameterize string encoding
+  - Not super clear on how to do this
 - Consider adding an allocation size strategy for functions that auto-resize,
   i.e. `*_encode` or even `*_append_*`.  Currently it's "always double" which
   almost certainly non-optimal.
@@ -35,7 +41,6 @@
   kind of thing and should maybe be used if found; `recallocarray` is tricky
   though.
 - Switch table to https://github.com/martinus/robin-hood-hashing
-- Build checked 64-bit math functions that don't require 128-bits of precision
 - Function attributes:
   - GCC: `malloc`
   - GCC: `nonnull`

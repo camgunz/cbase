@@ -1403,5 +1403,3 @@ bool file_close(File *file, Status *status) {
 // off_t lseek(int fildes, off_t offset, int whence);
 // off_t lseek(int fildes, off_t offset, int whence);
 // int close(int filedes);
-
-/* vi: set et ts=4 sw=4: */

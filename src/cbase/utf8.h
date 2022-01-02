@@ -316,5 +316,3 @@ void utf8_truncate_if_not_equals_fast(const char *data, size_t *len, rune r);
 int utf8_truncate_if_not_equals(const char *data, size_t *len, rune r);
 
 #endif
-
-/* vi: set et ts=4 sw=4: */

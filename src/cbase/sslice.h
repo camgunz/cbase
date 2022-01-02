@@ -373,5 +373,3 @@ static inline int sslice_to_cstr(SSlice *sslice, char **cs) {
 }
 
 #endif
-
-/* vi: set et ts=4 sw=4: */

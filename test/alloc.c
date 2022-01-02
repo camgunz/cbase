@@ -12,12 +12,10 @@ void test_alloc(void **state) {
 
     (void)state;
 
-    assert_int_equal(cbstrdup(s, &s2), 0);
+    assert_int_equal(cb_strdup(s, &s2), 0);
     assert_non_null(s2);
 
     assert_string_equal(s, s2);
 
-    cbfree(s2);
+    cb_free(s2);
 }
-
-/* vi: set et ts=4 sw=4: */

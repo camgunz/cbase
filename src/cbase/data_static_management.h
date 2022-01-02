@@ -3,28 +3,35 @@
 #ifndef _CBASE_DATA_STATIC_MANAGEMENT_H__
 #define _CBASE_DATA_STATIC_MANAGEMENT_H__
 
-#include "cbase/internal.h"
+#define _CBASE_TRY_EXPAND_STATIC_DATA_IF_NEEDED_NO_ZERO(_dname,               \
+                                                        _data,                \
+                                                        _dcap,                \
+                                                        _excap)               \
+    do {                                                                      \
+        size_t _slot_count = 0;                                               \
+        CBASE_PROPAGATE_ERROR(                                                \
+            cb_safe_add_size((*(_dcap)), (_excap), &_slot_count));         \
+        CBASE_PROPAGATE_ERROR(                                                \
+            _dname##_ensure_capacity_no_zero_no_check((_data),                \
+                                                      (_dcap),                \
+                                                      _slot_count));          \
+    } while (0)
 
-#include <stddef.h>
-
-#include "cbase/alloc.h"
-#include "cbase/checks.h"
-#include "cbase/data_base.h"
-#include "cbase/data_ownership_management.h"
-#include "cbase/errors.h"
+#define _CBASE_TRY_EXPAND_STATIC_DATA_IF_NEEDED(_dname, _data, _dcap, _excap) \
+    do {                                                                      \
+        size_t _slot_count = 0;                                               \
+        CBASE_PROPAGATE_ERROR(                                                \
+            cb_safe_add_size((*(_dcap)), (_excap), &_slot_count));         \
+        CBASE_PROPAGATE_ERROR(                                                \
+            _dname##_ensure_capacity_no_zero_no_check((_data),                \
+                                                      (_dcap),                \
+                                                      _slot_count));          \
+    } while (0)
 
 #define CBASE_DATA_STATIC_MANAGEMENT_IMPL_DECL(_api,                          \
                                                _dname,                        \
                                                _dtype,                        \
                                                _dmaxcap)                      \
-    _api int _dname##_ensure_capacity_no_zero_no_check(_dtype **data,         \
-                                                       size_t *dlen,          \
-                                                       size_t cap);           \
-                                                                              \
-    _api int _dname##_ensure_capacity_no_check(_dtype **data,                 \
-                                               size_t *dlen,                  \
-                                               size_t cap);                   \
-                                                                              \
     _api int _dname##_set_length_no_zero_no_check(_dtype **data,              \
                                                   size_t *dlen,               \
                                                   size_t len);                \
@@ -85,27 +92,25 @@
 
 #define CBASE_DATA_STATIC_MANAGEMENT_IMPL(_api, _dname, _dtype, _dmaxcap)     \
     _api int _dname##_ensure_capacity_no_zero_no_check(_dtype **data,         \
-                                                       size_t *dlen,          \
+                                                       size_t *dcap,          \
                                                        size_t cap) {          \
         CBASE_ERROR_IF((cap > _dmaxcap), CBASE_ERROR_OUT_OF_BOUNDS);          \
                                                                               \
         (void)data;                                                           \
                                                                               \
-        (*dlen) = cap;                                                        \
+        (*dcap) = cap;                                                        \
                                                                               \
         return 0;                                                             \
     }                                                                         \
                                                                               \
     _api int _dname##_ensure_capacity_no_check(_dtype **data,                 \
-                                               size_t *dlen,                  \
+                                               size_t *dcap,                  \
                                                size_t cap) {                  \
         CBASE_ERROR_IF((cap > _dmaxcap), CBASE_ERROR_OUT_OF_BOUNDS);          \
                                                                               \
-        (void)data;                                                           \
+        _dname##_zero_no_check((*data), (*dcap), cap - (*dcap));              \
                                                                               \
-        _dname##_zero_no_check((*data), (*dlen), cap - (*dlen));              \
-                                                                              \
-        (*dlen) = cap;                                                        \
+        (*dcap) = cap;                                                        \
                                                                               \
         return 0;                                                             \
     }                                                                         \
@@ -117,10 +122,10 @@
             (*dlen) = len;                                                    \
         }                                                                     \
         else {                                                                \
-            _CBASE_TRY_EXPAND_DATA_IF_NEEDED_NO_ZERO(_dname,                  \
-                                                     data,                    \
-                                                     dlen,                    \
-                                                     len);                    \
+            _CBASE_TRY_EXPAND_STATIC_DATA_IF_NEEDED_NO_ZERO(_dname,           \
+                                                            data,             \
+                                                            dlen,             \
+                                                            len);             \
         }                                                                     \
                                                                               \
         return 0;                                                             \
@@ -146,7 +151,7 @@
             (*dlen) = len;                                                    \
         }                                                                     \
         else {                                                                \
-            _CBASE_TRY_EXPAND_DATA_IF_NEEDED(_dname, data, dlen, len);        \
+            _CBASE_TRY_EXPAND_STATIC_DATA_IF_NEEDED(_dname, data, dlen, len); \
         }                                                                     \
                                                                               \
         return 0;                                                             \
@@ -177,7 +182,10 @@
                                                    size_t *dlen,              \
                                                    size_t len) {              \
         _dname##_init_no_check(dlen);                                         \
-        _CBASE_TRY_EXPAND_DATA_IF_NEEDED_NO_ZERO(_dname, data, dlen, len);    \
+        _CBASE_TRY_EXPAND_STATIC_DATA_IF_NEEDED_NO_ZERO(_dname,               \
+                                                        data,                 \
+                                                        dlen,                 \
+                                                        len);                 \
                                                                               \
         return 0;                                                             \
     }                                                                         \
@@ -198,7 +206,7 @@
                                            size_t *dlen,                      \
                                            size_t len) {                      \
         _dname##_init_no_check(dlen);                                         \
-        _CBASE_TRY_EXPAND_DATA_IF_NEEDED(_dname, data, dlen, len);            \
+        _CBASE_TRY_EXPAND_STATIC_DATA_IF_NEEDED(_dname, data, dlen, len);     \
                                                                               \
         return 0;                                                             \
     }                                                                         \
@@ -218,7 +226,7 @@
                                               const _dtype *data2,            \
                                               size_t dlen2) {                 \
         _dname##_init_no_check(dlen);                                         \
-        _CBASE_TRY_EXPAND_DATA_IF_NEEDED(_dname, data, dlen, dlen2);          \
+        _CBASE_TRY_EXPAND_STATIC_DATA_IF_NEEDED(_dname, data, dlen, dlen2);   \
         _dname##_set_no_check((*data), 0, data2, dlen2);                      \
                                                                               \
         return 0;                                                             \
@@ -239,7 +247,7 @@
     }                                                                         \
                                                                               \
     _api void _dname##_free_no_zero_no_check(_dtype *data, size_t *dlen) {    \
-        cbfree(data);                                                         \
+        cb_free(data);                                                        \
         _dname##_init_no_check(dlen);                                         \
     }                                                                         \
                                                                               \

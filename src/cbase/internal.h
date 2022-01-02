@@ -45,11 +45,9 @@ __extension__ typedef unsigned __int128 uint128_t;
 #endif
 
 #if defined(HAVE_ALWAYS_INLINE_FUNCTION_ATTRIBUTE)
-#define CBASE_FORCE_INLINE __attribute__((always_inline))
-#elif defined(HAVE_FORCEINLINE_FUNCTION_ATTRIBUTE)
-#define CBASE_FORCE_INLINE __forceinline
-#else
-#define CBASE_FORCE_INLINE
+#define CBASE_ATTR_FORCE_INLINE __attribute__((always_inline))
+#elif defined(_MSC_VER) /* Visual Studio */
+#define CBASE_ATTR_FORCE_INLINE __forceinline
 #endif
 
 #ifdef _MSC_VER
@@ -105,28 +103,41 @@ __extension__ typedef unsigned __int128 uint128_t;
  *   just now.
  */
 
-#define CBASE_API
+///
+
 #define CBASE_API_MALLOC CBASE_ATTR_MALLOC
 #define CBASE_API_DEALLOC
-#define CBASE_TMPL_API
 
 #if CBASE_INLINING == CBASE_FLATTEN_FUNCTIONS
-#define CBASE_API_STATIC      static CBASE_INLINE CBASE_FORCE_INLINE \
-                                     CBASE_ATTR_FLATTEN CBASE_ATTR_UNUSED
-#define CBASE_TMPL_API_STATIC CBASE_ATTR_FLATTEN CBASE_ATTR_UNUSED
+#define CBASE_INLINING_DEFS CBASE_INLINE CBASE_ATTR_FORCE_INLINE CBASE_ATTR_FLATTEN
 #define XXH_INLINE_ALL
 #elif CBASE_INLINING == CBASE_INLINE_FUNCTIONS
-#define CBASE_API_STATIC      static CBASE_INLINE CBASE_ATTR_UNUSED
-#define CBASE_TMPL_API_STATIC CBASE_ATTR_UNUSED
+#define CBASE_INLINING_DEFS CBASE_INLINE
 #define XXH_INLINE_ALL
 #elif CBASE_INLINING == CBASE_NEVER_INLINE_FUNCTIONS
-#define CBASE_API_STATIC      static CBASE_ATTR_UNUSED CBASE_ATTR_NOINLINE
-#define CBASE_TMPL_API_STATIC CBASE_ATTR_UNUSED CBASE_ATTR_NOINLINE
+#define CBASE_INLINING_DEFS CBASE_ATTR_NOINLINE
 #define XXH_NO_INLINE_HINTS   1
 #endif
 
-#define CBASE_TMPL_SCOPE_NORMAL
-#define CBASE_TMPL_SCOPE_STATIC static
+#if defined(WIN32) || defined(_MSC_VER)
+#ifdef CBASE_BUILDING_DLL /* Exporting DLL symbols */
+#define CBASE_API_PUBLIC __declspec(dllexport)
+#elif CBASE_USING_DLL /* Importing DLL symbols */
+#define CBASE_API_PUBLIC __declspec(dllimport)
+#else
+#define CBASE_API_PUBLIC
+#endif
+#else
+#define CBASE_API_PUBLIC
+#endif
+
+#define CBASE_STATIC_DEFS static CBASE_ATTR_UNUSED
+
+#define CBASE_API_TMPL
+#define CBASE_API_STATIC_TMPL CBASE_STATIC_DEFS CBASE_INLINING_DEFS
+
+#define CBASE_API CBASE_API_PUBLIC
+#define CBASE_API_STATIC CBASE_API_PUBLIC CBASE_STATIC_DEFS CBASE_INLINING_DEFS
 
 /*
 #ifdef _WIN32

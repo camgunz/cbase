@@ -135,10 +135,10 @@ option(
 )
 
 option(
-  'disable_indexed_length_bounds_checks',
+  'disable_offset_index_bounds_checks',
   type : 'boolean',
   value : false,
-  description : 'Disables indexed length argument bounds checking'
+  description : 'Disables offset index argument bounds checking'
 )
 
 option(
@@ -149,10 +149,10 @@ option(
 )
 
 option(
-  'disable_input_object_argument_pointer_checks',
+  'disable_pointer_argument_checks',
   type : 'boolean',
   value : false,
-  description : 'Disable input object pointer argument non-null checks'
+  description : 'Disable pointer argument non-null checks'
 )
 
 option(

@@ -153,5 +153,3 @@ bool file_fdclose(int fd, Status *status);
 */
 
 #endif
-
-/* vi: set et ts=4 sw=4: */

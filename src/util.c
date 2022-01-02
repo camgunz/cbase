@@ -8,6 +8,8 @@
 #include <windows.h>
 #endif
 
+#include "cbase/internal.h"
+
 #include "cbase/checks.h"
 #include "cbase/errors.h"
 
@@ -28,7 +30,7 @@ static void secure_memzero(void *buf, size_t len) {
     (memset_buf)(buf, 0, len);
 }
 
-void zero_buf_no_check(void *buf, size_t byte_count) {
+void cb_zero_buf_no_check(void *buf, size_t byte_count) {
     /* [TODO] Handle errors */
 #if defined(_MSC_VER)
     (void)SecureZeroMemory(buf, byte_count);
@@ -41,8 +43,10 @@ void zero_buf_no_check(void *buf, size_t byte_count) {
 #endif
 }
 
-void *
-_cbmemmem(const void *haystack, size_t hlen, const void *needle, size_t nlen) {
+void *_cb_memmem(const void *haystack,
+                 size_t hlen,
+                 const void *needle,
+                 size_t nlen) {
     if (!haystack) {
         return NULL;
     }
@@ -67,7 +71,7 @@ _cbmemmem(const void *haystack, size_t hlen, const void *needle, size_t nlen) {
             continue;
         }
 
-        if (memcmp(cursor, needle, nlen)) {
+        if (memcmp(cursor, needle, nlen) != 0) {
             continue;
         }
 
@@ -77,33 +81,31 @@ _cbmemmem(const void *haystack, size_t hlen, const void *needle, size_t nlen) {
     return NULL;
 }
 
-void cbmemmem_no_check(const void *haystack,
-                       size_t hlen,
-                       const void *needle,
-                       size_t nlen,
-                       void **location) {
+void cb_memmem_no_check(const void *haystack,
+                        size_t hlen,
+                        const void *needle,
+                        size_t nlen,
+                        void **location) {
     *location = memmem(haystack, hlen, needle, nlen);
 }
 
-int cbmemmem(const void *haystack,
-             size_t hlen,
-             const void *needle,
-             size_t nlen,
-             void **location) {
-    CBASE_CHECK_INPUT_OBJECT(haystack);
-    CBASE_CHECK_INPUT_OBJECT(needle);
-    CBASE_CHECK_OUTPUT_ARGUMENT(location);
+int cb_memmem(const void *haystack,
+              size_t hlen,
+              const void *needle,
+              size_t nlen,
+              void **location) {
+    CBASE_CHECK_POINTER_ARGUMENT(haystack);
+    CBASE_CHECK_POINTER_ARGUMENT(needle);
+    CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(location);
     CBASE_ERROR_IF(nlen == 0, CBASE_ERROR_NULL_POINTER);
 
     CBASE_ERROR_IF(nlen > hlen, CBASE_ERROR_NOT_FOUND);
 
     void *location2 = NULL;
 
-    cbmemmem_no_check(haystack, hlen, needle, nlen, &location2);
+    cb_memmem_no_check(haystack, hlen, needle, nlen, &location2);
 
-    if (!location2) {
-        CBASE_ERROR(CBASE_ERROR_NOT_FOUND);
-    }
+    CBASE_ERROR_IF(!location2, CBASE_ERROR_NOT_FOUND);
 
     *location = location2;
 

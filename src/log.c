@@ -4,7 +4,7 @@
 
 #include "cbase/logbase.h"
 
-#if DEFAULT_LOGGER_LOG_LEVEL == LOG_LEVEL_RUNTIME
+#if CBASE_DEFAULT_LOGGER_LOG_LEVEL == CBASE_LOG_LEVEL_RUNTIME
 static LogLevel _default_log_level = CBASE_LOG_LEVEL_INFO;
 
 LogLevel _default_log_get_level(void) {
@@ -16,7 +16,7 @@ void _default_log_set_level(LogLevel level) {
 }
 #endif
 
-#if DEFAULT_LOGGER == LOG_CUSTOM
+#if CBASE_DEFAULT_LOGGER == CBASE_LOG_CUSTOM
 static LoggerFunc *_default_loggers[CBASE_LOG_LEVEL_MAX] = {
     _printf_to_stderr,
     _printf_to_stderr,
@@ -55,7 +55,7 @@ void _default_log_set_vlogger(LogLevel level, VLoggerFunc vlog) {
 
 #endif
 
-#if INTERNAL_LOGGER_LOG_LEVEL == LOG_LEVEL_RUNTIME
+#if CBASE_INTERNAL_LOGGER_LOG_LEVEL == CBASE_LOG_LEVEL_RUNTIME
 static LogLevel _internal_log_level = CBASE_LOG_LEVEL_INFO;
 
 LogLevel _internal_log_get_level(void) {
@@ -67,7 +67,7 @@ void _internal_log_set_level(LogLevel level) {
 }
 #endif
 
-#if INTERNAL_LOGGER == LOG_CUSTOM
+#if CBASE_INTERNAL_LOGGER == CBASE_LOG_CUSTOM
 static LoggerFunc *_internal_loggers[CBASE_LOG_LEVEL_MAX] = {
     _printf_to_stderr,
     _printf_to_stderr,
@@ -105,7 +105,7 @@ void _internal_log_set_vlogger(LogLevel level, VLoggerFunc vlog) {
 }
 #endif
 
-#if LOG_LEVEL == LOG_LEVEL_RUNTIME
+#if CBASE_LOG_LEVEL == CBASE_LOG_LEVEL_RUNTIME
 static LogLevel _log_level = CBASE_LOG_LEVEL_INFO;
 
 LogLevel log_get_level(void) {
@@ -117,7 +117,7 @@ void log_set_level(LogLevel level) {
 }
 #endif
 
-#if LOGGER == LOG_CUSTOM
+#if CBASE_LOGGER == CBASE_LOG_CUSTOM
 static LoggerFunc *loggers[CBASE_LOG_LEVEL_MAX] = {
     _printf_to_stderr,
     _printf_to_stderr,
@@ -154,5 +154,3 @@ void log_set_vlogger(LogLevel level, VLoggerFunc vlog) {
     vloggers[level] = vlog;
 }
 #endif
-
-/* vi: set et ts=4 sw=4: */

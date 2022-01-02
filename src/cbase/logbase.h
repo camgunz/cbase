@@ -62,5 +62,3 @@ typedef void(VLoggerFunc)(const char *msg, va_list args);
 #endif
 
 #endif
-
-/* vi: set et ts=4 sw=4: */

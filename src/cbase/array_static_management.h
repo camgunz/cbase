@@ -3,23 +3,7 @@
 #ifndef _CBASE_ARRAY_STATIC_MANAGEMENT_H__
 #define _CBASE_ARRAY_STATIC_MANAGEMENT_H__
 
-#include "cbase/internal.h"
-
-#include <stddef.h>
-
-#include "cbase/alloc.h"
-#include "cbase/checks.h"
-#include "cbase/data_base.h"
-#include "cbase/data_ownership_management.h"
-#include "cbase/data_static_management.h"
-#include "cbase/errors.h"
-
-#define CBASE_ARRAY_STATIC_MANAGEMENT_IMPL_DECL(_api,                         \
-                                                _dname,                       \
-                                                _etype,                       \
-                                                _dmaxcap,                     \
-                                                _aname,                       \
-                                                _atype)                       \
+#define CBASE_ARRAY_STATIC_MANAGEMENT_IMPL_DECL(_api, _dname, _aname, _atype) \
     _api int _aname##_ensure_capacity_no_zero_no_check(_atype *array,         \
                                                        size_t cap);           \
                                                                               \
@@ -41,12 +25,22 @@
                                                                               \
     _api int _aname##_init(_atype *array);                                    \
                                                                               \
-    _api int _aname##_init_from_array_no_check(_atype *array,                 \
-                                               const _atype *array2);         \
+    _api int _aname##_init_length_no_zero_no_check(_atype *array,             \
+                                                   size_t len);               \
                                                                               \
-    _api int _aname##_init_from_array(_atype *array,                          \
-                                      size_t *dlen,                           \
-                                      const _atype *array2);                  \
+    _api int _aname##_init_length_no_zero(_atype *array, size_t len)          \
+                                                                              \
+    _api int _aname##_init_length_no_check(_atype *array, size_t len)         \
+                                                                              \
+    _api int _aname##_init_length(_atype *array, size_t len)                  \
+                                                                              \
+    _api int _aname##_init_from_data_no_check(_atype *array,                  \
+                                              const _etype *elements,         \
+                                              size_t element_count);          \
+                                                                              \
+    _api int _aname##_init_from_data(_atype *array,                           \
+                                     const _etype *elements,                  \
+                                     size_t element_count);                   \
                                                                               \
     _api void _aname##_free_no_zero_no_check(_atype *array);                  \
                                                                               \
@@ -64,12 +58,7 @@
                                                                               \
     _api int _aname##_destroy(_atype *array);
 
-#define CBASE_ARRAY_STATIC_MANAGEMENT_IMPL(_api,                              \
-                                           _dname,                            \
-                                           _etype,                            \
-                                           _dmaxcap,                          \
-                                           _aname,                            \
-                                           _atype)                            \
+#define CBASE_ARRAY_STATIC_MANAGEMENT_IMPL(_api, _dname, _aname, _atype)      \
     _api int _aname##_ensure_capacity_no_zero(_atype *array, size_t cap) {    \
         CBASE_DELEGATE(_dname##_ensure_capacity_no_zero(&array->data,         \
                                                         &array->len,          \
@@ -108,7 +97,6 @@
                                                                               \
     _api int _aname##_init(_atype *array) {                                   \
         CBASE_DELEGATE(_dname##_init(&array->len));                           \
-        \                                                                     \
     }                                                                         \
                                                                               \
     _api int _aname##_init_length_no_zero_no_check(_atype *array,             \
@@ -133,19 +121,21 @@
     }                                                                         \
                                                                               \
     _api int _aname##_init_from_data_no_check(_atype *array,                  \
-                                              const _dtype *data2,            \
-                                              size_t dlen2) {                 \
+                                              const _etype *elements,         \
+                                              size_t element_count) {         \
         CBASE_DELEGATE(_dname##_init_from_data_no_check(&array->data,         \
                                                         &array->len,          \
-                                                        data2,                \
-                                                        dlen2));              \
+                                                        elements,             \
+                                                        element_count));      \
     }                                                                         \
                                                                               \
     _api int _aname##_init_from_data(_atype *array,                           \
-                                     const _dtype *data2,                     \
-                                     size_t dlen2) {                          \
-        CBASE_DELEGATE(                                                       \
-            _dname##init_from_data(&array->data, &array->len, data2, dlen2)); \
+                                     const _etype *elements,                  \
+                                     size_t element_count) {                  \
+        CBASE_DELEGATE(_dname##init_from_data(&array->data,                   \
+                                              &array->len,                    \
+                                              elements,                       \
+                                              element_count));                \
     }                                                                         \
                                                                               \
     _api void _aname##_free_no_zero_no_check(_atype *array) {                 \

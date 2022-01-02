@@ -1,19 +1,9 @@
 #pragma once
 
-#ifndef _CBASE_DATA_SLICE_MANAGEMENT_H__
-#define _CBASE_DATA_SLICE_MANAGEMENT_H__
+#ifndef _CBASE_DATA_MANAGEMENT_H__
+#define _CBASE_DATA_MANAGEMENT_H__
 
-#include "cbase/internal.h"
-
-#include <stddef.h>
-
-#include "cbase/alloc.h"
-#include "cbase/checks.h"
-#include "cbase/data_base.h"
-#include "cbase/errors.h"
-#include "cbase/util.h"
-
-#define CBASE_DATA_SLICE_MANAGEMENT_IMPL_DECL(_api, _dname, _dtype)           \
+#define CBASE_DATA_MANAGEMENT_IMPL_DECL(_api, _dname, _dtype)                 \
     _api void _dname##_assign_no_check(_dtype **data,                         \
                                        size_t *dlen,                          \
                                        _dtype *data2,                         \
@@ -24,7 +14,7 @@
                              _dtype *data2,                                   \
                              size_t dlen2);
 
-#define CBASE_DATA_SLICE_MANAGEMENT_IMPL(_api, _dname, _dtype)                \
+#define CBASE_DATA_MANAGEMENT_IMPL(_api, _dname, _dtype)                      \
     _api void _dname##_assign_no_check(_dtype **data,                         \
                                        size_t *dlen,                          \
                                        _dtype *data2,                         \
@@ -39,6 +29,7 @@
                              size_t dlen2) {                                  \
         CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
+        /* [TODO] Only accept data2 == NULL and dlen2 == 0 together */        \
                                                                               \
         _dname##_assign_no_check(data, dlen, data2, dlen2);                   \
                                                                               \

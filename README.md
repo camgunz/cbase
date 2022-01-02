@@ -34,6 +34,10 @@ cbase depends on:
 - [utf8proc](https://julialang.org/utf8proc/)
 - [iconv](https://www.gnu.org/software/libiconv/)
 
+Building cbase requires [meson](https://mesonbuild.com). We also use
+[compdb](https://github.com/Sarcasm/compdb) to augment the
+`compile_commands.json` file for development.
+
 ## General Philosophy
 
 ### Safety is the default

@@ -43,5 +43,3 @@ static inline int utf8_handle_error_code(ssize_t error_code) {
 }
 
 #endif
-
-/* vi: set et ts=4 sw=4: */

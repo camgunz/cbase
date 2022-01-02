@@ -12,7 +12,8 @@
 #include "cbase/errors.h"
 
 #ifndef cb_sysfree
-CBASE_API_DEALLOC void cb_sysfree(void *ptr);
+CBASE_API_DEALLOC
+void cb_sysfree(void *ptr);
 #endif
 
 #ifndef cb_sysmalloc
@@ -26,48 +27,116 @@ void *cb_syscalloc(size_t count, size_t size);
 #endif
 
 #ifndef cb_sysrealloc
-CBASE_API void *cb_sysrealloc(void *ptr, size_t size);
+CBASE_API
+void *cb_sysrealloc(void *ptr, size_t size);
 #endif
 
 #ifndef cb_sysmemcpy
-CBASE_API void *cb_sysmemcpy(void * restrict dest,
-                             const void * restrict src,
-                             size_t size);
+CBASE_API
+void *cb_sysmemcpy(void * restrict dest,
+                   const void * restrict src,
+                   size_t size);
 #endif
 
-CBASE_API
-int _cb_malloc(size_t count, size_t size, void **ptr);
+#ifdef CBASE_DISABLE_CHECKED_MATH_IN_ALLOCATIONS
+CBASE_API_STATIC
+int _cb_malloc(size_t count, size_t size, void **ptr) {
+    void *new_ptr = cb_sysmalloc(count * size);
+
+    CBASE_ERROR_IF(!new_ptr, CBASE_ERROR_MEMORY_ALLOC_FAILED);
+
+    *ptr = new_ptr;
+
+    return 0;
+}
+#else
+CBASE_API_STATIC
+int _cb_malloc(size_t count, size_t size, void **ptr) {
+    size_t byte_count = 0;
+
+    CBASE_ERROR_IF(cb_safe_mul_size(count, size, &byte_count),
+                   CBASE_ERROR_NUMERIC_OVERFLOW);
+
+    void *new_ptr = cb_sysmalloc(byte_count);
+
+    CBASE_ERROR_IF(!new_ptr, CBASE_ERROR_MEMORY_ALLOC_FAILED);
+
+    *ptr = new_ptr;
+
+    return 0;
+}
+#endif
 
 #define cb_malloc(_count, _size, _ptr)                                        \
     _cb_malloc((_count), (_size), (void **)(_ptr))
 
-CBASE_API
-int _cb_calloc(size_t count, size_t size, void **ptr);
+CBASE_API_STATIC
+int _cb_calloc(size_t count, size_t size, void **ptr) {
+    void *new_ptr = cb_syscalloc(count, size);
+
+    CBASE_ERROR_IF(!new_ptr, CBASE_ERROR_MEMORY_ALLOC_FAILED);
+
+    *ptr = new_ptr;
+
+    return 0;
+}
 
 #define cb_calloc(_count, _size, _ptr)                                        \
     _cb_calloc((_count), (_size), (void **)(_ptr))
 
-CBASE_API
-int _cb_realloc(size_t count, size_t size, void **ptr);
+#ifdef CBASE_DISABLE_CHECKED_MATH_IN_ALLOCATIONS
+CBASE_API_STATIC
+int _cb_realloc(size_t count, size_t size, void **ptr) {
+    void *new_ptr = cb_sysrealloc(ptr, count * size);
+
+    CBASE_ERROR_IF(!new_ptr, CBASE_ERROR_MEMORY_ALLOC_FAILED);
+
+    *ptr = new_ptr;
+
+    return 0;
+}
+#else
+CBASE_API_STATIC
+int _cb_realloc(size_t count, size_t size, void **ptr) {
+    size_t byte_count = 0;
+
+    CBASE_ERROR_IF(cb_safe_mul_size(count, size, &byte_count),
+                   CBASE_ERROR_NUMERIC_OVERFLOW);
+
+    void *new_ptr = cb_sysrealloc(ptr, byte_count);
+
+    CBASE_ERROR_IF(!new_ptr, CBASE_ERROR_MEMORY_ALLOC_FAILED);
+
+    *ptr = new_ptr;
+
+    return 0;
+}
+#endif
 
 #define cb_realloc(_count, _size, _ptr)                                       \
     _cb_realloc((_count), (_size), (void **)(_ptr))
 
-CBASE_API
-void cb_free(void *ptr);
+CBASE_API_STATIC
+void cb_free(void *ptr) {
+    cb_sysfree(ptr);
+}
 
 #ifdef CBASE_DISABLE_CHECKED_MATH_IN_ALLOCATIONS
-CBASE_API_STATIC int cb_memmove(void * restrict dest,
-                                const void * restrict src,
-                                size_t count,
-                                size_t size) {
-    return memmove(dest, src, count * size);
+CBASE_API_STATIC
+int cb_memmove(void * restrict dest,
+               const void * restrict src,
+               size_t count,
+               size_t size) {
+    (void)memmove(dest, src, count * size);
+
+    return 0;
 }
 #else
-CBASE_API_STATIC int cb_memmove(void * restrict dest,
-                                const void * restrict src,
-                                size_t count,
-                                size_t size) {
+CBASE_API_STATIC
+int cb_memmove(void * restrict dest,
+               const void * restrict src,
+               size_t count,
+               size_t size) {
     size_t byte_count = 0;
 
     CBASE_ERROR_IF(cb_safe_mul_size(count, size, &byte_count),
