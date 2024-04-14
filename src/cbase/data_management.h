@@ -27,7 +27,7 @@
                              size_t *dlen,                                    \
                              _dtype *data2,                                   \
                              size_t dlen2) {                                  \
-        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         /* [TODO] Only accept data2 == NULL and dlen2 == 0 together */        \
                                                                               \

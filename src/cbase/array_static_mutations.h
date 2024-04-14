@@ -5,7 +5,8 @@
                                                _aname,                        \
                                                _atype,                        \
                                                _etype,                        \
-                                               _dname)                        \
+                                               _dname,                        \
+                                               _amaxcap)                      \
     _api void _aname##_move_right_no_zero_no_check(_atype *array,             \
                                                    size_t index,              \
                                                    size_t count);             \
@@ -93,7 +94,8 @@
                                           _aname,                             \
                                           _atype,                             \
                                           _etype,                             \
-                                          _dname)                             \
+                                          _dname,                             \
+                                          _amaxcap)                           \
     _api void _aname##_move_right_no_zero_no_check(_atype *array,             \
                                                    size_t index,              \
                                                    size_t count) {            \

@@ -7,7 +7,7 @@ clean:
 	@rm -rf build releasebuild
 
 build:
-	@meson setup --default-library=both build
+	@meson setup -Ddefault_logger=CBASE_LOG_STDERR --default-library=both build
 	@compdb -p build/ list > compile_commands.json
 	@mv compile_commands.json build/compile_commands.json
 

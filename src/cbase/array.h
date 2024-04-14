@@ -34,16 +34,16 @@
 #include "cbase/array_static_management.h"
 #include "cbase/array_static_mutations.h"
 
-#define CBASE_STATIC_ARRAY_DECL(_atype, _etype, _acap)                        \
+#define CBASE_STATIC_ARRAY_DECL(_atype, _etype, _amaxcap)                     \
     typedef struct _atype##Struct {                                           \
         size_t len;                                                           \
-        _etype const data[_acap];                                             \
+        _etype const data[_amaxcap];                                          \
     } _atype;
 
-#define CBASE_MUTABLE_STATIC_ARRAY_DECL(_atype, _etype, _acap)                \
+#define CBASE_MUTABLE_STATIC_ARRAY_DECL(_atype, _etype, _amaxcap)             \
     typedef struct _atype##Struct {                                           \
         size_t len;                                                           \
-        _etype data[_acap];                                                   \
+        _etype data[_amaxcap];                                                \
     } _atype;
 
 #define CBASE_DYNAMIC_ARRAY_DECL(_atype, _etype)                              \
@@ -72,8 +72,13 @@
         _etype *data;                                                         \
     } _atype;
 
-#define CBASE_STATIC_ARRAY_IMPL_DECL(_api, _aname, _atype, _etype, _dname)    \
-    CBASE_STATIC_DATA_IMPL_DECL(_api, _dname, _etype)                         \
+#define CBASE_STATIC_ARRAY_IMPL_DECL(_api,                                    \
+                                     _aname,                                  \
+                                     _atype,                                  \
+                                     _etype,                                  \
+                                     _dname,                                  \
+                                     _amaxcap)                                \
+    CBASE_STATIC_DATA_IMPL_DECL(_api, _dname, _etype, _amaxcap)               \
     CBASE_ARRAY_BASE_IMPL_DECL(_api, _aname, _atype, _etype, _dname)          \
     CBASE_ARRAY_MANAGEMENT_IMPL_DECL(_api, _aname, _atype, _etype, _dname)    \
     CBASE_ARRAY_OWNERSHIP_MANAGEMENT_IMPL_DECL(_api,                          \
@@ -85,30 +90,51 @@
                                             _aname,                           \
                                             _atype,                           \
                                             _etype,                           \
-                                            _dname)
+                                            _dname,                           \
+                                            _amaxcap)
 
-#define CBASE_STATIC_ARRAY_IMPL(_api, _aname, _atype, _etype, _dname)         \
-    CBASE_STATIC_DATA_IMPL(_api, _dname, _etype)                              \
+#define CBASE_STATIC_ARRAY_IMPL(_api,                                         \
+                                _aname,                                       \
+                                _atype,                                       \
+                                _etype,                                       \
+                                _dname,                                       \
+                                _amaxcap)                                     \
+    CBASE_STATIC_DATA_IMPL(_api, _dname, _etype, _amaxcap)                    \
     CBASE_ARRAY_BASE_IMPL(_api, _aname, _atype, _etype, _dname)               \
-    CBASE_ARRAY_MANAGEMENT_IMPL(_api, _aname, _atype, _etype, _dname)         \
     CBASE_ARRAY_OWNERSHIP_MANAGEMENT_IMPL_DECL(_api,                          \
                                                _aname,                        \
                                                _atype,                        \
                                                _etype,                        \
                                                _dname)                        \
-    CBASE_ARRAY_STATIC_MANAGEMENT_IMPL(_api, _aname, _atype, _etype, _dname)
+    CBASE_ARRAY_STATIC_MANAGEMENT_IMPL(_api,                                  \
+                                       _aname,                                \
+                                       _atype,                                \
+                                       _etype,                                \
+                                       _dname,                                \
+                                       _amaxcap)
 
-#define CBASE_STATIC_ARRAY_DEF(_api, _aname, _atype, _etype, _acap, _dname)   \
-    CBASE_STATIC_ARRAY_DECL(_atype, _etype, _acap)                            \
-    CBASE_STATIC_ARRAY_IMPL_DECL(_api, _aname, _atype, _etype, _dname)        \
-    CBASE_STATIC_ARRAY_IMPL(_api, _aname, _atype, _etype, _dname)
+#define CBASE_STATIC_ARRAY_DEF(_api,                                          \
+                               _aname,                                        \
+                               _atype,                                        \
+                               _etype,                                        \
+                               _dname,                                        \
+                               _amaxcap)                                      \
+    CBASE_STATIC_ARRAY_DECL(_atype, _etype, _amaxcap)                         \
+    CBASE_STATIC_ARRAY_IMPL_DECL(_api,                                        \
+                                 _aname,                                      \
+                                 _atype,                                      \
+                                 _etype,                                      \
+                                 _dname,                                      \
+                                 _amaxcap)                                    \
+    CBASE_STATIC_ARRAY_IMPL(_api, _aname, _atype, _etype, _dname, _amaxcap)
 
 #define CBASE_MUTABLE_STATIC_ARRAY_IMPL_DECL(_api,                            \
                                              _aname,                          \
                                              _atype,                          \
                                              _etype,                          \
-                                             _dname)                          \
-    CBASE_MUTABLE_STATIC_DATA_IMPL_DECL(_api, _dname, _etype)                 \
+                                             _dname,                          \
+                                             _amaxcap)                        \
+    CBASE_MUTABLE_STATIC_DATA_IMPL_DECL(_api, _dname, _etype, _amaxcap)       \
     CBASE_ARRAY_BASE_IMPL_DECL(_api, _aname, _atype, _etype, _dname)          \
     CBASE_ARRAY_MANAGEMENT_IMPL_DECL(_api, _aname, _atype, _etype, _dname)    \
     CBASE_ARRAY_OWNERSHIP_MANAGEMENT_IMPL_DECL(_api,                          \
@@ -120,35 +146,57 @@
                                             _aname,                           \
                                             _atype,                           \
                                             _etype,                           \
-                                            _dname)                           \
+                                            _dname,                           \
+                                            _amaxcap)                         \
     CBASE_ARRAY_MUTATIONS_IMPL_DECL(_api, _aname, _atype, _etype, _dname)     \
     CBASE_ARRAY_STATIC_MUTATIONS_IMPL_DECL(_api,                              \
                                            _aname,                            \
                                            _atype,                            \
                                            _etype,                            \
-                                           _dname)
+                                           _dname,                            \
+                                           _amaxcap)
 
-#define CBASE_MUTABLE_STATIC_ARRAY_IMPL(_api, _aname, _atype, _etype, _dname) \
-    CBASE_MUTABLE_STATIC_DATA_IMPL(_api, _dname, _etype)                      \
+#define CBASE_MUTABLE_STATIC_ARRAY_IMPL(_api,                                 \
+                                        _aname,                               \
+                                        _atype,                               \
+                                        _etype,                               \
+                                        _dname,                               \
+                                        _amaxcap)                             \
+    CBASE_MUTABLE_STATIC_DATA_IMPL(_api, _dname, _etype, _amaxcap)            \
     CBASE_ARRAY_BASE_IMPL(_api, _aname, _atype, _etype, _dname)               \
-    CBASE_ARRAY_MANAGEMENT_IMPL(_api, _aname, _atype, _etype, _dname)         \
-    CBASE_ARRAY_STATIC_MANAGEMENT_IMPL(_api, _aname, _atype, _etype, _dname)  \
+    CBASE_ARRAY_STATIC_MANAGEMENT_IMPL(_api,                                  \
+                                       _aname,                                \
+                                       _atype,                                \
+                                       _etype,                                \
+                                       _dname,                                \
+                                       _amaxcap)                              \
     CBASE_ARRAY_MUTATIONS_IMPL(_api, _aname, _atype, _etype, _dname)          \
-    CBASE_ARRAY_STATIC_MUTATIONS_IMPL(_api, _aname, _atype, _etype, _dname)
+    CBASE_ARRAY_STATIC_MUTATIONS_IMPL(_api,                                   \
+                                      _aname,                                 \
+                                      _atype,                                 \
+                                      _etype,                                 \
+                                      _dname,                                 \
+                                      _amaxcap)
 
 #define CBASE_MUTABLE_STATIC_ARRAY_DEF(_api,                                  \
                                        _aname,                                \
                                        _atype,                                \
                                        _etype,                                \
-                                       _acap,                                 \
-                                       _dname)                                \
-    CBASE_MUTABLE_STATIC_ARRAY_DECL(_atype, _etype, _acap)                    \
+                                       _dname,                                \
+                                       _amaxcap)                              \
+    CBASE_MUTABLE_STATIC_ARRAY_DECL(_atype, _etype, _amaxcap)                 \
     CBASE_MUTABLE_STATIC_ARRAY_IMPL_DECL(_api,                                \
                                          _aname,                              \
                                          _atype,                              \
                                          _etype,                              \
-                                         _dname)                              \
-    CBASE_MUTABLE_STATIC_ARRAY_IMPL(_api, _aname, _atype, _etype, _dname)
+                                         _dname,                              \
+                                         _amaxcap)                            \
+    CBASE_MUTABLE_STATIC_ARRAY_IMPL(_api,                                     \
+                                    _aname,                                   \
+                                    _atype,                                   \
+                                    _etype,                                   \
+                                    _dname,                                   \
+                                    _amaxcap)
 
 #define CBASE_DYNAMIC_ARRAY_IMPL_DECL(_api, _aname, _atype, _etype, _dname)   \
     CBASE_DYNAMIC_DATA_IMPL_DECL(_api, _dname, _etype)                        \
@@ -168,7 +216,6 @@
 #define CBASE_DYNAMIC_ARRAY_IMPL(_api, _aname, _atype, _etype, _dname)        \
     CBASE_DYNAMIC_DATA_IMPL(_api, _dname, _etype)                             \
     CBASE_ARRAY_BASE_IMPL(_api, _aname, _atype, _etype, _dname)               \
-    CBASE_ARRAY_MANAGEMENT_IMPL(_api, _aname, _atype, _etype, _dname)         \
     CBASE_ARRAY_OWNERSHIP_MANAGEMENT_IMPL_DECL(_api,                          \
                                                _aname,                        \
                                                _atype,                        \
@@ -213,7 +260,6 @@
                                          _dname)                              \
     CBASE_MUTABLE_DYNAMIC_DATA_IMPL(_api, _dname, _etype)                     \
     CBASE_ARRAY_BASE_IMPL(_api, _aname, _atype, _etype, _dname)               \
-    CBASE_ARRAY_MANAGEMENT_IMPL(_api, _aname, _atype, _etype, _dname)         \
     CBASE_ARRAY_DYNAMIC_MANAGEMENT_IMPL(_api, _aname, _atype, _etype, _dname) \
     CBASE_ARRAY_MUTATIONS_IMPL(_api, _aname, _atype, _etype, _dname)          \
     CBASE_ARRAY_DYNAMIC_MUTATIONS_IMPL(_api, _aname, _atype, _etype, _dname)
@@ -234,8 +280,7 @@
 
 #define CBASE_ARRAY_SLICE_IMPL(_api, _aname, _atype, _etype, _dname)          \
     CBASE_DATA_SLICE_IMPL(_api, _dname, _etype)                               \
-    CBASE_ARRAY_BASE_IMPL(_api, _aname, _atype, _etype, _dname)               \
-    CBASE_ARRAY_MANAGEMENT_IMPL(_api, _aname, _atype, _etype, _dname)
+    CBASE_ARRAY_BASE_IMPL(_api, _aname, _atype, _etype, _dname)
 
 #define CBASE_ARRAY_SLICE_DEF(_api, _aname, _atype, _etype, _dname)           \
     CBASE_ARRAY_SLICE_DECL(_atype, _etype)                                    \

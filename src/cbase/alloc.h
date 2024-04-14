@@ -87,7 +87,7 @@ int _cb_calloc(size_t count, size_t size, void **ptr) {
 #ifdef CBASE_DISABLE_CHECKED_MATH_IN_ALLOCATIONS
 CBASE_API_STATIC
 int _cb_realloc(size_t count, size_t size, void **ptr) {
-    void *new_ptr = cb_sysrealloc(ptr, count * size);
+    void *new_ptr = cb_sysrealloc((*ptr), count * size);
 
     CBASE_ERROR_IF(!new_ptr, CBASE_ERROR_MEMORY_ALLOC_FAILED);
 
@@ -103,7 +103,7 @@ int _cb_realloc(size_t count, size_t size, void **ptr) {
     CBASE_ERROR_IF(cb_safe_mul_size(count, size, &byte_count),
                    CBASE_ERROR_NUMERIC_OVERFLOW);
 
-    void *new_ptr = cb_sysrealloc(ptr, byte_count);
+    void *new_ptr = cb_sysrealloc((*ptr), byte_count);
 
     CBASE_ERROR_IF(!new_ptr, CBASE_ERROR_MEMORY_ALLOC_FAILED);
 

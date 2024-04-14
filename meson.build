@@ -64,8 +64,12 @@ if compiler.has_argument('--pedantic-errors')
   add_global_arguments('--pedantic-errors', language : 'c')
 endif
 
-if compiler.get_id() == 'clang' and compiler.has_argument('-ferror-limit=0')
-  add_global_arguments('-ferror-limit=0', language : 'c')
+if compiler.get_id() == 'clang' and compiler.has_argument('-ferror-limit=2')
+  add_global_arguments('-ferror-limit=2', language : 'c')
+endif
+
+if compiler.get_id() == 'clang' and compiler.has_argument('-fmacro-backtrace-limit=0')
+  add_global_arguments('-fmacro-backtrace-limit=0', language : 'c')
 endif
 
 if ['clang', 'gcc'].contains(meson.get_compiler('c').get_id())

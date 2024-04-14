@@ -7,11 +7,11 @@
 
 #include "cbase/logbase.h"
 
-#ifndef DEFAULT_LOGGER_LOG_LEVEL
-#define DEFAULT_LOGGER_LOG_LEVEL CBASE_LOG_LEVEL_INFO
+#ifndef CBASE_DEFAULT_LOGGER_LOG_LEVEL
+#define CBASE_DEFAULT_LOGGER_LOG_LEVEL CBASE_LOG_LEVEL_INFO
 #endif
 
-#if DEFAULT_LOGGER_LOG_LEVEL == LOG_LEVEL_RUNTIME
+#if CBASE_DEFAULT_LOGGER_LOG_LEVEL == CBASE_LOG_LEVEL_RUNTIME
 CBASE_API
 LogLevel _default_log_get_level(void);
 
@@ -19,7 +19,7 @@ CBASE_API
 void _default_log_set_level(LogLevel level);
 #endif
 
-#if DEFAULT_LOGGER == LOG_CUSTOM
+#if CBASE_DEFAULT_LOGGER == CBASE_LOG_CUSTOM
 CBASE_API
 LoggerFunc *_default_log_get_logger(LogLevel level);
 
@@ -37,19 +37,19 @@ void _default_log_set_vlogger(LogLevel level,
 CBASE_API_STATIC CBASE_VPRINTF(2) void _default_log_vmsg(LogLevel level,
                                                          const char *msg,
                                                          va_list args) {
-#if DEFAULT_LOGGER_LOG_LEVEL == LOG_LEVEL_RUNTIME
+#if CBASE_DEFAULT_LOGGER_LOG_LEVEL == CBASE_LOG_LEVEL_RUNTIME
     if (level < _default_log_get_level()) {
         return;
     }
 #else
-    if (level < DEFAULT_LOGGER_LOG_LEVEL) {
+    if (level < CBASE_DEFAULT_LOGGER_LOG_LEVEL) {
         return;
     }
 #endif
 
-#if DEFAULT_LOGGER == LOG_STDERR
+#if CBASE_DEFAULT_LOGGER == CBASE_LOG_STDERR
     _vprintf_to_stderr(msg, args);
-#elif DEFAULT_LOGGER == LOG_CUSTOM
+#elif CBASE_DEFAULT_LOGGER == CBASE_LOG_CUSTOM
     VLoggerFunc *vlog = _default_log_get_vlogger(level);
     vlog(msg, args);
 #endif

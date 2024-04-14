@@ -21,33 +21,33 @@
 #include "cbase/data_static_management.h"
 #include "cbase/data_static_mutations.h"
 
-#define CBASE_STATIC_DATA_IMPL_DECL(_api, _dname, _dtype)                     \
+#define CBASE_STATIC_DATA_IMPL_DECL(_api, _dname, _dtype, _dmaxcap)           \
     CBASE_DATA_BASE_IMPL_DECL(_api, _dname, _dtype)                           \
     CBASE_DATA_MANAGEMENT_IMPL_DECL(_api, _dname, _dtype)                     \
     CBASE_DATA_OWNERSHIP_MANAGEMENT_IMPL_DECL(_api, _dname, _dtype)           \
-    CBASE_DATA_STATIC_MANAGEMENT_IMPL_DECL(_api, _dname, _dtype)
+    CBASE_DATA_STATIC_MANAGEMENT_IMPL_DECL(_api, _dname, _dtype, _dmaxcap)
 
-#define CBASE_STATIC_DATA_IMPL(_api, _dname, _dtype)                          \
+#define CBASE_STATIC_DATA_IMPL(_api, _dname, _dtype, _dmaxcap)                \
     CBASE_DATA_BASE_IMPL(_api, _dname, _dtype)                                \
     CBASE_DATA_MANAGEMENT_IMPL(_api, _dname, _dtype)                          \
     CBASE_DATA_OWNERSHIP_MANAGEMENT_IMPL_DECL(_api, _dname, _dtype)           \
-    CBASE_DATA_STATIC_MANAGEMENT_IMPL(_api, _dname, _dtype)
+    CBASE_DATA_STATIC_MANAGEMENT_IMPL(_api, _dname, _dtype, _dmaxcap)
 
-#define CBASE_MUTABLE_STATIC_DATA_IMPL_DECL(_api, _dname, _dtype)             \
+#define CBASE_MUTABLE_STATIC_DATA_IMPL_DECL(_api, _dname, _dtype, _dmaxcap)   \
     CBASE_DATA_BASE_IMPL_DECL(_api, _dname, _dtype)                           \
     CBASE_DATA_MANAGEMENT_IMPL_DECL(_api, _dname, _dtype)                     \
     CBASE_DATA_OWNERSHIP_MANAGEMENT_IMPL_DECL(_api, _dname, _dtype)           \
-    CBASE_DATA_STATIC_MANAGEMENT_IMPL_DECL(_api, _dname, _dtype)              \
+    CBASE_DATA_STATIC_MANAGEMENT_IMPL_DECL(_api, _dname, _dtype, _dmaxcap)    \
     CBASE_DATA_MUTATIONS_IMPL_DECL(_api, _dname, _dtype)                      \
-    CBASE_DATA_STATIC_MUTATIONS_IMPL_DECL(_api, _dname, _dtype)
+    CBASE_DATA_STATIC_MUTATIONS_IMPL_DECL(_api, _dname, _dtype, _dmaxcap)
 
-#define CBASE_MUTABLE_STATIC_DATA_IMPL(_api, _dname, _dtype)                  \
+#define CBASE_MUTABLE_STATIC_DATA_IMPL(_api, _dname, _dtype, _dmaxcap)        \
     CBASE_DATA_BASE_IMPL(_api, _dname, _dtype)                                \
     CBASE_DATA_MANAGEMENT_IMPL(_api, _dname, _dtype)                          \
     CBASE_DATA_OWNERSHIP_MANAGEMENT_IMPL(_api, _dname, _dtype)                \
-    CBASE_DATA_STATIC_MANAGEMENT_IMPL(_api, _dname, _dtype)                   \
+    CBASE_DATA_STATIC_MANAGEMENT_IMPL(_api, _dname, _dtype, _dmaxcap)         \
     CBASE_DATA_MUTATIONS_IMPL(_api, _dname, _dtype)                           \
-    CBASE_DATA_STATIC_MUTATIONS_IMPL(_api, _dname, _dtype)
+    CBASE_DATA_STATIC_MUTATIONS_IMPL(_api, _dname, _dtype, _dmaxcap)
 
 #define CBASE_DYNAMIC_DATA_IMPL_DECL(_api, _dname, _dtype)                    \
     CBASE_DATA_BASE_IMPL_DECL(_api, _dname, _dtype)                           \

@@ -34,7 +34,7 @@
                                           size_t *dlen,                       \
                                           size_t *dcap,                       \
                                           size_t index,                       \
-                                          _dtype **new_slot);           \
+                                          _dtype **new_slot);                 \
                                                                               \
     _api _dtype *_dname##_insert_slot_no_check(_dtype *data,                  \
                                                size_t *dlen,                  \
@@ -44,7 +44,7 @@
                                   size_t *dlen,                               \
                                   size_t *dcap,                               \
                                   size_t index,                               \
-                                  _dtype **new_slot);                   \
+                                  _dtype **new_slot);                         \
                                                                               \
     _api void _dname##_insert_no_check(_dtype *data,                          \
                                        size_t *dlen,                          \
@@ -65,14 +65,14 @@
     _api int _dname##_prepend_slot_no_zero(_dtype **data,                     \
                                            size_t *dlen,                      \
                                            size_t *dcap,                      \
-                                           _dtype **new_slot);          \
+                                           _dtype **new_slot);                \
                                                                               \
     _api _dtype *_dname##_prepend_slot_no_check(_dtype *data, size_t *dlen);  \
                                                                               \
     _api int _dname##_prepend_slot(_dtype **data,                             \
                                    size_t *dlen,                              \
                                    size_t *dcap,                              \
-                                   _dtype **new_slot);                  \
+                                   _dtype **new_slot);                        \
                                                                               \
     _api void _dname##_prepend_no_check(_dtype *data,                         \
                                         size_t *dlen,                         \
@@ -91,14 +91,14 @@
     _api int _dname##_append_slot_no_zero(_dtype **data,                      \
                                           size_t *dlen,                       \
                                           size_t *dcap,                       \
-                                          _dtype **new_slot);           \
+                                          _dtype **new_slot);                 \
                                                                               \
     _api _dtype *_dname##_append_slot_no_check(_dtype *data, size_t *dlen);   \
                                                                               \
     _api int _dname##_append_slot(_dtype **data,                              \
                                   size_t *dlen,                               \
                                   size_t *dcap,                               \
-                                  _dtype **new_slot);                   \
+                                  _dtype **new_slot);                         \
                                                                               \
     _api void _dname##_append_no_check(_dtype *data,                          \
                                        size_t *dlen,                          \
@@ -200,7 +200,7 @@
                                           size_t *dlen,                       \
                                           size_t *dcap,                       \
                                           size_t index,                       \
-                                          _dtype **new_slot) {          \
+                                          _dtype **new_slot) {                \
         CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(new_slot);                               \
@@ -228,7 +228,7 @@
                                   size_t *dlen,                               \
                                   size_t *dcap,                               \
                                   size_t index,                               \
-                                  _dtype **new_slot) {                  \
+                                  _dtype **new_slot) {                        \
         CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(new_slot);                               \
@@ -284,7 +284,7 @@
     _api int _dname##_prepend_slot_no_zero(_dtype **data,                     \
                                            size_t *dlen,                      \
                                            size_t *dcap,                      \
-                                           _dtype **new_slot) {         \
+                                           _dtype **new_slot) {               \
         return _dname##_insert_slot_no_zero(data, dlen, dcap, 0, new_slot);   \
     }                                                                         \
                                                                               \
@@ -295,7 +295,7 @@
     _api int _dname##_prepend_slot(_dtype **data,                             \
                                    size_t *dlen,                              \
                                    size_t *dcap,                              \
-                                   _dtype **new_slot) {                 \
+                                   _dtype **new_slot) {                       \
         return _dname##_insert_slot(data, dlen, dcap, 0, new_slot);           \
     }                                                                         \
                                                                               \
@@ -323,7 +323,7 @@
     _api int _dname##_append_slot_no_zero(_dtype **data,                      \
                                           size_t *dlen,                       \
                                           size_t *dcap,                       \
-                                          _dtype **new_slot) {          \
+                                          _dtype **new_slot) {                \
         CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(new_slot);                               \
@@ -332,8 +332,8 @@
                                                          (*dlen),             \
                                                          dcap,                \
                                                          1);                  \
-                                                                              \
-        *new_slot = _dname##_mutable_index_no_check((*data), (*dlen) - 1);    \
+        *new_slot = _dname##_mutable_index_no_check((*data), (*dlen));        \
+        (*dlen)++;                                                            \
                                                                               \
         return 0;                                                             \
     }                                                                         \
@@ -347,8 +347,8 @@
     _api int _dname##_append_slot(_dtype **data,                              \
                                   size_t *dlen,                               \
                                   size_t *dcap,                               \
-                                  _dtype **new_slot) {                  \
-        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+                                  _dtype **new_slot) {                        \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(new_slot);                               \
         _CBASE_TRY_EXPAND_DYNAMIC_DATA_IF_NEEDED(_dname,                      \
@@ -356,8 +356,8 @@
                                                  (*dlen),                     \
                                                  dcap,                        \
                                                  1);                          \
-                                                                              \
-        *new_slot = _dname##_mutable_index_no_check(*data, (*dlen) - 1);      \
+        *new_slot = _dname##_mutable_index_no_check(*data, (*dlen));          \
+        (*dlen)++;                                                            \
                                                                               \
         return 0;                                                             \
     }                                                                         \
@@ -366,8 +366,8 @@
                                        size_t *dlen,                          \
                                        const _dtype *data2,                   \
                                        size_t count) {                        \
+        _dname##_set_no_check(data, (*dlen), data2, count);                   \
         (*dlen) += count;                                                     \
-        _dname##_set_no_check(data, (*dlen) - count, data2, count);           \
     }                                                                         \
                                                                               \
     _api int _dname##_append(_dtype **data,                                   \

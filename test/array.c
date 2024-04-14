@@ -8,16 +8,31 @@
 
 #include <cmocka.h>
 
-CBASE_MUTABLE_DYNAMIC_ARRAY_DEF(CBASE_API_TMPL, int_array, IntArray, int, int_data)
+CBASE_MUTABLE_DYNAMIC_ARRAY_DEF(CBASE_API_TMPL,
+                                int_array,
+                                IntArray,
+                                int,
+                                int_data)
 
-CBASE_MUTABLE_DYNAMIC_ARRAY_DEF(CBASE_API_STATIC_TMPL, person_array, PersonArray, Person, person_data)
+CBASE_MUTABLE_STATIC_ARRAY_DEF(CBASE_API_STATIC_TMPL,
+                               static_person_array,
+                               StaticPersonArray,
+                               Person,
+                               static_person_data,
+                               10)
+
+CBASE_MUTABLE_DYNAMIC_ARRAY_DEF(CBASE_API_STATIC_TMPL,
+                                person_array,
+                                PersonArray,
+                                Person,
+                                person_data)
 
 void test_array(void **state) {
-    IntArray    *int_array = NULL;
+    IntArray *int_array = NULL;
     PersonArray *person_array = NULL;
     PersonArray *person_array2 = NULL;
-    PersonArray  stack_person_array = { 0 };
-    PersonArray  stack_person_array2 = { 0 };
+    StaticPersonArray stack_person_array = {0};
+    StaticPersonArray stack_person_array2 = {0};
 
     /*
     int     int_val;
@@ -31,8 +46,8 @@ void test_array(void **state) {
     Person *james = NULL;
     Person *william = NULL;
     Person *barack = NULL;
-    Person  stack_person;
-    Person  bill;
+    Person stack_person;
+    Person bill;
 
     (void)state;
 
@@ -57,21 +72,21 @@ void test_array(void **state) {
     barack->name = "Barack";
     barack->age = 46;
 
-    assert_int_equal(cb_malloc(1, sizeof(PersonArray), person_array), 0);
-    assert_int_equal(person_array_init_capacity(person_array, 3), 0);
+    assert_int_equal(cb_malloc(1, sizeof(PersonArray), &person_array), 0);
     assert_non_null(person_array);
+    assert_int_equal(person_array_init_capacity(person_array, 3), 0);
     assert_non_null(person_array->data);
     assert_int_equal(person_array->len, 0);
     assert_int_equal(person_array->cap, 3);
 
-    assert_int_equal(cb_malloc(1, sizeof(PersonArray), person_array2), 0);
-    assert_int_equal(person_array_init(person_array2), 0);
+    assert_int_equal(cb_malloc(1, sizeof(PersonArray), &person_array2), 0);
     assert_non_null(person_array2);
+    assert_int_equal(person_array_init(person_array2), 0);
     assert_null(person_array2->data);
     assert_int_equal(person_array2->len, 0);
     assert_int_equal(person_array2->cap, 0);
 
-    assert_int_equal(cb_malloc(1, sizeof(IntArray), int_array), 0);
+    assert_int_equal(cb_malloc(1, sizeof(IntArray), &int_array), 0);
     assert_int_equal(int_array_init_capacity(int_array, 4), 0);
     assert_int_equal(int_array->len, 0);
     assert_int_equal(int_array->cap, 4);
@@ -100,15 +115,19 @@ void test_array(void **state) {
     */
 
     assert_int_equal(person_array_append_slot(person_array, &person), 0);
-    person->name = "John";
-    person->age = 43;
+    assert_ptr_equal(person, &person_array->data[0]);
+    assert_non_null(person);
     assert_int_equal(person_array->len, 1);
     assert_int_equal(person_array->cap, 3);
 
-    person = NULL;
-    assert_null(person);
+    person->name = "John";
+    assert_string_equal(person_array->data[0].name, "John");
+    person->age = 43;
+    assert_int_equal(person_array->data[0].age, 43);
 
-    assert_int_equal(person_array->len, 1);
+    // person = NULL;
+    // assert_null(person);
+
     assert_int_equal(person_array_mutable_index(person_array, 0, &person), 0);
     assert_non_null(person);
     assert_string_equal(person->name, "John");
@@ -139,10 +158,11 @@ void test_array(void **state) {
     assert_int_equal(person_array->len, 3);
     assert_int_equal(person_array->cap, 3);
 
-    assert_int_equal(
-        person_array_insert(person_array, 2, person_array2->data, person_array2->len),
-        0
-    );
+    assert_int_equal(person_array_insert(person_array,
+                                         2,
+                                         person_array2->data,
+                                         person_array2->len),
+                     0);
 
     assert_int_equal(person_array->len, 5);
     assert_int_equal(person_array->cap, 5);
@@ -171,7 +191,7 @@ void test_array(void **state) {
     assert_int_equal(person->age, 46);
 
     assert_int_equal(person_array_set_length(person_array, 20), 0);
-    assert_int_equal(person_array->len, 5);
+    assert_int_equal(person_array->len, 20);
     assert_int_equal(person_array->cap, 20);
 
     assert_int_equal(person_array_mutable_index(person_array, 0, &person), 0);
@@ -194,9 +214,13 @@ void test_array(void **state) {
     assert_string_equal(person->name, "Barack");
     assert_int_equal(person->age, 46);
 
+    assert_int_equal(person_array_mutable_index(person_array, 0, &person), 0);
+    assert_string_equal(person->name, "John");
+    assert_int_equal(person->age, 43);
+
     assert_int_equal(person_array_set_length(person_array, 3), 0);
     assert_int_equal(person_array->len, 3);
-    assert_int_equal(person_array->cap, 3);
+    assert_int_equal(person_array->cap, 20);
 
     assert_int_equal(person_array_mutable_index(person_array, 0, &person), 0);
     assert_string_equal(person->name, "John");
@@ -213,9 +237,9 @@ void test_array(void **state) {
     assert_int_equal(person_array_destroy(&person_array2), 0);
 
     assert_int_equal(person_array_destroy(&person_array), 0);
-    assert_int_equal(cb_malloc(1, sizeof(PersonArray), person_array), 0);
-    assert_int_equal(person_array_init_capacity(person_array, 3), 0);
+    assert_int_equal(cb_malloc(1, sizeof(PersonArray), &person_array), 0);
     assert_non_null(person_array);
+    assert_int_equal(person_array_init_capacity(person_array, 3), 0);
     assert_non_null(person_array->data);
     assert_int_equal(person_array->len, 0);
     assert_int_equal(person_array->cap, 3);
@@ -312,7 +336,9 @@ void test_array(void **state) {
     assert_string_equal(person->name, "William");
     assert_int_equal(person->age, 47);
 
-    assert_int_equal(person_array_copy(person_array, 2, 1, &bill, sizeof(Person)), 0);
+    assert_int_equal(
+        person_array_copy(person_array, 2, 1, &bill, sizeof(Person)),
+        0);
     assert_string_equal(bill.name, "William");
     assert_int_equal(bill.age, 47);
 
@@ -328,71 +354,73 @@ void test_array(void **state) {
     assert_int_equal(stack_person_array2.len, 0);
     assert_int_equal(stack_person_array2.cap, 3);
 
-    assert_int_equal(person_array_append_slot(&stack_person_array, &person), 0);
+    assert_int_equal(person_array_append_slot(&stack_person_array, &person),
+                     0);
     person->name = "Lyndon";
     person->age = 55;
     assert_int_equal(stack_person_array.len, 1);
     assert_int_equal(stack_person_array.cap, 5);
 
-    assert_int_equal(person_array_append_slot(&stack_person_array, &person), 0);
+    assert_int_equal(person_array_append_slot(&stack_person_array, &person),
+                     0);
     person->name = "Barack";
     person->age = 46;
     assert_int_equal(stack_person_array.len, 2);
     assert_int_equal(stack_person_array.cap, 5);
 
-    assert_int_equal(person_array_mutable_index(&stack_person_array, 0, &person), 0);
+    assert_int_equal(person_array_mutable_index(&stack_person_array,
+                                                0,
+                                                &person),
+                     0);
     assert_string_equal(person->name, "Lyndon");
     assert_int_equal(person->age, 55);
 
-    assert_int_equal(person_array_mutable_index(&stack_person_array, 1, &person), 0);
+    assert_int_equal(person_array_mutable_index(&stack_person_array,
+                                                1,
+                                                &person),
+                     0);
     assert_string_equal(person->name, "Barack");
     assert_int_equal(person->age, 46);
 
-    assert_int_equal(
-        person_array_assign(
-            &stack_person_array2,
-            stack_person_array.data,
-            stack_person_array.len
-        ),
-        0
-    );
+    assert_int_equal(person_array_assign(&stack_person_array2,
+                                         stack_person_array.data,
+                                         stack_person_array.len),
+                     0);
 
     assert_int_equal(stack_person_array2.len, 2);
     assert_int_equal(stack_person_array2.cap, 3);
     assert_int_equal(stack_person_array.len, 2);
     assert_int_equal(stack_person_array.cap, 5);
 
-    assert_int_equal(person_array_mutable_index(&stack_person_array2, 0, &person), 0);
+    assert_int_equal(person_array_mutable_index(&stack_person_array2,
+                                                0,
+                                                &person),
+                     0);
     assert_string_equal(person->name, "Lyndon");
     assert_int_equal(person->age, 55);
 
-    assert_int_equal(person_array_mutable_index(&stack_person_array2, 1, &person), 0);
+    assert_int_equal(person_array_mutable_index(&stack_person_array2,
+                                                1,
+                                                &person),
+                     0);
     assert_string_equal(person->name, "Barack");
     assert_int_equal(person->age, 46);
 
     person_array_free(&stack_person_array2);
 
-    assert_int_equal(
-        person_array_append(
-            person_array,
-            stack_person_array.data,
-            stack_person_array.len
-        ),
-        0
-    );
+    assert_int_equal(person_array_append(person_array,
+                                         stack_person_array.data,
+                                         stack_person_array.len),
+                     0);
     assert_int_equal(person_array->len, 5);
     assert_int_equal(person_array->cap, 5);
     assert_int_equal(stack_person_array.len, 2);
     assert_int_equal(stack_person_array.cap, 5);
 
-    assert_int_equal(
-        person_array_append(
-            person_array,
-            stack_person_array.data,
-            stack_person_array.len
-        ),
-        0
-    );
+    assert_int_equal(person_array_append(person_array,
+                                         stack_person_array.data,
+                                         stack_person_array.len),
+                     0);
     assert_int_equal(person_array->len, 7);
     assert_int_equal(person_array->cap, 7);
     assert_int_equal(stack_person_array.len, 2);
@@ -400,24 +428,20 @@ void test_array(void **state) {
 
     person_array_free(&stack_person_array);
 
-    assert_int_equal(
-        person_array_truncate_no_zero(person_array, person_array->len - 1),
-        0
-    );
+    assert_int_equal(person_array_truncate_no_zero(person_array,
+                                                   person_array->len - 1),
+                     0);
     assert_int_equal(person_array->len, 6);
     assert_int_equal(person_array->cap, 7);
 
-    assert_int_equal(
-        person_array_truncate(person_array, person_array->len - 1),
-        0
-    );
+    assert_int_equal(person_array_truncate(person_array,
+                                           person_array->len - 1),
+                     0);
     assert_int_equal(person_array->len, 5);
     assert_int_equal(person_array->cap, 7);
 
-    assert_int_equal(
-        person_array_zero(person_array, person_array->len - 1, 1),
-        0
-    );
+    assert_int_equal(person_array_zero(person_array, person_array->len - 1, 1),
+                     0);
 
     assert_int_equal(person_array_pop_right(person_array, &stack_person), 0);
     assert_ptr_equal(stack_person.name, NULL);
@@ -427,10 +451,10 @@ void test_array(void **state) {
     assert_string_equal(stack_person.name, "John");
     assert_int_equal(stack_person.age, 43);
 
-    assert_int_equal(
-        person_array_pop_unordered(person_array, 0, &stack_person),
-        0
-    );
+    assert_int_equal(person_array_pop_unordered(person_array,
+                                                0,
+                                                &stack_person),
+                     0);
     assert_string_equal(stack_person.name, "James");
     assert_int_equal(stack_person.age, 53);
 
@@ -444,7 +468,7 @@ void test_array(void **state) {
     assert_int_equal(person_array->cap, 0);
 
     assert_int_equal(person_array_destroy(&person_array), 0);
-    assert_int_equal(cb_malloc(1, sizeof(PersonArray), person_array), 0);
+    assert_int_equal(cb_malloc(1, sizeof(PersonArray), &person_array), 0);
     assert_int_equal(person_array_init(person_array), 0);
     assert_int_equal(person_array_ensure_capacity(person_array, 2), 0);
     assert_non_null(person_array->data);
@@ -482,17 +506,13 @@ void test_array(void **state) {
     assert_int_equal(person_array->cap, 5);
 
     assert_int_equal(person_array_destroy(&person_array2), 0);
-    assert_int_equal(cb_malloc(1, sizeof(PersonArray), person_array2), 0);
+    assert_int_equal(cb_malloc(1, sizeof(PersonArray), &person_array2), 0);
     assert_int_equal(person_array_init(person_array2), 0);
 
-    assert_int_equal(
-        person_array_assign(
-            person_array2,
-            person_array->data,
-            person_array->len
-        ),
-        0
-    );
+    assert_int_equal(person_array_assign(person_array2,
+                                         person_array->data,
+                                         person_array->len),
+                     0);
     assert_int_equal(person_array->len, 5);
     assert_int_equal(person_array->cap, 5);
     assert_int_equal(person_array2->len, 5);
@@ -623,11 +643,17 @@ void test_array(void **state) {
     assert_int_equal(stack_person_array2.len, 2);
     assert_int_equal(stack_person_array2.cap, 3);
 
-    assert_int_equal(person_array_mutable_index(&stack_person_array2, 0, pperson), 0);
+    assert_int_equal(person_array_mutable_index(&stack_person_array2,
+                                                0,
+                                                pperson),
+                     0);
     assert_string_equal((*pperson)->name, "Lyndon");
     assert_int_equal((*pperson)->age, 55);
 
-    assert_int_equal(person_array_mutable_index(&stack_person_array2, 1, pperson), 0);
+    assert_int_equal(person_array_mutable_index(&stack_person_array2,
+                                                1,
+                                                pperson),
+                     0);
     assert_string_equal((*pperson)->name, "Barack");
     assert_int_equal((*pperson)->age, 46);
 
@@ -643,27 +669,19 @@ void test_array(void **state) {
     assert_int_equal(stack_person_array.len, 2);
     assert_int_equal(stack_person_array.cap, 3);
 
-    assert_int_equal(
-        person_array_append(
-            person_array,
-            stack_person_array.data,
-            stack_person_array.len
-        ),
-        0
-    );
+    assert_int_equal(person_array_append(person_array,
+                                         stack_person_array.data,
+                                         stack_person_array.len),
+                     0);
     assert_int_equal(person_array->len, 5);
     assert_int_equal(person_array->cap, 5);
     assert_int_equal(stack_person_array.len, 2);
     assert_int_equal(stack_person_array.cap, 3);
 
-    assert_int_equal(
-        person_array_append(
-            person_array,
-            stack_person_array.data,
-            stack_person_array.len
-        ),
-        0
-    );
+    assert_int_equal(person_array_append(person_array,
+                                         stack_person_array.data,
+                                         stack_person_array.len),
+                     0);
     assert_int_equal(person_array->len, 7);
     assert_int_equal(person_array->cap, 7);
 
@@ -701,10 +719,9 @@ void test_array(void **state) {
     assert_string_equal(person->name, "Barack");
     assert_int_equal(person->age, 46);
 
-    assert_int_equal(
-        person_array_truncate(person_array, person_array->len - 2),
-        0
-    );
+    assert_int_equal(person_array_truncate(person_array,
+                                           person_array->len - 2),
+                     0);
     assert_int_equal(person_array->len, 5);
     assert_int_equal(person_array->cap, 7);
 

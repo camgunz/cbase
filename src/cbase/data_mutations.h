@@ -220,7 +220,7 @@
                                     size_t index,                             \
                                     _dtype **element) {                       \
         CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
-        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(element);                         \
+        CBASE_CHECK_POINTER_ARGUMENT(element);                                \
         CBASE_CHECK_INDEX_BOUNDS(dlen, index);                                \
                                                                               \
         *element = _dname##_mutable_index_no_check(data, index);              \
@@ -349,8 +349,8 @@
                                                size_t index,                  \
                                                size_t count) {                \
         if ((index + count) < (*dlen)) {                                      \
-            cb_memmove(_dname##_mutable_index_no_check(data, index + count),  \
-                       _dname##_index_no_check(data, index),                  \
+            cb_memmove(_dname##_mutable_index_no_check(data, index),          \
+                       _dname##_index_no_check(data, index + count),          \
                        (*dlen) - (index + count),                             \
                        sizeof(_dtype));                                       \
         }                                                                     \
@@ -461,7 +461,7 @@
                                                          size_t count) {      \
         if ((index + count) < ((*dlen) - count)) {                            \
             cb_memmove(_dname##_mutable_index_no_check(data, index),          \
-                       _dname##_index_no_check(data, (*dlen) - (count + 1)),  \
+                       _dname##_index_no_check(data, (*dlen) - count),        \
                        count,                                                 \
                        sizeof(_dtype));                                       \
         }                                                                     \

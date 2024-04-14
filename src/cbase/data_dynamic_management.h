@@ -209,7 +209,7 @@
                                            size_t *dlen,                      \
                                            size_t *dcap,                      \
                                            size_t cap) {                      \
-        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
@@ -245,7 +245,7 @@
                                    size_t *dlen,                              \
                                    size_t *dcap,                              \
                                    size_t cap) {                              \
-        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
@@ -259,16 +259,15 @@
                                                   size_t *dlen,               \
                                                   size_t *dcap,               \
                                                   size_t len) {               \
-        if (len < (*dlen)) {                                                  \
-            (*dlen) = len;                                                    \
-        }                                                                     \
-        else {                                                                \
+        if ((*dcap) < len) {                                                  \
             _CBASE_TRY_EXPAND_DYNAMIC_DATA_IF_NEEDED_NO_ZERO(_dname,          \
                                                              data,            \
                                                              (*dlen),         \
                                                              dcap,            \
-                                                             len);            \
+                                                             len - (*dcap));  \
         }                                                                     \
+                                                                              \
+        (*dlen) = len;                                                        \
                                                                               \
         return 0;                                                             \
     }                                                                         \
@@ -277,7 +276,7 @@
                                          size_t *dlen,                        \
                                          size_t *dcap,                        \
                                          size_t len) {                        \
-        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
@@ -291,17 +290,18 @@
                                           size_t *dlen,                       \
                                           size_t *dcap,                       \
                                           size_t len) {                       \
-        if (len < (*dlen)) {                                                  \
-            _dname##_zero_no_check((*data), (*dlen), len - (*dlen));          \
-            (*dlen) = len;                                                    \
-        }                                                                     \
-        else {                                                                \
+        if ((*dcap) < len) {                                                  \
             _CBASE_TRY_EXPAND_DYNAMIC_DATA_IF_NEEDED(_dname,                  \
                                                      data,                    \
                                                      (*dlen),                 \
                                                      dcap,                    \
-                                                     len);                    \
+                                                     len - (*dcap));          \
         }                                                                     \
+        else {                                                                \
+            _dname##_zero_no_check((*data), len, (*dlen) - len);              \
+        }                                                                     \
+                                                                              \
+        (*dlen) = len;                                                        \
                                                                               \
         return 0;                                                             \
     }                                                                         \
@@ -310,7 +310,7 @@
                                  size_t *dlen,                                \
                                  size_t *dcap,                                \
                                  size_t len) {                                \
-        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
@@ -353,7 +353,7 @@
                                           size_t *dlen,                       \
                                           size_t *dcap,                       \
                                           size_t len) {                       \
-        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
@@ -381,7 +381,7 @@
                                   size_t *dlen,                               \
                                   size_t *dcap,                               \
                                   size_t len) {                               \
-        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
@@ -410,7 +410,7 @@
                                             size_t *dlen,                     \
                                             size_t *dcap,                     \
                                             size_t cap) {                     \
-        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
@@ -439,7 +439,7 @@
                                     size_t *dlen,                             \
                                     size_t *dcap,                             \
                                     size_t cap) {                             \
-        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
@@ -479,7 +479,7 @@
                                                    size_t *dcap,              \
                                                    size_t len,                \
                                                    size_t cap) {              \
-        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \
@@ -521,7 +521,7 @@
                                            size_t *dcap,                      \
                                            size_t len,                        \
                                            size_t cap) {                      \
-        CBASE_CHECK_DOUBLE_POINTER_ARGUMENT(data);                            \
+        CBASE_CHECK_POINTER_ARGUMENT(data);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dlen);                                   \
         CBASE_CHECK_POINTER_ARGUMENT(dcap);                                   \
                                                                               \

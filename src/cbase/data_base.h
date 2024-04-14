@@ -12,7 +12,7 @@
     _api const _dtype *_dname##_index_no_check(const _dtype *data,            \
                                                size_t index);                 \
                                                                               \
-    _api int _dname##_index(_dtype *data,                                     \
+    _api int _dname##_index(const _dtype *data,                               \
                             size_t dlen,                                      \
                             size_t index,                                     \
                             _dtype const **element);                          \
@@ -109,7 +109,7 @@
         return data + index;                                                  \
     }                                                                         \
                                                                               \
-    _api int _dname##_index(_dtype *data,                                     \
+    _api int _dname##_index(const _dtype *data,                               \
                             size_t dlen,                                      \
                             size_t index,                                     \
                             _dtype const **element) {                         \
